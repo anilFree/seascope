@@ -19,6 +19,7 @@ class EditorView(QsciScintilla):
 		## Editing line color
 		self.setCaretLineVisible(True)
 		self.setCaretLineBackgroundColor(QtGui.QColor("#EEF6FF"))
+		#self.setCaretWidth(2)
 
 		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 

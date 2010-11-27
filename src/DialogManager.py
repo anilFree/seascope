@@ -27,8 +27,6 @@ class ProjectOpenDialog(QObject):
 
 		QObject.connect(self.dlg.pod_open_btn, SIGNAL("clicked()"), self.open_btn_cb)
 		QObject.connect(self.dlg, SIGNAL("accepted()"), self.ok_btn_cb)
-		#QObject.connect(self.dlg.pod_proj_list, SIGNAL("itemActivated(QListWidgetItem*)"), self.proj_list_cb)
-		#QObject.connect(self.dlg.pod_proj_list, SIGNAL("itemDoubleClicked(QListWidgetItem*)"), self.proj_list_confirm_cb)
 		QObject.connect(self.dlg.pod_proj_list, SIGNAL("itemSelectionChanged()"), self.proj_list_change_cb)
 
 	def proj_list_change_cb(self):
@@ -83,18 +81,13 @@ class FilePreferencesDialog(QObject):
 		self.dlg.prd_style_lw.addItems(QStyleFactory.keys())
 		self.dlg.prd_style_lw.itemSelectionChanged.connect(self.style_changed_cb)
 		self.dlg.prd_font_app_btn.clicked.connect(self.font_app_btn_cb)
-
 		self.set_btn_text_and_font(self.dlg.prd_font_app_btn, QApplication.font())
-
-		#self.orig_style = QApplication.style()
-		#self.orig_app_font = QApplication.font()
 		self.app_style = app_style
 
 	def set_btn_text_and_font(self, btn, font):
 		ftext = font.family() + ' ' + str(font.pointSize())
 		btn.setFont(font)
 		btn.setText(ftext)
-
 
 	def style_changed_cb(self):
 		item = self.dlg.prd_style_lw.currentItem()
@@ -106,7 +99,6 @@ class FilePreferencesDialog(QObject):
 		if (ok):
 			self.set_btn_text_and_font(self.dlg.prd_font_app_btn, font)
 			
-
 	def run_dialog(self):
 		ret = self.dlg.exec_()
 		if (ret == QDialog.Accepted):

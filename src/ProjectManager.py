@@ -113,7 +113,6 @@ class ProjectDialog(QObject):
 			cs_opt.append('-k')
 
 		self.res = [proj_dir, cs_opt, cs_list]
-		#self.dlg.response(1)
 
 	def set_proj_args(self, proj_args):
 		(proj_dir, cs_opt, cs_list) = proj_args
@@ -135,7 +134,6 @@ class ProjectDialog(QObject):
 			self.is_new_proj = True
 			self.dlg.pd_invert_chkbox.setChecked(True)
 		else:
-			#self.dlg.pd_path_tbtn.hide()
 			self.is_new_proj = False
 			self.set_proj_args(proj_args)
 		self.res = None
