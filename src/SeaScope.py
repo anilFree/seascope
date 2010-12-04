@@ -129,6 +129,7 @@ class SeaScopeApp(QMainWindow):
 		self.edit_book.m_show_line_num = m_edit.addAction('Show line number', self.edit_book.show_line_number_cb, 'F11')
 		self.edit_book.m_show_line_num.setCheckable(True)
 		m_edit.addSeparator()
+		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
 		m_edit.addAction('Goto line', self.edit_book.goto_line_cb, 'Ctrl+G')
 
 		m_prj = menubar.addMenu('&Project')
@@ -268,7 +269,7 @@ class SeaScopeApp(QMainWindow):
 		
 	# project menu functions
 	def proj_new_or_open(self):
-		self.setWindowTitle('SeaScope - ' + CsQuery.cs_get_proj_name())
+		self.editor_tab_changed_cb('SeaScope')
 		self.update_recent_projects(CsQuery.cs_get_proj_dir())
 		self.file_view.add_files(CsQuery.cs_get_proj_src_files())
 
@@ -314,6 +315,13 @@ class SeaScopeApp(QMainWindow):
 		CsQuery.cs_proj_update(proj_args)
 		self.file_view.add_files(CsQuery.cs_get_proj_src_files())
 
+	def editor_tab_changed_cb(self, fname):
+		title = CsQuery.cs_get_proj_name()
+		if not title:
+			title = 'SeaScope'
+		if (fname and fname != ''):
+			title = title + ' - ' + fname
+		self.setWindowTitle(title)
 
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self)
@@ -327,6 +335,7 @@ class SeaScopeApp(QMainWindow):
 
 
 		self.edit_book.sig_history_update.connect(self.res_book.history_update)
+		self.edit_book.sig_tab_changed.connect(self.editor_tab_changed_cb)
 		self.res_book.sig_show_file_line.connect(self.edit_book.show_file_line)
 		self.file_view.sig_show_file.connect(self.edit_book.show_file)
 

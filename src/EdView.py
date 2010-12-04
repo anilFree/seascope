@@ -125,12 +125,14 @@ class EditorPage(QSplitter):
 		
 class EditorBook(QTabWidget):
 	sig_history_update = pyqtSignal(str, int)
+	sig_tab_changed = pyqtSignal(str)
 
 	def __init__(self, *args):
 		apply(QTabWidget.__init__,(self, ) + args)
 
 		self.setTabsClosable(True)
 		self.tabCloseRequested.connect(self.close_cb)
+		self.currentChanged.connect(self.tab_change_cb)
 		
 		self.f_text = None
 
@@ -166,6 +168,11 @@ class EditorBook(QTabWidget):
 			return (None, None)
 		(line, inx) = ed.ev.getCursorPosition()
 		return (ed.ev.filename, line + 1)
+	def matching_brace_cb(self):
+		ed = self.currentWidget()
+		if ed:
+			ed.ev.moveToMatchingBrace()
+			#ed.ev.setFocus()
 	def goto_line_cb(self):
 		ed = self.currentWidget()
 		if not ed:
@@ -180,7 +187,7 @@ class EditorBook(QTabWidget):
 	def show_file(self, filename, line):
 		for i in range(self.count()):
 			ed = self.widget(i)
-			if (ed.ev.get_filename() == filename):
+			if (ed.get_filename() == filename):
 				self.setCurrentWidget(ed)
 				return
 		self.addFile(filename)
@@ -203,6 +210,13 @@ class EditorBook(QTabWidget):
 	def close_all_cb(self):
 		if DialogManager.show_yes_no("Close all files ?"):
 			self.clear()
+	def tab_change_cb(self, inx):
+		if (inx == -1):
+			fname = ''
+		else:
+			fname = self.currentWidget().get_filename()
+		self.sig_tab_changed.emit(fname)
+			
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)
