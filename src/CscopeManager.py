@@ -42,6 +42,8 @@ class CsProcess(QObject):
 		for line in text:
 			if line == '':
 				continue
+			if line[-1:] == '\r':
+				line = line[0:-1]
 			line = line.split(' ', 3)
 			line = [line[1], line[0], line[2], line[3]]
 			res.append(line)

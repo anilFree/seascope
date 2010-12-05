@@ -10,6 +10,8 @@ class CtagsTreeItem(QTreeWidgetItem):
 		QTreeWidgetItem.__init__(self, li)
 	def column_val(self, col):
 		return str(self.data(col, Qt.DisplayRole).toString())
+	def line_val(self):
+		return (int(self.column_val(1)))
 
 class CtagsTree(QTreeWidget):
 	def __init__(self, parent=None):
@@ -36,6 +38,34 @@ class CtagsTree(QTreeWidget):
 		self.resizeColumnToContents(0)
 		self.resizeColumnToContents(1)
 		self.resizeColumnToContents(2)
+
+	def ed_cursor_changed(self, line, pos):
+		line = line + 1
+		item = self.currentItem()
+		if not item:
+			item = self.topLevelItem(0)
+			if not item:
+				return
+		if (item.line_val() == line):
+			pass
+		elif (item.line_val() < line):
+			while True:
+				next_item = self.itemBelow(item)
+				if not next_item:
+					break
+				if (next_item.line_val() > line):
+					break
+				item = next_item
+		else:
+			while True:
+				prev_item = self.itemAbove(item)
+				if not prev_item:
+					break
+				item = prev_item
+				if (item.line_val() <= line):
+					break
+		self.setCurrentItem(item)
+
 
 class CtagsView(QWidget):
 	sig_goto_line = pyqtSignal(int)
@@ -76,4 +106,3 @@ class CtagsView(QWidget):
 		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
 			self.ct.keyPressEvent(ev)
 			return
-

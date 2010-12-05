@@ -114,6 +114,7 @@ class EditorPage(QSplitter):
 		self.addWidget(self.ev)
 		self.setSizes([1, 300])
 
+		self.ev.cursorPositionChanged.connect(self.cv.ct.ed_cursor_changed)
 		self.cv.sig_goto_line.connect(self.ev.goto_line)
 
 	def open_file(self, filename):
