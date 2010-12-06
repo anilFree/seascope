@@ -131,6 +131,7 @@ class EditorBook(QTabWidget):
 	def __init__(self, *args):
 		apply(QTabWidget.__init__,(self, ) + args)
 
+		self.setMovable(True)
 		self.setTabsClosable(True)
 		self.tabCloseRequested.connect(self.close_cb)
 		self.currentChanged.connect(self.tab_change_cb)
