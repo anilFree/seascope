@@ -31,6 +31,9 @@ class FileTree(QWidget):
 		self.qt.itemActivated.connect(self.qt_itemActivated)
 
 	def le_textChanged(self, text):
+		if (text == ''):
+			return
+		self.qt.keyboardSearch('')
 		self.qt.keyboardSearch(text)
 
 	def le_returnPressed(self):

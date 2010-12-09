@@ -84,8 +84,9 @@ class CtagsView(QWidget):
 		self.ct.itemActivated.connect(self.ct_itemActivated)
 
 	def le_textChanged(self, text):
-		if (len(str(text)) == 1):
-			self.ct.keyboardSearch('')
+		#if (len(str(text)) == 1):
+			#self.ct.keyboardSearch('')
+		self.ct.keyboardSearch('')
 		self.ct.keyboardSearch(text)
 
 	def le_returnPressed(self):
