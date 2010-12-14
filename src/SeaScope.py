@@ -28,11 +28,12 @@ class SeaScopeApp(QMainWindow):
 
 	def file_close_cb(self):
 		self.edit_book.close_current_page()
-	def file_quit_cb(self):
+	def closeEvent(self, ev):
 		if (CsQuery.cs_is_open()):
 			if not DialogManager.show_yes_no('Close project and quit?'):
+				ev.ignore()
 				return
-		sys.exit(0)
+		ev.accept()
 
 	def cs_query_cb(self, cmd_id):
 		if (not CsQuery.cs_is_open()):
@@ -49,7 +50,7 @@ class SeaScopeApp(QMainWindow):
 			if (val == None):
 				return
 			(cmd_id, req, opt) = val
-		if (req == None or req == ""):
+		if (req == None or req == ''):
 			return
 		#self.sbar.showMessage('Query: ' + str(cmd_id) + ': ' + req)
 		if (cmd_id < 9):
@@ -119,7 +120,7 @@ class SeaScopeApp(QMainWindow):
 		m_file.addAction('&Preferences', self.file_preferences_cb)
 		m_file.addSeparator()
 		m_file.addAction('&Close', self.file_close_cb, QKeySequence.Close)
-		m_file.addAction('&Quit', self.file_quit_cb, QKeySequence.Quit)
+		m_file.addAction('&Quit', self.close, QKeySequence.Quit)
 
 		m_edit = menubar.addMenu('&Edit')
 		m_edit.addAction('&Find...', self.edit_book.find_cb, 'Ctrl+F')
@@ -370,15 +371,14 @@ class SeaScopeApp(QMainWindow):
 
 if __name__ == "__main__":
 
-    # pyqt version 4.5 is required
-    pyqt_required_version = 0x40500 
-    if not QtCore.PYQT_VERSION >= pyqt_required_version:
-        print 'Needs pyqt version > 4.5'
-	sys.exit(-1)
+	# pyqt version 4.5 is required
+	pyqt_required_version = 0x40500 
+	if not QtCore.PYQT_VERSION >= pyqt_required_version:
+		print 'Needs pyqt version > 4.5'
+		sys.exit(-1)
 
-    app = QApplication(sys.argv)
-    
-    ma = SeaScopeApp()
-    ma.show()
-    sys.exit(app.exec_())
+	app = QApplication(sys.argv)
+	ma = SeaScopeApp()
+	ma.show()
+	sys.exit(app.exec_())
 

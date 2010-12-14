@@ -136,11 +136,13 @@ class EditorBook(QTabWidget):
 		self.tabCloseRequested.connect(self.close_cb)
 		self.currentChanged.connect(self.tab_change_cb)
 		
+		self.is_show_line = False
 		self.f_text = None
 
 	def addFile(self, fileName):
 		ed = EditorPage()
 		ed.open_file(fileName)
+		ed.ev.show_line_number_cb(self.is_show_line)
 		self.addTab(ed, fileName)
 
 	def get_current_word(self):
@@ -247,6 +249,7 @@ class EditorBook(QTabWidget):
 		if (page == None):	
 			page = EditorPage()
 			page.open_file(filename)
+			page.ev.show_line_number_cb(self.is_show_line)
 			self.addTab(page, os.path.basename(filename))
 		
 		self.setCurrentWidget(page)
@@ -307,6 +310,7 @@ class EditorBook(QTabWidget):
 
 	def show_line_number_cb(self):
 		val = self.m_show_line_num.isChecked()
+		self.is_show_line = val
 		for inx in range(self.count()):
 			ed = self.widget(inx)
 			ed.ev.show_line_number_cb(val)
