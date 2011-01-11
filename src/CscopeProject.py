@@ -40,7 +40,7 @@ class CsConfig:
 		config_file = 'seascope.opt'
 		return os.path.join(self.cs_dir, config_file)
 
-	def read_config(self):
+	def read_seascope_opt(self):
 		config_file = self.get_config_file()
 		if (not os.path.exists(config_file)):
 			return
@@ -51,14 +51,20 @@ class CsConfig:
 			if (key == 'cs_opt'):
 				self.cs_opt = line[1].split()
 		cf.close()
-		self.read_cscope_files()
-
-	def write_config(self):
+		
+	def write_seascope_opt(self):
 		config_file = self.get_config_file()
 		cf = open(config_file, 'w')
 		cf.write('cs_opt' + '=' + string.join(self.cs_opt)+ '\n')
-		self.write_cscope_files()
 		cf.close()
+		
+	def read_config(self):
+		self.read_seascope_opt()
+		self.read_cscope_files()
+
+	def write_config(self):
+		self.write_seascope_opt()
+		self.write_cscope_files()
 
 	def proj_start(self):
 		cs_args = string.join(self.cs_opt)
