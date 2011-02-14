@@ -23,7 +23,12 @@ import ProjectManager
 class SeaScopeApp(QMainWindow):
 
 	def file_preferences_cb(self):
-		(self.app_style, self.app_font) = DialogManager.show_preferences_dialog(self.app_style)
+		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd)
+		(self.app_style, self.app_font, self.edit_ext_cmd) = res
+		if self.edit_ext_cmd != None:
+			self.edit_ext_cmd = str(self.edit_ext_cmd).strip()
+		if (self.edit_ext_cmd == None or self.edit_ext_cmd == ''):
+			self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
 		self.app_write_config()
 
 	def file_close_cb(self):
@@ -113,6 +118,9 @@ class SeaScopeApp(QMainWindow):
 	def help_about_cb(self):
 		DialogManager.show_about_dialog()
 
+	def external_editor_cb(self):
+		self.edit_book.open_in_external_editor(self.edit_ext_cmd)
+
 	def create_mbar(self):
 		menubar = self.menuBar()
 
@@ -132,6 +140,7 @@ class SeaScopeApp(QMainWindow):
 		m_edit.addSeparator()
 		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
 		m_edit.addAction('Goto line', self.edit_book.goto_line_cb, 'Ctrl+G')
+		m_edit.addAction('External editor', self.external_editor_cb, 'Ctrl+E');
 
 		m_prj = menubar.addMenu('&Project')
 		m_prj.addAction('&New Project', self.proj_new_cb)
@@ -182,6 +191,7 @@ class SeaScopeApp(QMainWindow):
 		self.recent_projects = []
 		self.app_style = None
 		self.app_font = None
+		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
 		path = self.app_get_config_file()
 		if (not os.path.exists(path)):
 			return
@@ -198,6 +208,8 @@ class SeaScopeApp(QMainWindow):
 				self.app_style = line[1].split('\n')[0]
 			if (key == 'app_font'):
 				self.app_font = line[1].split('\n')[0]
+			if (key == 'edit_ext_cmd'):
+				self.edit_ext_cmd = line[1]
 		cf.close()
 
 	def app_write_config(self):
@@ -207,6 +219,8 @@ class SeaScopeApp(QMainWindow):
 			cf.write('app_style' + '=' + self.app_style + '\n')
 		if (self.app_font):
 			cf.write('app_font' + '=' + self.app_font + '\n')
+		if (self.edit_ext_cmd):
+			cf.write('edit_ext_cmd' + '=' + self.edit_ext_cmd + '\n')
 		cf.close()
 		
 	def update_recent_projects(self, path):

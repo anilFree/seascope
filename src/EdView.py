@@ -314,3 +314,14 @@ class EditorBook(QTabWidget):
 		for inx in range(self.count()):
 			ed = self.widget(inx)
 			ed.ev.show_line_number_cb(val)
+
+	def open_in_external_editor(self, cmd):
+		if not cmd:
+			DialogManager.show_msg_dialog('Please configure external editor')
+			return
+		(f, l) = self.get_current_file_line()
+		if not f:
+			return
+		cmd = cmd.replace('%F', f).replace('%L', str(l))
+		if not QProcess.startDetached(cmd):
+			DialogManager.show_msg_dialog('Failed to start: ' + cmd)

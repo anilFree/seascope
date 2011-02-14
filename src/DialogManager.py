@@ -75,7 +75,7 @@ def show_project_open_dialog(path_list):
 	return d.run_dialog(path_list)
 
 class FilePreferencesDialog(QObject):
-	def __init__(self, app_style):
+	def __init__(self, app_style, edit_ext_cmd):
 		self.dlg = uic.loadUi('ui/preferences.ui')
 		self.dlg.setWindowIcon(QIcon('icons/seascope.png'))
 		self.dlg.prd_style_lw.addItems(QStyleFactory.keys())
@@ -83,6 +83,9 @@ class FilePreferencesDialog(QObject):
 		self.dlg.prd_font_app_btn.clicked.connect(self.font_app_btn_cb)
 		self.set_btn_text_and_font(self.dlg.prd_font_app_btn, QApplication.font())
 		self.app_style = app_style
+		self.edit_ext_cmd = edit_ext_cmd
+		if (self.edit_ext_cmd):
+			self.dlg.prd_edit_ext_inp.setText(self.edit_ext_cmd)
 
 	def set_btn_text_and_font(self, btn, font):
 		ftext = font.family() + ' ' + str(font.pointSize())
@@ -103,10 +106,11 @@ class FilePreferencesDialog(QObject):
 		ret = self.dlg.exec_()
 		if (ret == QDialog.Accepted):
 			QApplication.setFont(self.dlg.prd_font_app_btn.font())
-		return (self.app_style, self.dlg.prd_font_app_btn.font().toString())
+			self.edit_ext_cmd = self.dlg.prd_edit_ext_inp.text()
+		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd)
 
-def show_preferences_dialog(app_style):
-	d = FilePreferencesDialog(app_style)
+def show_preferences_dialog(app_style, edit_ext_cmd):
+	d = FilePreferencesDialog(app_style, edit_ext_cmd)
 	return d.run_dialog()
 
 def show_about_dialog():
