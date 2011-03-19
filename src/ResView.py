@@ -151,7 +151,7 @@ class ResultPage(QTreeWidget):
 		return ret_val
 
 	def mousePressEvent(self, m_ev):
-		QTableView.mousePressEvent(self, m_ev)
+		QTreeWidget.mousePressEvent(self, m_ev)
 		if (m_ev.button() == Qt.RightButton):
 			self.last_minx = self.indexAt(m_ev.pos())
 			self.pmenu.exec_(QCursor.pos())

@@ -42,6 +42,8 @@ def get_cscope_files_list(rootdir):
 
 class ProjectDialog(QObject):
 	def __init__(self):
+		QObject.__init__(self)
+
 		self.dlg = uic.loadUi('ui/proj_new.ui')
 		self.dlg.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
 

@@ -22,6 +22,8 @@ def show_proj_close():
 
 class ProjectOpenDialog(QObject):
 	def __init__(self):
+		QObject.__init__(self)
+
 		self.dlg = uic.loadUi('ui/proj_open.ui')
 		self.dlg.pod_open_btn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
 
@@ -76,6 +78,8 @@ def show_project_open_dialog(path_list):
 
 class FilePreferencesDialog(QObject):
 	def __init__(self, app_style, edit_ext_cmd):
+		QObject.__init__(self)
+
 		self.dlg = uic.loadUi('ui/preferences.ui')
 		self.dlg.setWindowIcon(QIcon('icons/seascope.png'))
 		self.dlg.prd_style_lw.addItems(QStyleFactory.keys())

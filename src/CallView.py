@@ -47,7 +47,7 @@ class CallTreeWidget(QTreeWidget):
 	sig_show_file_line = pyqtSignal(str, int)
 
 	def __init__(self, parent, cmd_id):
-		QTreeView.__init__(self, parent)
+		QTreeWidget.__init__(self, parent)
 		self.is_busy = False
 		self.cmd_id = cmd_id
 		
@@ -77,7 +77,7 @@ class CallTreeWidget(QTreeWidget):
 		parent.setExpanded(True)
 
 	def mousePressEvent(self, m_ev):
-		QTreeView.mousePressEvent(self, m_ev)
+		QTreeWidget.mousePressEvent(self, m_ev)
 		if (m_ev.button() == Qt.RightButton):
 			self.last_minx = self.indexAt(m_ev.pos())
 
