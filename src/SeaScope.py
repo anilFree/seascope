@@ -367,9 +367,10 @@ class SeaScopeApp(QMainWindow):
 
 		self.setCentralWidget(self.vsp)
 		self.setWindowTitle('SeaScope')
-		self.setWindowIcon(QIcon('icons/seascope.png'))
 		self.setGeometry(300, 100, 800, 600)
 		#self.showMaximized()
+
+		QApplication.setWindowIcon(QIcon('icons/seascope.svg'))
 
 		self.app_read_config()
 		if len(self.recent_projects):

@@ -11,7 +11,11 @@ class ResultPageItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
 	def column_val(self, col):
-		return str(self.data(col, Qt.DisplayRole).toString())
+		try:
+			val = str(self.data(col, Qt.DisplayRole).toString())
+		except:
+			return None
+		return val
 
 class ResultPage(QTreeWidget):
 	sig_show_file_line = pyqtSignal(str, int)
@@ -72,6 +76,8 @@ class ResultPage(QTreeWidget):
 		for inx in range(self.topLevelItemCount()):
 			item = self.topLevelItem(inx)
 			text = item.column_val(self.last_minx.column())
+			if (text == None):
+				continue
 			matched = False
 			if (is_regex):
 				if (is_ignorecase):

@@ -81,7 +81,6 @@ class FilePreferencesDialog(QObject):
 		QObject.__init__(self)
 
 		self.dlg = uic.loadUi('ui/preferences.ui')
-		self.dlg.setWindowIcon(QIcon('icons/seascope.png'))
 		self.dlg.prd_style_lw.addItems(QStyleFactory.keys())
 		self.dlg.prd_style_lw.itemSelectionChanged.connect(self.style_changed_cb)
 		self.dlg.prd_font_app_btn.clicked.connect(self.font_app_btn_cb)
@@ -119,8 +118,8 @@ def show_preferences_dialog(app_style, edit_ext_cmd):
 
 def show_about_dialog():
 	d = uic.loadUi('ui/about.ui')
-	d.ad_logo_lbl.setPixmap(QPixmap('icons/seascope.png'))
-	d.setWindowIcon(QIcon('icons/seascope.png'))
+	p = QApplication.windowIcon().pixmap(128)
+	d.ad_logo_lbl.setPixmap(p)
 	d.exec_()
 
 def show_goto_line_dialog(line, max_line):
