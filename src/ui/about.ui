@@ -17,7 +17,7 @@
    <item>
     <widget class="QTabWidget" name="ad_tab_widget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="ad_about_tab">
       <attribute name="title">
@@ -40,17 +40,7 @@
        <item>
         <layout class="QHBoxLayout" name="ad_hlay">
          <item>
-          <widget class="QLabel" name="ad_logo_lbl">
-           <property name="text">
-            <string>ImageHere</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="ad_hspace">
+          <spacer name="ad_hspace1">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
            </property>
@@ -61,6 +51,16 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="ad_logo_lbl">
+           <property name="text">
+            <string>ImageHere</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QLabel" name="ad_title_lbl">
@@ -80,6 +80,19 @@ p, li { white-space: pre-wrap; }
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
            </property>
           </widget>
+         </item>
+         <item>
+          <spacer name="ad_hspace2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </item>

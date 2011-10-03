@@ -12,22 +12,6 @@ import DialogManager
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
 
-def setup_columns(view, col_list):
-	for i in range(len(col_list)):
-		col = gtk.TreeViewColumn(col_list[i])
-		view.append_column(col)
-		# create a CellRendererText to render the data
-		cell = gtk.CellRendererText()
-		# add the cell to the func_col and allow it to expand
-		col.pack_start(cell, True)
-		# set the cell "text" attribute to column 0 - retrieve text
-		# from that column in treestore
-		col.add_attribute(cell, 'text', i)
-		# make it searchable
-		view.set_search_column(i)
-		col.set_sort_column_id(i)
-
-
 def get_cscope_files_list(rootdir):
 	file_list = []
 	if (not os.path.isdir(rootdir)):
@@ -36,7 +20,7 @@ def get_cscope_files_list(rootdir):
 	for root, subFolders, files in os.walk(rootdir):
 		for f in files:
 			f = os.path.join(root, f)
-			if (re.search('\.(h|c|H|C|hh|cc|cpp|hxx|cxx||l|y|s|S|pl|pm|java)$', f) != None):
+			if (re.search('\.(h|c|H|C|hh|cc|hpp|cpp|hxx|cxx||l|y|s|S|pl|pm|java)$', f) != None):
 				file_list.append(f)
 	return file_list
 

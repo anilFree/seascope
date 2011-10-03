@@ -392,8 +392,10 @@ if __name__ == "__main__":
 		print 'Needs pyqt version > 4.5'
 		sys.exit(-1)
 
+	# change working dir to the script dir so that we can run this script anywhere else
+	os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 	app = QApplication(sys.argv)
 	ma = SeaScopeApp()
 	ma.show()
 	sys.exit(app.exec_())
-
