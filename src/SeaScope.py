@@ -242,9 +242,9 @@ class SeaScopeApp(QMainWindow):
 		page = ResView.ResultManager.create_result_page(book, cmd_id, req)
 		## add result
 		sig_res = CsQuery.cs_query(cmd_id, req, opt)
-		sig_res.connect(page.add_result)
+		sig_res[0].connect(page.add_result)
 		#page.add_result(req, res)
-		DebugManager.connect_to_cs_sig_res(sig_res)
+		DebugManager.connect_to_cs_sig_res(sig_res[1])
 
 	def cs_qdef_result(self, req, res):
 		count = len(res)
@@ -274,8 +274,8 @@ class SeaScopeApp(QMainWindow):
 
 	def do_cs_query_qdef(self, cmd_id, req, opt):
 		sig_res = CsQuery.cs_query(cmd_id, req, opt)
-		sig_res.connect(self.cs_qdef_result)
-		DebugManager.connect_to_cs_sig_res(sig_res)
+		sig_res[0].connect(self.cs_qdef_result)
+		DebugManager.connect_to_cs_sig_res(sig_res[1])
 
 	def ctree_show_file_line(self, filename, line):
 		self.raise_()

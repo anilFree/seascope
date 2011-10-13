@@ -5,6 +5,7 @@ from PyQt4.QtGui import QMessageBox
 
 class CsProcess(QObject):
 	sig_result = pyqtSignal(str, list)
+	sig_result_dbg = pyqtSignal(str, str, str)
 	sig_rebuild = pyqtSignal()
 
 	cs_wdir = None
@@ -24,14 +25,17 @@ class CsProcess(QObject):
 	
 	def cs_finished(self, ret):
 		CsProcess.cs_plist.remove(self)
+		
 		res = str(self.proc.readAllStandardOutput())
+		err_str = str(self.proc.readAllStandardError())
+
 		if self.is_rebuild:
 			self.sig_rebuild.emit()
 		else:
+			self.sig_result_dbg.emit(self.s_args, res, err_str)
 			res = self.cs_parse_result(res)
 			self.sig_result.emit(self.sym, res)
 
-		err_str = str(self.proc.readAllStandardError())
 		if (err_str != ''):
 			QMessageBox.warning(None, "SeaScope", str(err_str), QMessageBox.Ok)
 
@@ -57,17 +61,15 @@ class CsProcess(QObject):
 		if (opt == None):
 			opt = ''
 		self.sym = sym
-		args = 'cscope ' + self.args + ' -L -d ' + opt + ' -' + str(cmd_id) + ' ' + sym
-		#print 'args:', args
-		self.proc.start(args)
+		self.s_args = 'cscope ' + self.args + ' -L -d ' + opt + ' -' + str(cmd_id) + ' ' + sym
+		self.proc.start(self.s_args)
 		self.proc.closeWriteChannel()
-		return self.sig_result
+		return [self.sig_result, self.sig_result_dbg]
 
 	def cs_rebuild_int(self):
 		self.is_rebuild = True
-		args = 'cscope ' + self.args + ' -L'
-		#print 'args:', args
-		self.proc.start(args)
+		self.s_args = 'cscope ' + self.args + ' -L'
+		self.proc.start(self.s_args)
 		return self.sig_rebuild
 
 	@staticmethod
@@ -84,6 +86,7 @@ class CsProcess(QObject):
 		p = CsProcess()
 		res = p.cs_query_int(cmd_id, sym, opt)
 		return res
+
 	@staticmethod
 	def cs_rebuild():
 		p = CsProcess()

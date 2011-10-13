@@ -98,7 +98,7 @@ class CallTreeWidget(QTreeWidget):
 		## add result
 		sig_res = CsQuery.cs_query(self.cmd_id, func)
 		self.query_item = item
-		sig_res.connect(self.ctree_add_result)
+		sig_res[0].connect(self.ctree_add_result)
 
 	def ctree_add_result(self, req, res):
 		self.query_item.add_result(res)

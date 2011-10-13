@@ -15,11 +15,12 @@ class DebugInfoEntry(QLabel):
 	#def add_result_continue(self):
 		#self.add_result(self.name, self.res)
 
-	def add_result(self, name, res):
+	def add_result(self, cmd, out, err):
 		#text = '<b>' + name + '</b>';
-		text = name;
-		for line in res:
-			text += '\n    ' + str(''.join(line))
+		text = cmd;
+		if err != None and err != '':
+			text += '\nError: [' + err + ']'
+		text += '\n' + out;
 		self.setText(str(text))
 
 class DebugWindow(QMainWindow):
@@ -28,7 +29,6 @@ class DebugWindow(QMainWindow):
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self)
 
-		print 'new dbg window'
 		self.ui = uic.loadUi('ui/debug.ui', self)
 		self.vlay = self.ui.dbg_widget.layout()
 
@@ -42,7 +42,6 @@ class DebugWindow(QMainWindow):
 		self.ui.show()
 	
 	def closeEvent(self, e):
-		print 'closeEvent'
 		DebugWindow.dlg = None
 
 def show_dbg_dialog():
