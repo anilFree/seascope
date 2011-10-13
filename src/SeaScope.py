@@ -18,6 +18,7 @@ from CscopeProject import CsQuery
 
 import DialogManager
 import ProjectManager
+import DebugManager
 
 
 class SeaScopeApp(QMainWindow):
@@ -115,6 +116,7 @@ class SeaScopeApp(QMainWindow):
 	def go_search_ctags_cb(self):
 		self.edit_book.focus_search_ctags()
 
+
 	def help_about_cb(self):
 		DialogManager.show_about_dialog()
 
@@ -126,6 +128,7 @@ class SeaScopeApp(QMainWindow):
 
 		m_file = menubar.addMenu('&File')
 		m_file.addAction('&Preferences', self.file_preferences_cb)
+		m_file.addAction('&Debug', DebugManager.show_dbg_dialog, 'Ctrl+D')
 		m_file.addSeparator()
 		m_file.addAction('&Close', self.file_close_cb, QKeySequence.Close)
 		m_file.addAction('&Quit', self.close, QKeySequence.Quit)
@@ -241,6 +244,7 @@ class SeaScopeApp(QMainWindow):
 		sig_res = CsQuery.cs_query(cmd_id, req, opt)
 		sig_res.connect(page.add_result)
 		#page.add_result(req, res)
+		DebugManager.connect_to_cs_sig_res(sig_res)
 
 	def cs_qdef_result(self, req, res):
 		count = len(res)
@@ -271,6 +275,7 @@ class SeaScopeApp(QMainWindow):
 	def do_cs_query_qdef(self, cmd_id, req, opt):
 		sig_res = CsQuery.cs_query(cmd_id, req, opt)
 		sig_res.connect(self.cs_qdef_result)
+		DebugManager.connect_to_cs_sig_res(sig_res)
 
 	def ctree_show_file_line(self, filename, line):
 		self.raise_()

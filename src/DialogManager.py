@@ -241,6 +241,7 @@ class FilterDialog:
 				self.dlg.fd_negate_chkbox.isChecked(),
 				self.dlg.fd_icase_chkbox.isChecked()
 			]
+		self.dlg = None
 		return res
 
 def show_filter_dialog():
