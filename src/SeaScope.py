@@ -123,12 +123,15 @@ class SeaScopeApp(QMainWindow):
 	def external_editor_cb(self):
 		self.edit_book.open_in_external_editor(self.edit_ext_cmd)
 
+	def show_dbg_dialog(self):
+		DebugManager.show_dbg_dialog(self)
+
 	def create_mbar(self):
 		menubar = self.menuBar()
 
 		m_file = menubar.addMenu('&File')
 		m_file.addAction('&Preferences', self.file_preferences_cb)
-		m_file.addAction('&Debug', DebugManager.show_dbg_dialog, 'Ctrl+D')
+		m_file.addAction('&Debug', self.show_dbg_dialog, 'Ctrl+D')
 		m_file.addSeparator()
 		m_file.addAction('&Close', self.file_close_cb, QKeySequence.Close)
 		m_file.addAction('&Quit', self.close, QKeySequence.Quit)

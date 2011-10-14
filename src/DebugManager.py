@@ -7,27 +7,36 @@ from PyQt4 import QtGui, QtCore, uic
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-class DebugInfoEntry(QLabel):
+class DebugInfoEntry(QFrame):
 	def __init__(self, parent=None):
-		QLabel.__init__(self)
-		self.setFrameStyle(QFrame.StyledPanel | QFrame.Plain)
+		QFrame.__init__(self)
+		self.vlay = QVBoxLayout()
+		self.setLayout(self.vlay)
 
 	#def add_result_continue(self):
 		#self.add_result(self.name, self.res)
 
 	def add_result(self, cmd, out, err):
-		#text = '<b>' + name + '</b>';
-		text = cmd;
+		#self.setFrameStyle(QFrame.StyledPanel | QFrame.Plain)
+		self.cmd_lbl = QLabel()
+		self.cmd_lbl.setText(cmd)
+		self.vlay.addWidget(self.cmd_lbl)
+
 		if err != None and err != '':
-			text += '\nError: [' + err + ']'
-		text += '\n' + out;
-		self.setText(str(text))
+			self.err_lbl = QLabel()
+			self.err_lbl.setText('Error: ' + err)
+			self.vlay.addWidget(self.err_lbl)
+
+		self.res_lbl = QLabel()
+		self.res_lbl.setText(out)
+		self.vlay.addWidget(self.res_lbl)
+		#self.res_lbl.hide()
 
 class DebugWindow(QMainWindow):
 	dlg = None
 
 	def __init__(self, parent=None):
-		QMainWindow.__init__(self)
+		QMainWindow.__init__(self, parent)
 
 		self.ui = uic.loadUi('ui/debug.ui', self)
 		self.vlay = self.ui.dbg_widget.layout()
@@ -44,9 +53,9 @@ class DebugWindow(QMainWindow):
 	def closeEvent(self, e):
 		DebugWindow.dlg = None
 
-def show_dbg_dialog():
+def show_dbg_dialog(parent):
 	if (DebugWindow.dlg == None):
-		DebugWindow.dlg = DebugWindow()
+		DebugWindow.dlg = DebugWindow(parent)
 	DebugWindow.dlg.run_dialog()
 
 
