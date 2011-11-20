@@ -9,15 +9,11 @@ from PyQt4 import QtGui, QtCore
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-import EdView
-import ResView
-import CallView
-import FileView
-
-from CscopeProject import CsQuery
+from view import EdView, ResView, FileView, CallView
+import backend
+from backend.plugins.PluginBase import QueryUiBase
 
 import DialogManager
-import ProjectManager
 import DebugManager
 
 
@@ -35,71 +31,12 @@ class SeaScopeApp(QMainWindow):
 	def file_close_cb(self):
 		self.edit_book.close_current_page()
 	def closeEvent(self, ev):
-		if (CsQuery.cs_is_open()):
+		if (backend.proj_is_open()):
 			if not DialogManager.show_yes_no('Close project and quit?'):
 				ev.ignore()
 				return
 		ev.accept()
 
-	def cs_query_cb(self, cmd_id):
-		if (not CsQuery.cs_is_open()):
-			return
-		if (not CsQuery.cs_is_ready()):
-			DialogManager.show_msg_dialog('\nProject has no source files')
-			return
-		req = self.edit_book.get_current_word()
-		if (req != None):
-			req = str(req).strip()
-		opt = None
-		if (cmd_id < 10 or cmd_id == 12):
-			val = DialogManager.show_query_dialog(cmd_id, req)
-			if (val == None):
-				return
-			(cmd_id, req, opt) = val
-		if (req == None or req == ''):
-			return
-		#self.sbar.showMessage('Query: ' + str(cmd_id) + ': ' + req)
-		if (cmd_id < 9):
-			self.do_cs_query(cmd_id, req, opt)
-		else:
-			if cmd_id == 11:
-				self.do_cs_query_qdef(1, req, opt)
-			elif cmd_id == 9:
-				self.do_cs_query_ctree(3, req, opt)
-		#self.sbar.clearMessage()
-				
-
-	def cb_ref(self):
-		self.cs_query_cb(0)
-	def cb_def(self):
-		self.cs_query_cb(1)
-	def cb_called(self):
-		self.cs_query_cb(2)
-	def cb_calling(self):
-		self.cs_query_cb(3)
-	def cb_text(self):
-		self.cs_query_cb(4)
-	def cb_egrep(self):
-		self.cs_query_cb(5)
-	def cb_file(self):
-		self.cs_query_cb(7)
-	def cb_inc(self):
-		self.cs_query_cb(8)
-	def cb_call_tree(self):
-		self.cs_query_cb(9)
-	def cb_quick_def(self):
-		self.cs_query_cb(11)
-	def cb_rebuild(self):
-		sig_rebuild = CsQuery.cs_rebuild()
-		dlg = QProgressDialog()
-		dlg.setWindowTitle('SeaScope rebuild')
-		dlg.setLabelText('Rebuilding cscope database...')
-		dlg.setCancelButton(None)
-		dlg.setMinimum(0)
-		dlg.setMaximum(0)
-		sig_rebuild.connect(dlg.accept)
-		while dlg.exec_() != QDialog.Accepted:
-			pass
 
 	def go_prev_res_cb(self):
 		self.res_book.go_next_res(-1)
@@ -151,27 +88,16 @@ class SeaScopeApp(QMainWindow):
 		m_prj = menubar.addMenu('&Project')
 		m_prj.addAction('&New Project', self.proj_new_cb)
 		m_prj.addAction('&Open Project', self.proj_open_cb)
-		m_prj.addAction('&Settings', self.proj_settings_cb)
 		m_prj.addSeparator()
-		m_prj.addAction('&Close Project', self.proj_close_cb)
+		
+		act = m_prj.addAction('&Settings', self.proj_settings_cb)
+		act.setDisabled(True)
+		backend.prj_actions.append(act)
+		act = m_prj.addAction('&Close Project', self.proj_close_cb)
+		act.setDisabled(True)
+		backend.prj_actions.append(act)
 
-		m_cscope = menubar.addMenu('&Cscope')
-		m_cscope.setFont(QFont("San Serif", 8))
-		self.m_cscope = m_cscope
-		EdView.EditorView.ev_popup = m_cscope
-		m_cscope.addAction('&References', self.cb_ref, 'Ctrl+0')
-		m_cscope.addAction('&Definitions', self.cb_def, 'Ctrl+1')
-		m_cscope.addAction('&Called Functions', self.cb_called, 'Ctrl+2')
-		m_cscope.addAction('C&alling Functions', self.cb_calling, 'Ctrl+3')
-		m_cscope.addAction('Find &Text', self.cb_text, 'Ctrl+4')
-		m_cscope.addAction('Find &Egrep', self.cb_egrep, 'Ctrl+5')
-		m_cscope.addAction('Find &File', self.cb_file, 'Ctrl+7')
-		m_cscope.addAction('&Including Files', self.cb_inc, 'Ctrl+8')
-		m_cscope.addSeparator()
-		m_cscope.addAction('&Quick Definition', self.cb_quick_def, 'Ctrl+]')
-		m_cscope.addAction('Call Tr&ee', self.cb_call_tree, 'Ctrl+\\')
-		m_cscope.addSeparator()
-		m_cscope.addAction('Re&build Database', self.cb_rebuild)
+		self.backend_menu = menubar.addMenu('')
 
 		m_go = menubar.addMenu('&Go')
 		m_go.addAction('Previous Result', self.go_prev_res_cb, 'Alt+Up')
@@ -239,112 +165,58 @@ class SeaScopeApp(QMainWindow):
 		self.recent_projects = new_list
 		self.app_write_config()
 
-	def do_cs_query(self, cmd_id, req, opt):
-		book = self.res_book
-		## create page
-		page = ResView.ResultManager.create_result_page(book, cmd_id, req)
-		## add result
-		sig_res = CsQuery.cs_query(cmd_id, req, opt)
-		sig_res[0].connect(page.add_result)
-		#page.add_result(req, res)
-		DebugManager.connect_to_cs_sig_res(sig_res[1])
 
-	def cs_qdef_result(self, req, res):
-		count = len(res)
-		if count > 1:
-			page = ResView.ResultPage()
-			page.add_result(req, res)
-			
-			dlg = QDialog()
-			dlg.setWindowTitle('Quick Definition: ' + req)
-			vlay = QVBoxLayout(dlg)
-			vlay.addWidget(page)
-
-			page.sig_show_file_line.connect(self.edit_book.show_file_line)
-			page.activated.connect(dlg.accept)
-			page.setMinimumWidth(800)
-			page.setMinimumHeight(100)
-
-			dlg.exec_()
-			return
-		if (count == 1):
-			filename = res[0][1]
-			try:
-				line = int(res[0][2])
-			except:
-				return
-			self.edit_book.show_file_line(filename, line)
-
-	def do_cs_query_qdef(self, cmd_id, req, opt):
-		sig_res = CsQuery.cs_query(cmd_id, req, opt)
-		sig_res[0].connect(self.cs_qdef_result)
-		DebugManager.connect_to_cs_sig_res(sig_res[1])
-
-	def ctree_show_file_line(self, filename, line):
-		self.raise_()
-		self.activateWindow()
-		self.edit_book.show_file_line(filename, line)
-
-	def do_cs_query_ctree(self, cmd_id, req, opt):
-		w = CallView.CallTreeWindow(self, req)
-		w.sig_show_file_line.connect(self.ctree_show_file_line)
-		w.show()
-		
 	# project menu functions
 	def proj_new_or_open(self):
 		self.editor_tab_changed_cb('SeaScope')
-		self.update_recent_projects(CsQuery.cs_get_proj_dir())
-		self.file_view.add_files(CsQuery.cs_get_proj_src_files())
+		self.update_recent_projects(backend.proj_dir())
+		self.file_view.add_files(backend.proj_src_files())
 
 	def proj_new_cb(self):
-		if (CsQuery.cs_is_open()):
+		if (backend.proj_is_open()):
 			if (not DialogManager.show_proj_close()):
 				return
 			self.proj_close_cb()
-		proj_args = ProjectManager.show_project_dialog(None)
-		if (proj_args != None):
-			CsQuery.cs_proj_new(proj_args)
+		if backend.proj_new():
 			self.proj_new_or_open()
 
 	def proj_open(self, proj_path):
-		CsQuery.cs_proj_open(proj_path)
+		rc = backend.proj_open(proj_path)
+		if not rc:
+			print 'proj_open', proj_path, 'failed'
+			return
 		self.proj_new_or_open()
 	def proj_open_cb(self):
 		proj_path = DialogManager.show_project_open_dialog(self.recent_projects)
 		if (proj_path != None):
-			self.proj_close_cb()
+			if backend.proj_is_open():
+				self.proj_close_cb()
 			self.proj_open(proj_path)
 
 	def proj_close_cb(self):
-		if (not CsQuery.cs_is_open()):
-			return
-		
-		self.update_recent_projects(CsQuery.cs_get_proj_dir())
+		self.update_recent_projects(backend.proj_dir())
 		self.setWindowTitle("SeaScope")
 
-		CsQuery.cs_proj_close()
+		backend.proj_close()
 		
 		self.edit_book.clear()
 		self.res_book.clear()
 		self.file_view.clear()
 
 	def proj_settings_cb(self):
-		if (not CsQuery.cs_is_open()):
-			return
-		proj_args = CsQuery.cs_get_proj_conf()
-		proj_args = ProjectManager.show_project_dialog(proj_args)
-		if (proj_args == None):
-			return
-		CsQuery.cs_proj_update(proj_args)
-		self.file_view.add_files(CsQuery.cs_get_proj_src_files())
+		if backend.proj_settings_trigger():
+			self.file_view.add_files(backend.proj_src_files())
 
 	def editor_tab_changed_cb(self, fname):
-		title = CsQuery.cs_get_proj_name()
+		title = backend.proj_name()
 		if not title:
 			title = 'SeaScope'
 		if (fname and fname != ''):
 			title = title + ' - ' + fname
 		self.setWindowTitle(title)
+
+	def show_file_line(self, filename, line):
+		self.edit_book.show_file_line(filename, line)
 
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self)
@@ -356,6 +228,15 @@ class SeaScopeApp(QMainWindow):
 		self.sbar = self.statusBar()
 		self.create_mbar()
 
+		EdView.EditorView.ev_popup = self.backend_menu
+		CallView.CallTreeWindow.parent = self
+
+		QueryUiBase.backend_menu = self.backend_menu
+		QueryUiBase.edit_book = self.edit_book
+		QueryUiBase.res_book = self.res_book
+		QueryUiBase.call_view = CallView
+		QueryUiBase.dbg_mgr = DebugManager
+		
 
 		self.edit_book.sig_history_update.connect(self.res_book.history_update)
 		self.edit_book.sig_tab_changed.connect(self.editor_tab_changed_cb)

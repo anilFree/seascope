@@ -5,8 +5,6 @@ import os
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-import DialogManager
-
 class FileTree(QWidget):
 	sig_show_file = pyqtSignal(str)
 	

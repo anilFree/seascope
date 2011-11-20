@@ -170,6 +170,7 @@ class ResultPage(QTreeWidget):
 
 
 class ResultManager(QTabWidget):
+	book = None
 	sig_show_file_line = pyqtSignal(str, int)
 
 	def __init__(self, *args):
@@ -182,6 +183,7 @@ class ResultManager(QTabWidget):
 		self.h_page = None
 
 		self.setFont(QFont("San Serif", 8))
+		ResultManager.book = self
 
 	def go_next_res_common(self, page, inc):
 		if page == None:
@@ -225,8 +227,8 @@ class ResultManager(QTabWidget):
 			self.pmenu.exec_(QCursor.pos())
 
 	def history_create(self):
-		self.h_page = ResultManager.create_result_page(self, None, 'History')
-		self.h_page.is_history = True
+		self.h_page = ResultManager.create_result_page(self, None)
+		assert self.h_page.is_history
 		self.h_page.hideColumn(0)
 		self.h_page.hideColumn(3)
 		
@@ -253,27 +255,18 @@ class ResultManager(QTabWidget):
 		if self.h_page.topLevelItemCount():
 			self.h_page.setCurrentItem(self.h_page.topLevelItem(0))
 
-	@staticmethod
-	def create_result_page(book, cmd_id, req):
-		cmd_dict = {
-			0: 'REF',
-			1: 'DEF',
-			2: '<--',
-			3: '-->',
-			4: 'TXT',
-			5: 'GRP',
-			7: 'FIL',
-			8: 'INC',
-		}
-		if (cmd_id != None):
-			name = cmd_dict[cmd_id] + ' ' + req
-		else:
-			name = req
-
-		page = ResultPage(book)
-		book.addTab(page, name)
-		if (cmd_id != None):
-			book.setCurrentWidget(page)
-		page.sig_show_file_line.connect(book.sig_show_file_line)
+	def create_result_page(self, name):
+		page = ResultPage(self)
+		if not name:
+			name = 'History'
+			page.is_history = True
+		self.addTab(page, name)
+		if not page.is_history:
+			self.setCurrentWidget(page)
+		page.sig_show_file_line.connect(self.sig_show_file_line)
 		page.show_progress_bar()
 		return page
+
+	def create_result_page_single(self):
+		return ResultPage()
+

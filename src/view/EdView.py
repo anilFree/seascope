@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import os
+import re
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerCPP
+from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerCPP, QsciLexerPython
 
 import DialogManager
 from CtagsView import *
@@ -62,7 +63,7 @@ class EditorView(QsciScintilla):
 		self.font = QtGui.QFont()
 		self.font.setFamily("Monospace")
 		self.font.setFixedPitch(True)
-		self.font.setPointSize(8)
+		self.font.setPointSize(10)
 		# the font metrics here will help
 		# building the margin width later
 		self.fm = QtGui.QFontMetrics(self.font)
@@ -78,6 +79,8 @@ class EditorView(QsciScintilla):
 
 		## Choose a lexer
 		self.lexer = QsciLexerCPP()
+		if (re.search('\.(py)$', filename) != None):
+			self.lexer = QsciLexerPython()
 		self.lexer.setDefaultFont(self.font)
 		self.setLexer(self.lexer)
 
@@ -103,7 +106,10 @@ class EditorView(QsciScintilla):
 		self.setFocus()
 
 	def contextMenuEvent(self, ev):
+		f = EditorView.ev_popup.font()
+		EditorView.ev_popup.setFont(QFont("San Serif", 8))
 		EditorView.ev_popup.exec_(QCursor.pos())
+		EditorView.ev_popup.setFont(f)
 
 class EditorPage(QSplitter):
 	def __init__(self, parent=None):

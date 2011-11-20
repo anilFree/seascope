@@ -3,8 +3,6 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from CscopeProject import CsQuery
-
 class CallTreeWidgetItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
@@ -46,9 +44,10 @@ class CallTreeWidgetItem(QTreeWidgetItem):
 class CallTreeWidget(QTreeWidget):
 	sig_show_file_line = pyqtSignal(str, int)
 
-	def __init__(self, parent, cmd_id):
+	def __init__(self, parent, cmd_func, cmd_id):
 		QTreeWidget.__init__(self, parent)
 		self.is_busy = False
+		self.cmd_func = cmd_func
 		self.cmd_id = cmd_id
 		
 		self.itemExpanded.connect(self.ctree_itemExpanded)
@@ -90,13 +89,15 @@ class CallTreeWidget(QTreeWidget):
 		self.sig_show_file_line.emit(filename, line)
 
 	def ctree_itemExpanded(self, item):
+		if (item.is_done):
+			return
 		func = str(item.data(0, Qt.DisplayRole).toString())
 		if (self.is_busy):
 			return
 		self.is_busy = True
 		
 		## add result
-		sig_res = CsQuery.cs_query(self.cmd_id, func)
+		sig_res = self.cmd_func(self.cmd_id, func)
 		self.query_item = item
 		sig_res[0].connect(self.ctree_add_result)
 
@@ -106,9 +107,10 @@ class CallTreeWidget(QTreeWidget):
 
 class CallTreeWindow(QMainWindow):
 	sig_show_file_line = pyqtSignal(str, int)
+	parent = None
 
-	def __init__(self, parent, req):
-		QMainWindow.__init__(self, parent)
+	def __init__(self, req, cmd_func, cmd_args):
+		QMainWindow.__init__(self, CallTreeWindow.parent)
 		self.req = req
 
 		self.setWindowTitle(req)
@@ -126,28 +128,28 @@ class CallTreeWindow(QMainWindow):
 		self.vlay.addLayout(self.hlay)
 		self.vlay.addWidget(self.sw)
 		
-		btn_str = ['--> F', 'F -->', '==> F']
-		btn_tip = ['Calling tree', 'Called tree', 'Advanced calling tree']
-		cmd_ids = [3, 2, 0]
 		self.bgrp = QButtonGroup()
 		self.bgrp.buttonClicked.connect(self.set_current)
 		self.bgrp.setExclusive(True)
 
 		self.btn = []
 		self.ctree = []
-		for inx in range(3):
+		for inx in range(len(cmd_args)):
+			# cmd format: [ cmd_id, cmd_str, cmd_tip ]
+			cmd = cmd_args[inx]
+
 			btn = QToolButton()
-			btn.setText(btn_str[inx])
-			btn.setToolTip(btn_tip[inx])
+			btn.setText(cmd[1])
+			btn.setToolTip(cmd[2])
 			#btn.setFlat(True)
 			btn.setCheckable(True)
 			self.bgrp.addButton(btn, inx)
 			self.hlay.addWidget(btn)
 
-			ct = CallTreeWidget(self, cmd_ids[inx])
+			ct = CallTreeWidget(self, cmd_func, cmd[0])
 			ct.sig_show_file_line.connect(self.sig_show_file_line)
 			self.sw.addWidget(ct)
-			
+
 			self.btn.append(btn)
 			self.ctree.append(ct)
 		self.hlay.addStretch(0)
@@ -161,3 +163,14 @@ class CallTreeWindow(QMainWindow):
 		if ct.topLevelItemCount() == 0:
 			ct.add_root(self.req)
 		ct.setFocus()
+
+def ctree_show_file_line(filename, line):
+	parent = CallTreeWindow.parent
+	parent.raise_()
+	parent.activateWindow()
+	parent.show_file_line(filename, line)
+
+def create_page(req, cmd_func, cmd_args):
+	w = CallTreeWindow(req, cmd_func, cmd_args)
+	w.sig_show_file_line.connect(ctree_show_file_line)
+	w.show()
