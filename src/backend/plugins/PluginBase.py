@@ -42,12 +42,6 @@ class QueryBase(QObject):
 		pass
 
 class QueryUiBase(QObject):
-	backend_menu = None
-	edit_book = None
-	res_book = None
-	call_view = None
-	dbg_mgr = None
-
 	def __init__(self):
 		QObject.__init__(self)
 		self.prepare_menu()

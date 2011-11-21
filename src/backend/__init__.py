@@ -8,6 +8,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 import DialogManager
+from plugins import PluginHelper
 
 backend_plugins = []
 
@@ -79,8 +80,8 @@ def proj_close():
 	prj.prj_close()
 	prj = None
 	
-	QueryUiBase.backend_menu.clear()
-	QueryUiBase.backend_menu.setTitle('')
+	PluginHelper.backend_menu.clear()
+	PluginHelper.backend_menu.setTitle('')
 	for act in prj_actions:
 		act.setEnabled(False)
 

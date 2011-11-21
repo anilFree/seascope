@@ -11,7 +11,7 @@ from PyQt4.QtCore import *
 
 from view import EdView, ResView, FileView, CallView
 import backend
-from backend.plugins.PluginBase import QueryUiBase
+from backend.plugins import PluginHelper
 
 import DialogManager
 import DebugManager
@@ -231,11 +231,11 @@ class SeaScopeApp(QMainWindow):
 		EdView.EditorView.ev_popup = self.backend_menu
 		CallView.CallTreeWindow.parent = self
 
-		QueryUiBase.backend_menu = self.backend_menu
-		QueryUiBase.edit_book = self.edit_book
-		QueryUiBase.res_book = self.res_book
-		QueryUiBase.call_view = CallView
-		QueryUiBase.dbg_mgr = DebugManager
+		PluginHelper.backend_menu = self.backend_menu
+		PluginHelper.edit_book = self.edit_book
+		PluginHelper.res_book = self.res_book
+		PluginHelper.call_view = CallView
+		PluginHelper.dbg_mgr = DebugManager
 		
 
 		self.edit_book.sig_history_update.connect(self.res_book.history_update)

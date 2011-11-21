@@ -169,58 +169,6 @@ def show_find_dialog(text):
 		FindDialog.dlg = FindDialog()
 	return FindDialog.dlg.run_dlg(text)
 
-
-class QueryDialog:
-	dlg = None
-	def __init__(self):
-		self.dlg = uic.loadUi('ui/cs_opt.ui')
-		self.cmd_items = [
-			'References to',
-			'Definition of',
-			'Functions called by',
-			'Functions calling',
-			'Find text',
-			'Find egrep pattern',
-			'Find files',
-			'Find #including',
-			'Call tree'
-		]
-		self.dlg.qd_sym_inp.setAutoCompletion(False)
-		self.dlg.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
-		self.dlg.qd_cmd_inp.addItems(self.cmd_items)
-
-	def run_dialog(self, cmd_id, req):
-		if (cmd_id > 5):
-			cmd_id = cmd_id - 1
-		self.dlg.qd_cmd_inp.setCurrentIndex(cmd_id)
-		if (req == None):
-			req = ''
-		self.dlg.qd_sym_inp.setFocus()
-		self.dlg.qd_sym_inp.setEditText(req)
-		self.dlg.qd_sym_inp.lineEdit().selectAll()
-		self.dlg.qd_substr_chkbox.setChecked(False)
-		self.dlg.qd_icase_chkbox.setChecked(False)
-
-		if (self.dlg.exec_() == QDialog.Accepted):
-			cmd_id = self.dlg.qd_cmd_inp.currentIndex()
-			if (cmd_id > 5):
-				cmd_id = cmd_id + 1
-			req = str(self.dlg.qd_sym_inp.currentText())
-			#self.dlg.qd_sym_inp.addItem(req)
-			if (req != '' and self.dlg.qd_substr_chkbox.isChecked()):
-				req = '.*' + req + '.*'
-			opt = None
-			if (self.dlg.qd_icase_chkbox.isChecked()):
-				opt = '-C'
-			res = (cmd_id, req, opt)
-			return res
-		return None
-		
-def show_query_dialog(cmd_id, req):
-	if (QueryDialog.dlg == None):
-		QueryDialog.dlg = QueryDialog()
-	return QueryDialog.dlg.run_dialog(cmd_id, req)
-
 class FilterDialog:
 	def __init__(self):
 		self.dlg = uic.loadUi('ui/filter.ui')
