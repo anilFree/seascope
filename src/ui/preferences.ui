@@ -26,7 +26,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="prd_style_tab">
       <attribute name="title">
@@ -57,19 +57,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <spacer name="prd_font_vspace1">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
        <item row="0" column="2">
         <spacer name="prd_font_hspace1">
          <property name="orientation">
@@ -79,6 +66,33 @@
           <size>
            <width>40</width>
            <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="prd_font_ev_lbl">
+         <property name="text">
+          <string>Editor Font</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="prd_font_ev_btn">
+         <property name="text">
+          <string>Editor Font</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <spacer name="prd_font_vspace1">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>

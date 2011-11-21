@@ -24,6 +24,9 @@ class EditorView(QsciScintilla):
 
 		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
+		self.font = None
+		self.lexer = None
+
 	def get_filename(self):
 		return self.filename
 
@@ -56,14 +59,13 @@ class EditorView(QsciScintilla):
 		self.setMarginWidth(0, width)
 		self.setMarginLineNumbers(0, val)
 
-	def open_file(self, filename):
-		self.filename = filename
+	def set_font(self, font):
+		if not font:
+			return
+		if not self.font:
+			self.font = QtGui.QFont()
+		self.font.fromString(font)
 
-		## define the font to use
-		self.font = QtGui.QFont()
-		self.font.setFamily("Monospace")
-		self.font.setFixedPitch(True)
-		self.font.setPointSize(10)
 		# the font metrics here will help
 		# building the margin width later
 		self.fm = QtGui.QFontMetrics(self.font)
@@ -73,16 +75,21 @@ class EditorView(QsciScintilla):
 		self.setFont(self.font)
 		self.setMarginsFont(self.font)
 
-		## Braces matching
-		self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+		self.lexer.setFont(self.font,-1)
+		self.setLexer(self.lexer)
 
+	def open_file(self, filename):
+		self.filename = filename
 
 		## Choose a lexer
-		self.lexer = QsciLexerCPP()
-		if (re.search('\.(py)$', filename) != None):
-			self.lexer = QsciLexerPython()
-		self.lexer.setDefaultFont(self.font)
-		self.setLexer(self.lexer)
+		if not self.lexer:
+			if (re.search('\.(py)$', filename) != None):
+				self.lexer = QsciLexerPython()
+			else:
+				self.lexer = QsciLexerCPP()
+
+		## Braces matching
+		self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
 
 		## Render on screen
 		self.show()
@@ -144,11 +151,13 @@ class EditorBook(QTabWidget):
 		
 		self.is_show_line = False
 		self.f_text = None
+		self.ev_font = "Monospace,10,-1,5,50,0,0,0,0,0"
 
 	def addFile(self, fileName):
 		ed = EditorPage()
 		ed.open_file(fileName)
 		ed.ev.show_line_number_cb(self.is_show_line)
+		ed.ev.set_font(self.ev_font)
 		self.addTab(ed, fileName)
 
 	def get_current_word(self):
@@ -255,6 +264,7 @@ class EditorBook(QTabWidget):
 		if (page == None):	
 			page = EditorPage()
 			page.open_file(filename)
+			page.ev.set_font(self.ev_font)
 			page.ev.show_line_number_cb(self.is_show_line)
 			self.addTab(page, os.path.basename(filename))
 		
@@ -313,6 +323,14 @@ class EditorBook(QTabWidget):
 
 	def find_prev_cb(self):
 		self.find_text(True, False)
+
+	def change_ev_font(self, font):
+		if font == self.ev_font:
+			return
+		self.ev_font=font
+		for inx in range(self.count()):
+			ed = self.widget(inx)
+			ed.ev.set_font(self.ev_font)
 
 	def show_line_number_cb(self):
 		val = self.m_show_line_num.isChecked()

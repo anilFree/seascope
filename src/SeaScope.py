@@ -20,12 +20,15 @@ import DebugManager
 class SeaScopeApp(QMainWindow):
 
 	def file_preferences_cb(self):
-		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd)
-		(self.app_style, self.app_font, self.edit_ext_cmd) = res
+		ev_font = QFont()
+		ev_font.fromString(self.edit_book.ev_font)
+		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font)
+		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font) = res
 		if self.edit_ext_cmd != None:
 			self.edit_ext_cmd = str(self.edit_ext_cmd).strip()
 		if (self.edit_ext_cmd == None or self.edit_ext_cmd == ''):
 			self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
+		self.edit_book.change_ev_font(ev_font.toString())
 		self.app_write_config()
 
 	def file_close_cb(self):
@@ -35,6 +38,7 @@ class SeaScopeApp(QMainWindow):
 			if not DialogManager.show_yes_no('Close project and quit?'):
 				ev.ignore()
 				return
+		self.app_write_config()
 		ev.accept()
 
 
@@ -80,6 +84,7 @@ class SeaScopeApp(QMainWindow):
 		m_edit.addSeparator()
 		self.edit_book.m_show_line_num = m_edit.addAction('Show line number', self.edit_book.show_line_number_cb, 'F11')
 		self.edit_book.m_show_line_num.setCheckable(True)
+
 		m_edit.addSeparator()
 		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
 		m_edit.addAction('Goto line', self.edit_book.goto_line_cb, 'Ctrl+G')
@@ -124,6 +129,7 @@ class SeaScopeApp(QMainWindow):
 		self.app_style = None
 		self.app_font = None
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
+
 		path = self.app_get_config_file()
 		if (not os.path.exists(path)):
 			return
@@ -140,8 +146,15 @@ class SeaScopeApp(QMainWindow):
 				self.app_style = line[1].split('\n')[0]
 			if (key == 'app_font'):
 				self.app_font = line[1].split('\n')[0]
+			if (key == 'edit_font'):
+				self.edit_book.ev_font = line[1].split('\n')[0]
+			if (key == 'edit_show_line_num'):
+				if ('true' == line[1].split('\n')[0]):
+					self.edit_book.is_show_line = True
 			if (key == 'edit_ext_cmd'):
 				self.edit_ext_cmd = line[1]
+			if (key == 'res_font'):
+				self.res_font = line[1].split('\n')[0]
 		cf.close()
 
 	def app_write_config(self):
@@ -151,6 +164,12 @@ class SeaScopeApp(QMainWindow):
 			cf.write('app_style' + '=' + self.app_style + '\n')
 		if (self.app_font):
 			cf.write('app_font' + '=' + self.app_font + '\n')
+		if (self.edit_book.ev_font):
+			cf.write('edit_font' + '=' + self.edit_book.ev_font + '\n')
+		if (self.edit_book.is_show_line):
+			cf.write('edit_show_line_num' + '=' + 'true' + '\n')
+#		if (self.res_font):
+#			cf.write('res_font' + '=' + self.res_font + '\n')
 		if (self.edit_ext_cmd):
 			cf.write('edit_ext_cmd' + '=' + self.edit_ext_cmd + '\n')
 		cf.close()
@@ -220,7 +239,7 @@ class SeaScopeApp(QMainWindow):
 
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self)
-		
+
 		self.edit_book = EdView.EditorBook()
 		self.res_book = ResView.ResultManager()
 		self.file_view = FileView.FileTree()
@@ -262,6 +281,7 @@ class SeaScopeApp(QMainWindow):
 		QApplication.setWindowIcon(QIcon('icons/seascope.svg'))
 
 		self.app_read_config()
+		self.edit_book.m_show_line_num.setChecked(self.edit_book.is_show_line)
 		if len(self.recent_projects):
 			self.proj_open(self.recent_projects[0])
 		else:

@@ -77,15 +77,18 @@ def show_project_open_dialog(path_list):
 	return d.run_dialog(path_list)
 
 class FilePreferencesDialog(QObject):
-	def __init__(self, app_style, edit_ext_cmd):
+	def __init__(self, app_style, edit_ext_cmd, ev_font):
 		QObject.__init__(self)
 
 		self.dlg = uic.loadUi('ui/preferences.ui')
 		self.dlg.prd_style_lw.addItems(QStyleFactory.keys())
 		self.dlg.prd_style_lw.itemSelectionChanged.connect(self.style_changed_cb)
 		self.dlg.prd_font_app_btn.clicked.connect(self.font_app_btn_cb)
+		self.dlg.prd_font_ev_btn.clicked.connect(self.font_ev_btn_cb)
 		self.set_btn_text_and_font(self.dlg.prd_font_app_btn, QApplication.font())
+		self.set_btn_text_and_font(self.dlg.prd_font_ev_btn, ev_font)
 		self.app_style = app_style
+		self.ev_font = ev_font
 		self.edit_ext_cmd = edit_ext_cmd
 		if (self.edit_ext_cmd):
 			self.dlg.prd_edit_ext_inp.setText(self.edit_ext_cmd)
@@ -104,16 +107,22 @@ class FilePreferencesDialog(QObject):
 		(font, ok) = QFontDialog().getFont(QApplication.font())
 		if (ok):
 			self.set_btn_text_and_font(self.dlg.prd_font_app_btn, font)
+
+	def font_ev_btn_cb(self):
+		(font, ok) = QFontDialog().getFont(self.ev_font)
+		if (ok):
+			self.set_btn_text_and_font(self.dlg.prd_font_ev_btn, font)
 			
 	def run_dialog(self):
 		ret = self.dlg.exec_()
 		if (ret == QDialog.Accepted):
 			QApplication.setFont(self.dlg.prd_font_app_btn.font())
+			self.ev_font = self.dlg.prd_font_ev_btn.font()
 			self.edit_ext_cmd = self.dlg.prd_edit_ext_inp.text()
-		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd)
+		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, self.ev_font)
 
-def show_preferences_dialog(app_style, edit_ext_cmd):
-	d = FilePreferencesDialog(app_style, edit_ext_cmd)
+def show_preferences_dialog(app_style, edit_ext_cmd, ev_font):
+	d = FilePreferencesDialog(app_style, edit_ext_cmd, ev_font)
 	return d.run_dialog()
 
 def show_about_dialog():
