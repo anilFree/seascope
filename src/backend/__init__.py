@@ -9,8 +9,9 @@ from PyQt4.QtCore import *
 
 import DialogManager
 
+backend_plugins = []
 
-def load_plugins(module, directory):
+def _load_plugins(module, directory):
 	pluginImports = __import__(module, globals(), locals())
 	print 'Scanning for plugins...'
 	plist = []
@@ -22,7 +23,9 @@ def load_plugins(module, directory):
 			print '\t', p.name()
 	return plist
 
-backend_plugins = load_plugins('backend.plugins', 'backend/plugins')
+def load_plugins():
+	global backend_plugins
+	backend_plugins = _load_plugins('backend.plugins', 'backend/plugins')
 
 
 from plugins.PluginBase import ProjectBase, ConfigBase, QueryBase, QueryUiBase

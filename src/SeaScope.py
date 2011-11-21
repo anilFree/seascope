@@ -282,7 +282,10 @@ if __name__ == "__main__":
 		sys.exit(-1)
 
 	# change working dir to the script dir so that we can run this script anywhere else
-	os.chdir(os.path.dirname(os.path.realpath(__file__)))
+	app_dir = os.path.dirname(os.path.realpath(__file__))
+	os.chdir(app_dir)
+	
+	backend.load_plugins()
 
 	app = QApplication(sys.argv)
 	ma = SeaScopeApp()
