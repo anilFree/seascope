@@ -21,11 +21,12 @@ class ResultPage(QTreeWidget):
 	sig_show_file_line = pyqtSignal(str, int)
 	is_history_call = False
 
-	def __init__(self, parent=None):
+	def __init__(self, parent):
 		QTreeWidget.__init__(self)
 
 		self.is_history = False
 		self.pbar = None
+		self.parent = parent
 
 		self.setColumnCount(4)
 		self.setHeaderLabels(['Function', 'File', 'Line', 'Text'])
@@ -69,6 +70,7 @@ class ResultPage(QTreeWidget):
 		ResultPage.is_history_call = False
 
 	def filter_cb(self):
+		filtered = False
 		res = DialogManager.show_filter_dialog()
 		if res == None:
 			return
@@ -97,14 +99,27 @@ class ResultPage(QTreeWidget):
 				matched = not matched
 			if not matched:
 				self.setItemHidden(item, True)
+				filtered = True
+		if filtered:
+			self.mark_tab_filtered(True)
+
+	def mark_tab_filtered(self, mark):
+		tabIndex = self.parent.indexOf(self)
+		label = self.parent.tabText(tabIndex)
+		if mark and label[0] != "*":
+			self.parent.setTabText(tabIndex, "*" + label)
+		elif not mark and label[0] == "*":
+			self.parent.setTabText(tabIndex, label.remove(0,1))
 
 	def show_all_cb(self):
 		for inx in range(self.topLevelItemCount()):
 			item = self.topLevelItem(inx)
 			self.setItemHidden(item, False)
+		self.mark_tab_filtered(False)
 
 	def remove_item_cb(self):
 		self.setItemHidden(self.itemFromIndex(self.last_minx), True)
+		self.mark_tab_filtered(True)
 
 	def get_file_line(self, minx):
 		model = minx.model()
