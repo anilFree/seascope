@@ -1,0 +1,6 @@
+SeaScope is a GUI frontend for cscope.
+
+* Running the application
+
+	cd src
+	python SeaScope.py
