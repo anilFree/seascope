@@ -13,75 +13,75 @@ class FileTree(QTabWidget):
 		self.listw = QWidget()
 		self.le = QLineEdit()
 
-		self.qt = QTreeWidget(self)
-		self.qt.setColumnCount(2)
-		self.qt.setHeaderLabels(['File', 'Path'])
-		self.qt.setFont(QFont("San Serif", 8))
-		self.qt.setIndentation(-2)
-		self.qt.setAllColumnsShowFocus(True)
+		self.lview = QTreeWidget(self)
+		self.lview.setColumnCount(2)
+		self.lview.setHeaderLabels(['File', 'Path'])
+		self.lview.setFont(QFont("San Serif", 8))
+		self.lview.setIndentation(-2)
+		self.lview.setAllColumnsShowFocus(True)
 
 		vlay = QVBoxLayout()
 		vlay.addWidget(self.le)
-		vlay.addWidget(self.qt)
+		vlay.addWidget(self.lview)
 		self.listw.setLayout(vlay)
 		self.addTab(self.listw, "List")
 
 		self.le.textChanged.connect(self.le_textChanged)
 		self.le.returnPressed.connect(self.le_returnPressed)
-		self.qt.itemActivated.connect(self.qt_itemActivated)
+		self.lview.itemActivated.connect(self.lview_itemActivated)
 
-		self.foldm = QFileSystemModel()
-		self.foldm.setRootPath(QDir.rootPath())
-		self.foldtv = QTreeView()
-		self.foldtv.setModel(self.foldm)
-		header = self.foldtv.header()
-		for col in range(header.count()):
-			if col > 0:
-				self.foldtv.setColumnHidden(col, True)
-		self.addTab(self.foldtv, "Tree")
-		self.foldtv.activated.connect(self.foldtv_itemActivated)
+		self.tmodel = QFileSystemModel()
+		self.tmodel.setRootPath(QDir.rootPath())
+		self.tview = QTreeView()
+		self.addTab(self.tview, "Tree")
+		self.tview.activated.connect(self.tview_itemActivated)
 
                 self.clear()
 
 	def le_textChanged(self, text):
 		if (text == ''):
 			return
-		self.qt.keyboardSearch('')
-		self.qt.keyboardSearch(text)
+		self.lview.keyboardSearch('')
+		self.lview.keyboardSearch(text)
 
 	def le_returnPressed(self):
 		self.le.clear()
-		items = self.qt.selectedItems()
+		items = self.lview.selectedItems()
 		if len(items) == 0:
 			return
-		self.qt.itemActivated.emit(items[0], 0)
+		self.lview.itemActivated.emit(items[0], 0)
 
-	def qt_itemActivated(self, item):
+	def lview_itemActivated(self, item):
 		filename = str(item.data(1, Qt.DisplayRole).toString())
 		if self.is_rel_path:
 			filename = filename.replace("...", self.dir_prefix)
 		self.sig_show_file.emit(filename)
 
-	def foldtv_itemActivated(self):
-		list = self.foldtv.selectionModel().selectedIndexes()
+	def tview_itemActivated(self):
+		list = self.tview.selectionModel().selectedIndexes()
 		for item in list:
-			if self.foldm.fileInfo(item).isFile():
-				self.sig_show_file.emit(self.foldm.fileInfo(item).absoluteFilePath())
+			if self.tmodel.fileInfo(item).isFile():
+				self.sig_show_file.emit(self.tmodel.fileInfo(item).absoluteFilePath())
 	
 	def keyPressEvent(self, ev):
 		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
-			self.qt.keyPressEvent(ev)
+			self.lview.keyPressEvent(ev)
 			return
+
+	def search_file_cb(self):
+		self.le.setFocus()
+		self.setCurrentIndex(0)
 
 	def clear(self):
 		self.is_rel_path = False
 		self.dir_prefix = None 
 		self.le.clear()
-		self.qt.clear()
-                self.foldtv.reset()
+		self.lview.clear()
+                #self.tview.reset()
+                self.tview.setModel(None)
 
 	def add_files(self, flist):
-		self.qt.clear()
+		self.lview.clear()
                 self.dir_prefix = os.path.dirname(os.path.commonprefix(flist))
 		if len(self.dir_prefix) > 16:
 			self.is_rel_path = True
@@ -89,10 +89,15 @@ class FileTree(QTabWidget):
 			if self.is_rel_path:
 				f =  f.replace(self.dir_prefix, "...")
 			item = QTreeWidgetItem([os.path.basename(f), f])
-			self.qt.addTopLevelItem(item)
-			#if (self.qt.topLevelItemCount() > 0):
-				#self.qt.resizeColumnToContents(0)
-				#self.qt.resizeColumnToContents(1)
-		self.qt.sortByColumn(0, Qt.AscendingOrder)
-		self.foldtv.setRootIndex(self.foldm.index(self.dir_prefix))
-			
+			self.lview.addTopLevelItem(item)
+			#if (self.lview.topLevelItemCount() > 0):
+				#self.lview.resizeColumnToContents(0)
+				#self.lview.resizeColumnToContents(1)
+		self.lview.sortByColumn(0, Qt.AscendingOrder)
+
+		header = self.tview.header()
+                self.tview.setModel(self.tmodel)
+		for col in range(header.count()):
+			if col > 0:
+				self.tview.setColumnHidden(col, True)
+		self.tview.setRootIndex(self.tmodel.index(self.dir_prefix))

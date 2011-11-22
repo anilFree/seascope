@@ -53,7 +53,7 @@ class SeaScopeApp(QMainWindow):
 	def go_pos_history_cb(self):
 		self.res_book.show_history()
 	def go_search_file_list_cb(self):
-		self.file_view.le.setFocus()
+		self.file_view.search_file_cb()
 	def go_search_ctags_cb(self):
 		self.edit_book.focus_search_ctags()
 
