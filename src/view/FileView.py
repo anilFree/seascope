@@ -41,6 +41,8 @@ class FileTree(QTabWidget):
 		self.addTab(self.foldtv, "Tree")
 		self.foldtv.activated.connect(self.foldtv_itemActivated)
 
+                self.clear()
+
 	def le_textChanged(self, text):
 		if (text == ''):
 			return
@@ -56,8 +58,8 @@ class FileTree(QTabWidget):
 
 	def qt_itemActivated(self, item):
 		filename = str(item.data(1, Qt.DisplayRole).toString())
-		if self.replaceroot:
-			filename = filename.replace("...", self.rootpath)
+		if self.is_rel_path:
+			filename = filename.replace("...", self.dir_prefix)
 		self.sig_show_file.emit(filename)
 
 	def foldtv_itemActivated(self):
@@ -72,23 +74,25 @@ class FileTree(QTabWidget):
 			return
 
 	def clear(self):
+		self.is_rel_path = False
+		self.dir_prefix = None 
 		self.le.clear()
 		self.qt.clear()
+                self.foldtv.reset()
 
 	def add_files(self, flist):
 		self.qt.clear()
-		self.replaceroot = False
-		self.rootpath = QString(os.path.commonprefix(flist))
-		if self.rootpath.size() > 8:
-			self.replaceroot = True
+                self.dir_prefix = os.path.dirname(os.path.commonprefix(flist))
+		if len(self.dir_prefix) > 16:
+			self.is_rel_path = True
 		for f in flist:
-			if self.replaceroot:
-				f =  f.replace(self.rootpath, "...")
+			if self.is_rel_path:
+				f =  f.replace(self.dir_prefix, "...")
 			item = QTreeWidgetItem([os.path.basename(f), f])
 			self.qt.addTopLevelItem(item)
 			#if (self.qt.topLevelItemCount() > 0):
 				#self.qt.resizeColumnToContents(0)
 				#self.qt.resizeColumnToContents(1)
 		self.qt.sortByColumn(0, Qt.AscendingOrder)
-		self.foldtv.setRootIndex(self.foldm.index(self.rootpath))
+		self.foldtv.setRootIndex(self.foldm.index(self.dir_prefix))
 			
