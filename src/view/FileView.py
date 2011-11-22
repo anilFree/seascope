@@ -28,7 +28,7 @@ class FileTree(QTabWidget):
 
 		self.le.textChanged.connect(self.le_textChanged)
 		self.le.returnPressed.connect(self.le_returnPressed)
-		self.qt.itemActivated.connect(self.foldtv_itemActivated)
+		self.qt.itemActivated.connect(self.qt_itemActivated)
 
 		self.foldm = QFileSystemModel()
 		self.foldm.setRootPath(QDir.rootPath())
@@ -63,7 +63,8 @@ class FileTree(QTabWidget):
 	def foldtv_itemActivated(self):
 		list = self.foldtv.selectionModel().selectedIndexes()
 		for item in list:
-			self.sig_show_file.emit(self.foldm.fileInfo(item).absoluteFilePath())
+			if self.foldm.fileInfo(item).isFile():
+				self.sig_show_file.emit(self.foldm.fileInfo(item).absoluteFilePath())
 	
 	def keyPressEvent(self, ev):
 		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
