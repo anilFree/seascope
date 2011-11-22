@@ -70,6 +70,7 @@ class FileTree(QTabWidget):
 
 	def search_file_cb(self):
 		self.le.setFocus()
+		self.le.selectAll()
 		self.setCurrentIndex(0)
 
 	def clear(self):
