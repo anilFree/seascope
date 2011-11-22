@@ -10,6 +10,8 @@ class FileTree(QTabWidget):
 	
 	def __init__(self, parent=None):
 		QWidget.__init__(self)
+
+		# List view
 		self.listw = QWidget()
 		self.le = QLineEdit()
 
@@ -20,20 +22,30 @@ class FileTree(QTabWidget):
 		self.lview.setIndentation(-2)
 		self.lview.setAllColumnsShowFocus(True)
 
-		vlay = QVBoxLayout()
-		vlay.addWidget(self.le)
-		vlay.addWidget(self.lview)
-		self.listw.setLayout(vlay)
+		lvlay = QVBoxLayout()
+		lvlay.addWidget(self.le)
+		lvlay.addWidget(self.lview)
+		self.listw.setLayout(lvlay)
 		self.addTab(self.listw, "List")
 
 		self.le.textChanged.connect(self.le_textChanged)
 		self.le.returnPressed.connect(self.le_returnPressed)
 		self.lview.itemActivated.connect(self.lview_itemActivated)
 
+		# Tree view
+		self.treew = QWidget()
+		self.tl = QLabel()
 		self.tmodel = QFileSystemModel()
 		self.tmodel.setRootPath(QDir.rootPath())
 		self.tview = QTreeView()
-		self.addTab(self.tview, "Tree")
+		self.tview.setHeaderHidden(True)
+
+		tvlay = QVBoxLayout()
+		tvlay.addWidget(self.tl)
+		tvlay.addWidget(self.tview)
+		self.treew.setLayout(tvlay)
+		self.addTab(self.treew, "Tree")
+
 		self.tview.activated.connect(self.tview_itemActivated)
 
                 self.clear()
@@ -102,3 +114,4 @@ class FileTree(QTabWidget):
 			if col > 0:
 				self.tview.setColumnHidden(col, True)
 		self.tview.setRootIndex(self.tmodel.index(self.dir_prefix))
+		self.tl.setText("Browsing " + self.dir_prefix)
