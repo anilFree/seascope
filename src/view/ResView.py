@@ -253,12 +253,8 @@ class ResultManager(QTabWidget):
 		if (self.h_page == None):
 			self.history_create()
 	
-		#filename = str(filename)
-		minxs = self.h_page.selectedIndexes()
-		if minxs:
-			item = self.h_page.itemFromIndex(minxs[0])
-			while (self.h_page.itemAbove(item)):
-				self.h_page.removeItemWidget(self.h_page.itemAbove(item), 0)
+		for idx in range(self.h_page.indexOfTopLevelItem(self.h_page.currentItem())):
+			self.h_page.invisibleRootItem().removeChild(self.h_page.topLevelItem(0))
 
 		if self.h_page.topLevelItemCount():
 			item = self.h_page.topLevelItem(0)
