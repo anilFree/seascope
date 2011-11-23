@@ -11,7 +11,7 @@ from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from ..PluginBase import QueryUiBase
 from .. import PluginBase, PluginHelper
 
-self.cmd_items = [
+cmd_items = [
 	'References to',
 	'Definition of',
 	'Functions called by',
@@ -40,21 +40,21 @@ cmd_dict = {
 	8: 'INC',
 }
 
-menu_cmd_list = [
-	[0,	'&References',		'Ctrl+0'],
-	[1,	'&Definitions',		'Ctrl+1'],
-	[2,	'&Called Functions',	'Ctrl+2'],
-	[3,	'C&alling Functions',	'Ctrl+3'],
-	[4,	'Find &Text',		'Ctrl+4'],
-	[5,	'Find &Egrep',		'Ctrl+5'],
-	[7,	'Find &File',		'Ctrl+7'],
-	[8,	'&Including Files',	'Ctrl+8'],
-	[None],
-	[11,	'&Quick Definition',	'Ctrl+]'],
-	[9,	'Call Tr&ee',		'Ctrl+\\'],
-	[None],
-	[-1,	'Re&build Database',	self.cb_rebuild],
-]
+#menu_cmd_list = [
+#	[0,	'&References',		'Ctrl+0'],
+#	[1,	'&Definitions',		'Ctrl+1'],
+#	[2,	'&Called Functions',	'Ctrl+2'],
+#	[3,	'C&alling Functions',	'Ctrl+3'],
+#	[4,	'Find &Text',		'Ctrl+4'],
+#	[5,	'Find &Egrep',		'Ctrl+5'],
+#	[7,	'Find &File',		'Ctrl+7'],
+#	[8,	'&Including Files',	'Ctrl+8'],
+#	[None],
+#	[11,	'&Quick Definition',	'Ctrl+]'],
+#	[9,	'Call Tr&ee',		'Ctrl+\\'],
+#	[None],
+#	[-1,	'Re&build Database',	self.cb_rebuild],
+#]
 
 class QueryDialog(QDialog):
 	dlg = None
