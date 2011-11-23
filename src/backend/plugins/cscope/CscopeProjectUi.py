@@ -11,34 +11,34 @@ from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from ..PluginBase import QueryUiBase
 from .. import PluginBase, PluginHelper
 
-cmd_items = [
-	'References to',
-	'Definition of',
-	'Functions called by',
-	'Functions calling',
-	'Find text',
-	'Find egrep pattern',
-	'Find files',
-	'Find #including',
-	'Call tree'
-]
+#cmd_items = [
+	#'References to',
+	#'Definition of',
+	#'Functions called by',
+	#'Functions calling',
+	#'Find text',
+	#'Find egrep pattern',
+	#'Find files',
+	#'Find #including',
+	#'Call tree'
+#]
 
-ctree_query_args = [
-	[3, '--> F', 'Calling tree'		],
-	[2, 'F -->', 'Called tree'		],
-	[0, '==> F', 'Advanced calling tree'	],
-]
+#ctree_query_args = [
+	#[3, '--> F', 'Calling tree'		],
+	#[2, 'F -->', 'Called tree'		],
+	#[0, '==> F', 'Advanced calling tree'	],
+#]
 		
-cmd_dict = {
-	0: 'REF',
-	1: 'DEF',
-	2: '<--',
-	3: '-->',
-	4: 'TXT',
-	5: 'GRP',
-	7: 'FIL',
-	8: 'INC',
-}
+#cmd_dict = {
+	#0: 'REF',
+	#1: 'DEF',
+	#2: '<--',
+	#3: '-->',
+	#4: 'TXT',
+	#5: 'GRP',
+	#7: 'FIL',
+	#8: 'INC',
+#}
 
 #menu_cmd_list = [
 #	[0,	'&References',		'Ctrl+0'],
