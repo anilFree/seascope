@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from GtagsManager import GtProcess
-
 import os, string
 from PyQt4.QtCore import *
 
@@ -80,10 +78,6 @@ class ConfigGtags(ConfigBase):
 
 	def proj_start(self):
 		gt_args = string.join(self.gt_opt)
-		#print "proj_start:", self.gt_dir, gt_args
-		#if (len(self.gt_list) > 0):
-		#print gt_args, gt_dir
-		GtProcess.gt_setup(gt_args, self.gt_dir)
 
 	def proj_open(self, proj_path):
 		self.gt_dir = proj_path
@@ -101,14 +95,14 @@ class ConfigGtags(ConfigBase):
 		self.proj_start()
 
 	def proj_close(self):
-		GtProcess.gt_setup_clear()
+		pass
 
 	def get_proj_conf(self):
 		self.read_gt_files()
 		return (self.gt_dir, self.gt_opt, self.gt_list)
 
 	def is_ready(self):
-		return len(self.gt_list) > 0
+		return True
 
 class ProjectGtags(ProjectBase):
 	def __init__(self):
@@ -170,6 +164,30 @@ class ProjectGtags(ProjectBase):
 		self.prj_update_conf(proj_args)
 		return True
 
+from ..PluginBase import PluginProcess
+
+class GtProcess(PluginProcess):
+	def __init__(self, wdir):
+		PluginProcess.__init__(self, wdir)
+		self.name = 'gtags process'
+
+	def parse_result(self, text):
+		text = text.split('\n')
+		res = []
+		for line in text:
+			if line == '':
+				continue
+			if line[-1:] == '\r':
+				line = line[0:-1]
+			line = line.split(' ', 3)
+			line = [line[1], line[0], line[2], line[3]]
+			res.append(line)
+		#if len(res) > 0:
+			#print res[0], '...', len(res), 'results'
+		#else:
+			#print '0 results'
+		return res
+
 class QueryGtags(QueryBase):
 	def __init__(self, conf):
 		QueryBase.__init__(self)
@@ -181,14 +199,19 @@ class QueryGtags(QueryBase):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		qsig = GtProcess.gt_query(cmd_id, req, opt)
+		pargs = 'global -a --result=cscope ' +' -x ' + str(cmd_id) + ' ' + req
+		qsig = GtProcess(self.conf.gt_dir).run_query_process(pargs, req)
 		return qsig
 
 	def gt_rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		qsig = GtProcess.gt_rebuild()
+		if (os.path.exists(os.path.join(self.conf.gt_dir, 'GTAGS'))):
+			pargs = 'global -u'
+		else:
+			pargs = 'gtags -i'
+		qsig = GtProcess(self.conf.gt_dir).run_rebuild_process(pargs)
 		return qsig
 
 	def gt_is_open(self):

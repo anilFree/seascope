@@ -80,9 +80,6 @@ class ConfigCscope(ConfigBase):
 
 	def proj_start(self):
 		cs_args = string.join(self.cs_opt)
-		#print "pp:", self.cs_dir, cs_args
-		if (len(self.cs_list) > 0):
-			CsProcess.cs_setup(cs_args, self.cs_dir)
 
 	def proj_open(self, proj_path):
 		self.cs_dir = proj_path
@@ -99,7 +96,7 @@ class ConfigCscope(ConfigBase):
 		self.proj_start()
 
 	def proj_close(self):
-		CsProcess.cs_setup_clear()
+		pass
 
 	def get_proj_conf(self):
 		self.read_cs_files()
@@ -168,6 +165,30 @@ class ProjectCscope(ProjectBase):
 		self.prj_update_conf(proj_args)
 		return True
 
+from ..PluginBase import PluginProcess
+
+class CsProcess(PluginProcess):
+	def __init__(self, wdir):
+		PluginProcess.__init__(self, wdir)
+		self.name = 'cscope process'
+
+	def parse_result(self, text):
+		text = text.split('\n')
+		res = []
+		for line in text:
+			if line == '':
+				continue
+			if line[-1:] == '\r':
+				line = line[0:-1]
+			line = line.split(' ', 3)
+			line = [line[1], line[0], line[2], line[3]]
+			res.append(line)
+		#if len(res) > 0:
+			#print res[0], '...', len(res), 'results'
+		#else:
+			#print '0 results'
+		return res
+
 class QueryCscope(QueryBase):
 	def __init__(self, conf):
 		QueryBase.__init__(self)
@@ -177,14 +198,18 @@ class QueryCscope(QueryBase):
 		if (not self.conf or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		qsig = CsProcess.cs_query(cmd_id, req, opt)
+		if opt == None:
+			opt = ''
+		pargs = 'cscope ' + self.conf.cs_opt + ' -L -d ' + opt + ' -' + str(cmd_id) + ' ' + req
+		qsig = CsProcess(self.conf.cs_dir).run_query_process(pargs, req)
 		return qsig
 
 	def cs_rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		qsig = CsProcess.cs_rebuild()
+		pargs = 'cscope ' + self.conf.cs_opt + ' -L'
+		qsig = CsProcess(self.conf.cs_dir).run_rebuild_process(pargs)
 		return qsig
 
 	def cs_is_open(self):
