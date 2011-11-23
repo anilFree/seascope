@@ -200,7 +200,7 @@ class QueryCscope(QueryBase):
 			return None
 		if opt == None:
 			opt = ''
-		pargs = 'cscope ' + self.conf.cs_opt + ' -L -d ' + opt + ' -' + str(cmd_id) + ' ' + req
+		pargs = 'cscope ' + string.join(self.conf.cs_opt) + ' -L -d ' + opt + ' -' + str(cmd_id) + ' ' + req
 		qsig = CsProcess(self.conf.cs_dir).run_query_process(pargs, req)
 		return qsig
 
@@ -208,7 +208,7 @@ class QueryCscope(QueryBase):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = 'cscope ' + self.conf.cs_opt + ' -L'
+		pargs = 'cscope ' + string.join(self.conf.cs_opt) + ' -L'
 		qsig = CsProcess(self.conf.cs_dir).run_rebuild_process(pargs)
 		return qsig
 
