@@ -42,7 +42,7 @@ def _quick_def_result(req, res):
 			line = int(res[0][2])
 		except:
 			return
-		self.edit_book.show_file_line(filename, line)
+		edit_book.show_file_line(filename, line)
 
 def quick_def_page_new(sig_res):
 	sig_res[0].connect(_quick_def_result)

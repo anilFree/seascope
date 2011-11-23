@@ -283,5 +283,5 @@ class ResultManager(QTabWidget):
 		return page
 
 	def create_result_page_single(self):
-		return ResultPage()
+		return ResultPage(self)
 
