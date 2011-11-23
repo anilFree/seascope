@@ -11,7 +11,7 @@ def ct_query(filename):
 	for line in out_data:
 		if (line == ''):
 			break
-		line = line.split(';', 1)[0].split()
+		line = line.split(';', 1)[0].split('\t')
 		line = [line[0], line[2], line[1]]
 		res.append(line)
 	return res
