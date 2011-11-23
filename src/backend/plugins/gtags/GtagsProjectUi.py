@@ -11,58 +11,13 @@ from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from ..PluginBase import QueryUiBase
 from .. import PluginBase, PluginHelper
 
-self.cmd_items = [
-	'References to',
-	'Definition of',
-	'Functions called by',
-	'Functions calling',
-	'Find text',
-	'Find egrep pattern',
-	'Find files',
-	'Find #including',
-	'Call tree'
-]
-
-ctree_query_args = [
-	[3, '--> F', 'Calling tree'		],
-	[2, 'F -->', 'Called tree'		],
-	[0, '==> F', 'Advanced calling tree'	],
-]
-		
-cmd_dict = {
-	0: 'REF',
-	1: 'DEF',
-	2: '<--',
-	3: '-->',
-	4: 'TXT',
-	5: 'GRP',
-	7: 'FIL',
-	8: 'INC',
-}
-
-menu_cmd_list = [
-	[0,	'&References',		'Ctrl+0'],
-	[1,	'&Definitions',		'Ctrl+1'],
-	[2,	'&Called Functions',	'Ctrl+2'],
-	[3,	'C&alling Functions',	'Ctrl+3'],
-	[4,	'Find &Text',		'Ctrl+4'],
-	[5,	'Find &Egrep',		'Ctrl+5'],
-	[7,	'Find &File',		'Ctrl+7'],
-	[8,	'&Including Files',	'Ctrl+8'],
-	[None],
-	[11,	'&Quick Definition',	'Ctrl+]'],
-	[9,	'Call Tr&ee',		'Ctrl+\\'],
-	[None],
-	[-1,	'Re&build Database',	self.cb_rebuild],
-]
-
-class QueryDialog(QDialog):
+class QueryGtDialog(QDialog):
 	dlg = None
 
 	def __init__(self):
 		QDialog.__init__(self)
 
-		self.ui = uic.loadUi('backend/plugins/cscope/ui/cs_query.ui', self)
+		self.ui = uic.loadUi('backend/plugins/gtags/ui/gt_query.ui', self)
 		self.cmd_items = [
 			'References to',
 			'Definition of',
@@ -79,9 +34,9 @@ class QueryDialog(QDialog):
 		self.qd_cmd_inp.addItems(self.cmd_items)
 
 	def run_dialog(self, cmd_id, req):
-		if (cmd_id > 5):
-			cmd_id = cmd_id - 1
-		self.qd_cmd_inp.setCurrentIndex(cmd_id)
+		#if (cmd_id > 5):
+			#cmd_id = cmd_id - 1
+		#self.qd_cmd_inp.setCurrentIndex(cmd_id)
 		if (req == None):
 			req = ''
 		self.qd_sym_inp.setFocus()
@@ -101,21 +56,21 @@ class QueryDialog(QDialog):
 				req = '.*' + req + '.*'
 			opt = None
 			if (self.qd_icase_chkbox.isChecked()):
-				opt = '-C'
+				opt = '-i'
 			res = (cmd_id, req, opt)
 			return res
 		return None
 
 	@staticmethod
 	def show_dlg(cmd_id, req):
-		if (QueryDialog.dlg == None):
-			QueryDialog.dlg = QueryDialog()
-		return QueryDialog.dlg.run_dialog(cmd_id, req)
+		if (QueryGtDialog.dlg == None):
+			QueryGtDialog.dlg = QueryGtDialog()
+		return QueryGtDialog.dlg.run_dialog(cmd_id, req)
 
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
 
-def get_cscope_files_list(rootdir):
+def get_gtags_files_list(rootdir):
 	file_list = []
 	if (not os.path.isdir(rootdir)):
 		print "Not a directory:", rootdir
@@ -127,65 +82,68 @@ def get_cscope_files_list(rootdir):
 				file_list.append(f)
 	return file_list
 
-class QueryUiCscope(QueryUiBase):
+class QueryUiGtags(QueryUiBase):
 	def __init__(self, qry):
 		QueryUiBase.__init__(self)
 		self.query = qry
 
-	def do_cs_query_ctree(self, cmd_id, req, opt):
+	def do_gt_query_ctree(self, cmd_id, req, opt):
 		ctree_query_args = [
 			[3, '--> F', 'Calling tree'		],
 			[2, 'F -->', 'Called tree'		],
 			[0, '==> F', 'Advanced calling tree'	],
 		]
-		PluginHelper.call_view_page_new(req, self.query.cs_query, ctree_query_args)
+		PluginHelper.call_view_page_new(req, self.query.gt_query, ctree_query_args)
 		
-	def do_cs_query(self, cmd_id, req, opt):
+	def do_gt_query(self, cmd_id, req, opt):
 		## create page
 		cmd_dict = {
-			0: 'REF',
+			'-r': 'REF',
 			1: 'DEF',
 			2: '<--',
 			3: '-->',
 			4: 'TXT',
-			5: 'GRP',
+			'-e': 'GRP',
 			7: 'FIL',
 			8: 'INC',
 		}
 		name = cmd_dict[cmd_id] + ' ' + req
-		sig_res = self.query.cs_query(cmd_id, req, opt)
+		sig_res = self.query.gt_query(cmd_id, req, opt)
 		PluginHelper.result_page_new(name, sig_res)
 
-	def cs_query_cb(self, cmd_id):
-		if (not self.query.cs_is_open()):
+	def gt_query_cb(self, cmd_id):
+		if (not self.query.gt_is_open()):
 			return
-		if (not self.query.cs_is_ready()):
-			show_msg_dialog('\nProject has no source files')
-			return
+		#if (not self.query.gt_is_ready()):
+			#show_msg_dialog('\nProject has no source files')
+			#return
 		req = PluginHelper.editor_current_word()
 		if (req != None):
 			req = str(req).strip()
 		opt = None
-		if (cmd_id < 10 or cmd_id == 12):
-			val = QueryDialog.show_dlg(cmd_id, req)
-			if (val == None):
-				return
-			(cmd_id, req, opt) = val
+		#if (cmd_id < 10 or cmd_id == 12):
+		val = QueryGtDialog.show_dlg(cmd_id, req)
+		if (val == None):
+			return
+		(cmd_id, req, opt) = val
+		cmd_id = '-r'
+
 		if (req == None or req == ''):
 			return
-		if (cmd_id < 9):
-			self.do_cs_query(cmd_id, req, opt)
-		else:
-			if cmd_id == 11:
-				self.do_cs_query_qdef(1, req, opt)
-			elif cmd_id == 9:
-				self.do_cs_query_ctree(3, req, opt)
+		#if (cmd_id < 9):
+			#self.do_gt_query(cmd_id, req, opt)
+		#else:
+			#if cmd_id == 11:
+				#self.do_gt_query_qdef(1, req, opt)
+			#elif cmd_id == 9:
+				#self.do_gt_query_ctree(3, req, opt)
+		self.do_gt_query(cmd_id, req, opt)
 				
 	def cb_rebuild(self):
-		sig_rebuild = self.query.cs_rebuild()
+		sig_rebuild = self.query.gt_rebuild()
 		dlg = QProgressDialog()
 		dlg.setWindowTitle('SeaScope rebuild')
-		dlg.setLabelText('Rebuilding cscope database...')
+		dlg.setLabelText('Rebuilding gtags database...')
 		dlg.setCancelButton(None)
 		dlg.setMinimum(0)
 		dlg.setMaximum(0)
@@ -195,20 +153,20 @@ class QueryUiCscope(QueryUiBase):
 
 	def menu_cb(self, act):
 		if act.cmd_id != -1:
-			self.cs_query_cb(act.cmd_id)
+			self.gt_query_cb(act.cmd_id)
 
 	def prepare_menu(self):
 		menu = PluginHelper.backend_menu
 		menu.triggered.connect(self.menu_cb)
-		menu.setTitle('&Cscope')
+		menu.setTitle('G&tags')
 		#menu.setFont(QFont("San Serif", 8))
 		menu_cmd_list = [
-			[0,	'&References',		'Ctrl+0'],
+			['-r',	'&References',		'Ctrl+0'],
 			[1,	'&Definitions',		'Ctrl+1'],
 			[2,	'&Called Functions',	'Ctrl+2'],
 			[3,	'C&alling Functions',	'Ctrl+3'],
 			[4,	'Find &Text',		'Ctrl+4'],
-			[5,	'Find &Egrep',		'Ctrl+5'],
+			['-e',	'Find &Egrep',		'Ctrl+5'],
 			[7,	'Find &File',		'Ctrl+7'],
 			[8,	'&Including Files',	'Ctrl+8'],
 			[None],
@@ -228,20 +186,20 @@ class QueryUiCscope(QueryUiBase):
 				act.setShortcut(c[2])
 			act.cmd_id = c[0]
 
-	def do_cs_query_qdef(self, cmd_id, req, opt):
-		sig_res = self.query.cs_query(cmd_id, req, opt)
+	def do_gt_query_qdef(self, cmd_id, req, opt):
+		sig_res = self.query.gt_query(cmd_id, req, opt)
 		PluginHelper.quick_def_page_new(sig_res)
 
 	@staticmethod
 	def prj_show_settings_ui(proj_args):
-		dlg = ProjectSettingsCscopeDialog()
+		dlg = ProjectSettingsGtagsDialog()
 		return dlg.run_dialog(proj_args)
 
-class ProjectSettingsCscopeDialog(QDialog):
+class ProjectSettingsGtagsDialog(QDialog):
 	def __init__(self):
 		QDialog.__init__(self)
 
-		self.ui = uic.loadUi('backend/plugins/cscope/ui/cs_project_settings.ui', self)
+		self.ui = uic.loadUi('backend/plugins/gtags/ui/gt_project_settings.ui', self)
 		self.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
 
 		self.pd_src_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -281,7 +239,7 @@ class ProjectSettingsCscopeDialog(QDialog):
 			li.takeItem(row)
 
 	def src_add_files(self, src_dir):
-		file_list = get_cscope_files_list(src_dir)
+		file_list = get_gtags_files_list(src_dir)
 		self.pd_src_list.addItems(file_list)
 
 	def ok_btn_cb(self):
@@ -295,30 +253,30 @@ class ProjectSettingsCscopeDialog(QDialog):
 				return
 			os.mkdir(proj_dir)
 		# File list
-		cs_list = []
+		gt_list = []
 		for inx in range(self.pd_src_list.count()):
 			val = str(self.pd_src_list.item(inx).text())
-			cs_list.append(val)
-		cs_list = list(set(cs_list))
-		# Cscope opt
-		cs_opt = []
+			gt_list.append(val)
+		gt_list = list(set(gt_list))
+		# Gtags opt
+		gt_opt = []
 		if self.pd_invert_chkbox.isChecked():
-			cs_opt.append('-q')
+			gt_opt.append('-q')
 		if self.pd_kernel_chkbox.isChecked():
-			cs_opt.append('-k')
+			gt_opt.append('-k')
 
-		self.res = [proj_dir, cs_opt, cs_list]
+		self.res = [proj_dir, gt_opt, gt_list]
 
 	def set_proj_args(self, proj_args):
-		(proj_dir, cs_opt, cs_list) = proj_args
+		(proj_dir, gt_opt, gt_list) = proj_args
 		(proj_base, proj_name) = os.path.split(proj_dir)
 		self.pd_path_inp.setText(proj_base)
 		self.pd_name_inp.setText(proj_name)
 		# File list
-		fl = cs_list
+		fl = gt_list
 		self.pd_src_list.addItems(fl)
-		# Cscope opt
-		for opt in cs_opt:
+		# Gtags opt
+		for opt in gt_opt:
 			if (opt == '-q'):
 				self.pd_invert_chkbox.setChecked(True)
 			if (opt == '-k'):
