@@ -4,18 +4,23 @@ import sys
 import os
 import string
 
-from PyQt4 import QtGui, QtCore
+try:
+	from PyQt4 import QtGui, QtCore
+except ImportError:
+	print 'Error: PyQt4 package not found\nError: required packages: PyQt4 (>4.5) and qscintilla-python\nError: program aborted.'
+	sys.exit(-1)
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-
-from view import EdView, ResView, FileView, CallView
-import backend
-from backend.plugins import PluginHelper
-
-import DialogManager
-import DebugManager
-
+try:
+	from PyQt4.QtGui import *
+	from PyQt4.QtCore import *
+	from view import EdView, ResView, FileView, CallView
+	import backend
+	from backend.plugins import PluginHelper
+	import DialogManager
+	import DebugManager
+except ImportError:
+	print "Error: failed to import supporting packages.\nError: program aborted."
+	sys.exit(-1)
 
 class SeaScopeApp(QMainWindow):
 
