@@ -6,7 +6,12 @@ import re
 from PyQt4 import QtGui
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
-from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerCPP, QsciLexerPython
+
+try:
+	from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerCPP, QsciLexerPython
+except ImportError:
+	print "Error: required qscintilla-python package not found"
+	raise ImportError
 
 import DialogManager
 from CtagsView import *
