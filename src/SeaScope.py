@@ -27,8 +27,8 @@ class SeaScopeApp(QMainWindow):
 	def file_preferences_cb(self):
 		ev_font = QFont()
 		ev_font.fromString(self.edit_book.ev_font)
-		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font)
-		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font) = res
+		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font, self.exit_dont_ask)
+		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask) = res
 		if self.edit_ext_cmd != None:
 			self.edit_ext_cmd = str(self.edit_ext_cmd).strip()
 		if (self.edit_ext_cmd == None or self.edit_ext_cmd == ''):
@@ -39,13 +39,15 @@ class SeaScopeApp(QMainWindow):
 	def file_close_cb(self):
 		self.edit_book.close_current_page()
 	def closeEvent(self, ev):
-		if (backend.proj_is_open()):
-			if not DialogManager.show_yes_no('Close project and quit?'):
+		if not self.exit_dont_ask and backend.proj_is_open():
+			ret = DialogManager.show_yes_no_dontask('Close project and quit?')
+			if ret == 0:
 				ev.ignore()
 				return
+			if ret == 2:
+				self.exit_dont_ask = True
 		self.app_write_config()
 		ev.accept()
-
 
 	def go_prev_res_cb(self):
 		self.res_book.go_next_res(-1)
@@ -133,6 +135,7 @@ class SeaScopeApp(QMainWindow):
 		self.recent_projects = []
 		self.app_style = None
 		self.app_font = None
+		self.exit_dont_ask = False
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
 
 		path = self.app_get_config_file()
@@ -158,8 +161,9 @@ class SeaScopeApp(QMainWindow):
 					self.edit_book.is_show_line = True
 			if (key == 'edit_ext_cmd'):
 				self.edit_ext_cmd = line[1]
-			if (key == 'res_font'):
-				self.res_font = line[1].split('\n')[0]
+			if (key == 'exit_dont_ask'):
+				if ('true' == line[1].split('\n')[0]):
+					self.exit_dont_ask = True
 		cf.close()
 
 	def app_write_config(self):
@@ -173,8 +177,8 @@ class SeaScopeApp(QMainWindow):
 			cf.write('edit_font' + '=' + self.edit_book.ev_font + '\n')
 		if (self.edit_book.is_show_line):
 			cf.write('edit_show_line_num' + '=' + 'true' + '\n')
-#		if (self.res_font):
-#			cf.write('res_font' + '=' + self.res_font + '\n')
+		if (self.exit_dont_ask):
+			cf.write('exit_dont_ask' + '=' + 'true' + '\n')
 		if (self.edit_ext_cmd):
 			cf.write('edit_ext_cmd' + '=' + self.edit_ext_cmd + '\n')
 		cf.close()

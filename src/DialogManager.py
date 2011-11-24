@@ -17,6 +17,9 @@ def show_yes_no(msg):
 	ret = QMessageBox.question(None, "SeaScope", msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 	return ret == QMessageBox.Yes
 
+def show_yes_no_dontask(msg):
+	return QMessageBox.question(None, "SeaScope", msg, "No", "Yes", "Yes, Don't ask again")
+
 def show_proj_close():
 	return show_yes_no("\nClose current project?")
 
@@ -77,7 +80,7 @@ def show_project_open_dialog(path_list):
 	return d.run_dialog(path_list)
 
 class FilePreferencesDialog(QObject):
-	def __init__(self, app_style, edit_ext_cmd, ev_font):
+	def __init__(self, app_style, edit_ext_cmd, ev_font, dontask):
 		QObject.__init__(self)
 
 		self.dlg = uic.loadUi('ui/preferences.ui')
@@ -90,6 +93,11 @@ class FilePreferencesDialog(QObject):
 		self.app_style = app_style
 		self.ev_font = ev_font
 		self.edit_ext_cmd = edit_ext_cmd
+		self.dontask = dontask
+		if self.dontask:
+			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Unchecked)
+		else:
+			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Checked)
 		if (self.edit_ext_cmd):
 			self.dlg.prd_edit_ext_inp.setText(self.edit_ext_cmd)
 
@@ -119,10 +127,11 @@ class FilePreferencesDialog(QObject):
 			QApplication.setFont(self.dlg.prd_font_app_btn.font())
 			self.ev_font = self.dlg.prd_font_ev_btn.font()
 			self.edit_ext_cmd = self.dlg.prd_edit_ext_inp.text()
-		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, self.ev_font)
+			self.exit_dontask = self.dlg.prd_opt_ask_chkb.checkStateSet() == Qt.Unchecked
+		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, self.ev_font, self.exit_dontask)
 
-def show_preferences_dialog(app_style, edit_ext_cmd, ev_font):
-	d = FilePreferencesDialog(app_style, edit_ext_cmd, ev_font)
+def show_preferences_dialog(app_style, edit_ext_cmd, ev_font, dontask):
+	d = FilePreferencesDialog(app_style, edit_ext_cmd, ev_font, dontask)
 	return d.run_dialog()
 
 def show_about_dialog():
