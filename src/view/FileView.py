@@ -156,8 +156,6 @@ class FileTree(QTabWidget):
 		self.lview.sortByColumn(0, Qt.AscendingOrder)
 
 		self.hide_view_columns(self.tview)
-
-		self.tview.setRootIndex(self.tmodel.index(self.dir_prefix))
 		self.dir_reset(self.dir_prefix)
 
 	def hide_view_columns(self, view):
