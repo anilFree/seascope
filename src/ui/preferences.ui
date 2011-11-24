@@ -26,7 +26,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="prd_style_tab">
       <attribute name="title">
@@ -46,7 +46,7 @@
        <item row="0" column="0">
         <widget class="QLabel" name="prd_font_app_lbl">
          <property name="text">
-          <string>Application Font</string>
+          <string>Application</string>
          </property>
         </widget>
        </item>
@@ -73,7 +73,7 @@
        <item row="1" column="0">
         <widget class="QLabel" name="prd_font_ev_lbl">
          <property name="text">
-          <string>Editor Font</string>
+          <string>Editor</string>
          </property>
         </widget>
        </item>
@@ -105,25 +105,32 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <widget class="QCheckBox" name="prd_opt_ask_chkb">
+         <property name="text">
+          <string>Ask before exit if there is open project</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QGridLayout" name="prd_opt_glay">
-         <item row="0" column="0">
+         <item row="2" column="1">
+          <widget class="QLabel" name="prd_edit_ext_lbl2">
+           <property name="text">
+            <string>Format: %F - filename, %L - line</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
           <widget class="QLabel" name="prd_edit_ext_lbl">
            <property name="text">
             <string>External Editor</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="1" column="1">
           <widget class="QLineEdit" name="prd_edit_ext_inp">
            <property name="text">
             <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QLabel" name="prd_edit_ext_lbl2">
-           <property name="text">
-            <string>Format: %F - filename, %L - line</string>
            </property>
           </widget>
          </item>
