@@ -42,7 +42,7 @@ class FileTree(QTabWidget):
 		self.ted = QLineEdit()
 		self.completer = QCompleter()
 		self.completer.setCompletionMode(QCompleter.PopupCompletion)
-		self.tdbtn.setToolTip("Current folder")
+		self.ted.setToolTip("Current folder")
 		self.ted.setCompleter(self.completer)
 		self.tdbtn = QPushButton()
 		self.tdbtn.setIcon(QIcon.fromTheme("document-open", QIcon("icons/document-open.svg")))
