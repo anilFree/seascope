@@ -188,15 +188,10 @@ def show_find_dialog(text):
 	return FindDialog.dlg.run_dlg(text)
 
 class FilterDialog:
-	def __init__(self):
+	def __init__(self, cmd_items, cmd_sel):
 		self.dlg = uic.loadUi('ui/filter.ui')
-		self.cmd_items = [
-			'Function',
-			'File',
-			'Line',
-			'Text'
-		]
-		self.dlg.fd_cmd_inp.addItems(self.cmd_items)
+		self.dlg.fd_cmd_inp.addItems(cmd_items)
+		self.dlg.fd_cmd_inp.setCurrentIndex(cmd_items.index(cmd_sel))
 
 	def run_dialog(self):
 		res = None
@@ -205,11 +200,12 @@ class FilterDialog:
 				str(self.dlg.fd_filter_inp.text()),
 				self.dlg.fd_regex_chkbox.isChecked(),
 				self.dlg.fd_negate_chkbox.isChecked(),
-				self.dlg.fd_icase_chkbox.isChecked()
+				self.dlg.fd_icase_chkbox.isChecked(),
+				str(self.dlg.fd_cmd_inp.currentText())
 			]
 		self.dlg = None
 		return res
 
-def show_filter_dialog():
-	dlg = FilterDialog()
+def show_filter_dialog(cmd_items,cmd_sel):
+	dlg = FilterDialog(cmd_items,cmd_sel)
 	return dlg.run_dialog()

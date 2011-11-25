@@ -29,7 +29,8 @@ class ResultPage(QTreeWidget):
 		self.parent = parent
 
 		self.setColumnCount(4)
-		self.setHeaderLabels(['Function', 'File', 'Line', 'Text'])
+		self.cmd_items = ['Function', 'File', 'Line', 'Text'] 
+		self.setHeaderLabels(self.cmd_items)
 		self.setColumnWidth(0, 200)
 		self.setColumnWidth(1, 300)
 		self.setColumnWidth(2, 40)
@@ -71,13 +72,17 @@ class ResultPage(QTreeWidget):
 
 	def filter_cb(self):
 		filtered = False
-		res = DialogManager.show_filter_dialog()
+		cmd_sel = self.cmd_items[self.last_minx.column()]
+		res = DialogManager.show_filter_dialog(self.cmd_items,cmd_sel)
 		if res == None:
 			return
-		(filter_text, is_regex, is_negate, is_ignorecase) = res
+		(filter_text, is_regex, is_negate, is_ignorecase, cmd_sel) = res
+		cmd_idx = self.cmd_items.index(cmd_sel)
+		if cmd_idx == -1:
+			return
 		for inx in range(self.topLevelItemCount()):
 			item = self.topLevelItem(inx)
-			text = item.column_val(self.last_minx.column())
+			text = item.column_val(cmd_idx)
 			if (text == None):
 				continue
 			matched = False
