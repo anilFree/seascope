@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from CscopeManager import CsProcess
-
 import os, string
 from PyQt4.QtCore import *
 
