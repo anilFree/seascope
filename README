@@ -4,3 +4,10 @@ SeaScope is a GUI frontend for cscope.
 
 	cd src
 	python SeaScope.py
+
+* Generating source distribution package
+	python setup.py sdist
+
+* Generating RPM distribution package
+	python setup.py bdist_rpm
+
