@@ -30,4 +30,7 @@ setup(name='SeaScope',
           'Programming Language :: Python',
           'Topic :: Software Development',
           ],
+	options= {'bdist_rpm':{'requires': 'PyQt4,qscintilla-python,cscope,ctags',
+				'group': 'Development Tools',
+				'vendor': 'The SeaScope Team'}}
 	)
