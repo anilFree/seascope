@@ -69,6 +69,7 @@ class PluginProcess(QObject):
 		self.proc.finished.connect(self._finished_cb)
 
 		self.proc.setWorkingDirectory(wdir)
+		self.wdir = wdir
 
 	def _finished_cb(self, ret):
 		PluginProcess.proc_list.remove(self)

@@ -11,51 +11,35 @@ from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from ..PluginBase import QueryUiBase
 from .. import PluginBase, PluginHelper
 
-#cmd_items = [
-	#'References to',
-	#'Definition of',
-	#'Functions called by',
-	#'Functions calling',
-	#'Find text',
-	#'Find egrep pattern',
-	#'Find files',
-	#'Find #including',
-	#'Call tree'
-#]
 
-#ctree_query_args = [
-	#[3, '--> F', 'Calling tree'		],
-	#[2, 'F -->', 'Called tree'		],
-	#[0, '==> F', 'Advanced calling tree'	],
-#]
+cmd_table = [
+	[	['REF',	'0'],	['&References',		'Ctrl+0'],	['References to'	]	],
+	[	['DEF',	'1'],	['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
+	[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
+	[	['-->',	'3'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
+	[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
+	[	['GRP',	'5'],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
+	[	['FIL',	'7'],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
+	[	['INC',	'8'],	['&Including Files',	'Ctrl+8'],	['Find #including'	]	],
+	[	['---', None],	[None				]					],
+	[	['QDEF', '11'], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
+	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
+	[	['---', None],	[None				],					],
+	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
+]
+
+menu_cmd_list = [ [c[0][0]] + c[1] for c in cmd_table ]
+cmd_str2id = { c[0][0]:c[0][1] for c in cmd_table if c[0][1] != None }
+cmd_str2qstr = { c[0][0]:c[2][0] for c in cmd_table if c[0][1] != None }
+cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
+cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != None ]
+
+ctree_query_args = [
+	[cmd_str2id['-->'],	'--> F', 'Calling tree'			],
+	[cmd_str2id['<--'],	'F -->', 'Called tree'			],
+	[cmd_str2id['REF'],	'==> F', 'Advanced calling tree'	],
+]
 		
-#cmd_dict = {
-	#0: 'REF',
-	#1: 'DEF',
-	#2: '<--',
-	#3: '-->',
-	#4: 'TXT',
-	#5: 'GRP',
-	#7: 'FIL',
-	#8: 'INC',
-#}
-
-#menu_cmd_list = [
-#	[0,	'&References',		'Ctrl+0'],
-#	[1,	'&Definitions',		'Ctrl+1'],
-#	[2,	'&Called Functions',	'Ctrl+2'],
-#	[3,	'C&alling Functions',	'Ctrl+3'],
-#	[4,	'Find &Text',		'Ctrl+4'],
-#	[5,	'Find &Egrep',		'Ctrl+5'],
-#	[7,	'Find &File',		'Ctrl+7'],
-#	[8,	'&Including Files',	'Ctrl+8'],
-#	[None],
-#	[11,	'&Quick Definition',	'Ctrl+]'],
-#	[9,	'Call Tr&ee',		'Ctrl+\\'],
-#	[None],
-#	[-1,	'Re&build Database',	self.cb_rebuild],
-#]
-
 class QueryDialog(QDialog):
 	dlg = None
 
@@ -63,25 +47,14 @@ class QueryDialog(QDialog):
 		QDialog.__init__(self)
 
 		self.ui = uic.loadUi('backend/plugins/cscope/ui/cs_query.ui', self)
-		self.cmd_items = [
-			'References to',
-			'Definition of',
-			'Functions called by',
-			'Functions calling',
-			'Find text',
-			'Find egrep pattern',
-			'Find files',
-			'Find #including',
-			'Call tree'
-		]
 		self.qd_sym_inp.setAutoCompletion(False)
 		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
-		self.qd_cmd_inp.addItems(self.cmd_items)
+		self.qd_cmd_inp.addItems(cmd_qstrlist)
 
-	def run_dialog(self, cmd_id, req):
-		if (cmd_id > 5):
-			cmd_id = cmd_id - 1
-		self.qd_cmd_inp.setCurrentIndex(cmd_id)
+	def run_dialog(self, cmd_str, req):
+		s = cmd_str2qstr[cmd_str]
+		inx = self.qd_cmd_inp.findText(s)
+		self.qd_cmd_inp.setCurrentIndex(inx)
 		if (req == None):
 			req = ''
 		self.qd_sym_inp.setFocus()
@@ -92,30 +65,28 @@ class QueryDialog(QDialog):
 
 		self.show()
 		if (self.exec_() == QDialog.Accepted):
-			cmd_id = self.qd_cmd_inp.currentIndex()
-			if (cmd_id > 5):
-				cmd_id = cmd_id + 1
 			req = str(self.qd_sym_inp.currentText())
+			cmd_str = cmd_qstr2str[s]
 			#self.qd_sym_inp.addItem(req)
 			if (req != '' and self.qd_substr_chkbox.isChecked()):
 				req = '.*' + req + '.*'
 			opt = None
 			if (self.qd_icase_chkbox.isChecked()):
 				opt = '-C'
-			res = (cmd_id, req, opt)
+			res = (cmd_str, req, opt)
 			return res
 		return None
 
 	@staticmethod
-	def show_dlg(cmd_id, req):
+	def show_dlg(cmd_str, req):
 		if (QueryDialog.dlg == None):
 			QueryDialog.dlg = QueryDialog()
-		return QueryDialog.dlg.run_dialog(cmd_id, req)
+		return QueryDialog.dlg.run_dialog(cmd_str, req)
 
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
 
-def get_cscope_files_list(rootdir):
+def dir_scan_csope_files(rootdir):
 	file_list = []
 	if (not os.path.isdir(rootdir)):
 		print "Not a directory:", rootdir
@@ -133,30 +104,16 @@ class QueryUiCscope(QueryUiBase):
 		self.query = qry
 
 	def do_cs_query_ctree(self, cmd_id, req, opt):
-		ctree_query_args = [
-			[3, '--> F', 'Calling tree'		],
-			[2, 'F -->', 'Called tree'		],
-			[0, '==> F', 'Advanced calling tree'	],
-		]
 		PluginHelper.call_view_page_new(req, self.query.cs_query, ctree_query_args)
 		
-	def do_cs_query(self, cmd_id, req, opt):
+	def do_cs_query(self, cmd_str, req, opt):
 		## create page
-		cmd_dict = {
-			0: 'REF',
-			1: 'DEF',
-			2: '<--',
-			3: '-->',
-			4: 'TXT',
-			5: 'GRP',
-			7: 'FIL',
-			8: 'INC',
-		}
-		name = cmd_dict[cmd_id] + ' ' + req
+		name = cmd_str + ' ' + req
+		cmd_id = cmd_str2id[cmd_str]
 		sig_res = self.query.cs_query(cmd_id, req, opt)
 		PluginHelper.result_page_new(name, sig_res)
 
-	def cs_query_cb(self, cmd_id):
+	def cs_query_cb(self, cmd_str):
 		if (not self.query.cs_is_open()):
 			return
 		if (not self.query.cs_is_ready()):
@@ -166,20 +123,20 @@ class QueryUiCscope(QueryUiBase):
 		if (req != None):
 			req = str(req).strip()
 		opt = None
-		if (cmd_id < 10 or cmd_id == 12):
-			val = QueryDialog.show_dlg(cmd_id, req)
+		if (cmd_str != 'QDEF'):
+			val = QueryDialog.show_dlg(cmd_str, req)
 			if (val == None):
 				return
-			(cmd_id, req, opt) = val
+			(cmd_str, req, opt) = val
 		if (req == None or req == ''):
 			return
-		if (cmd_id < 9):
-			self.do_cs_query(cmd_id, req, opt)
+
+		if cmd_str == 'QDEF':
+			self.do_cs_query_qdef(cmd_str2id[cmd_str], req, opt)
+		elif cmd_str == 'CTREE':
+			self.do_cs_query_ctree(cmd_str2id[cmd_str], req, opt)
 		else:
-			if cmd_id == 11:
-				self.do_cs_query_qdef(1, req, opt)
-			elif cmd_id == 9:
-				self.do_cs_query_ctree(3, req, opt)
+			self.do_cs_query(cmd_str, req, opt)
 				
 	def cb_rebuild(self):
 		sig_rebuild = self.query.cs_rebuild()
@@ -194,39 +151,27 @@ class QueryUiCscope(QueryUiBase):
 			pass
 
 	def menu_cb(self, act):
-		if act.cmd_id != -1:
-			self.cs_query_cb(act.cmd_id)
+		if act.cmd_str != None:
+			self.cs_query_cb(act.cmd_str)
 
 	def prepare_menu(self):
 		menu = PluginHelper.backend_menu
 		menu.triggered.connect(self.menu_cb)
 		menu.setTitle('&Cscope')
 		#menu.setFont(QFont("San Serif", 8))
-		menu_cmd_list = [
-			[0,	'&References',		'Ctrl+0'],
-			[1,	'&Definitions',		'Ctrl+1'],
-			[2,	'&Called Functions',	'Ctrl+2'],
-			[3,	'C&alling Functions',	'Ctrl+3'],
-			[4,	'Find &Text',		'Ctrl+4'],
-			[5,	'Find &Egrep',		'Ctrl+5'],
-			[7,	'Find &File',		'Ctrl+7'],
-			[8,	'&Including Files',	'Ctrl+8'],
-			[None],
-			[11,	'&Quick Definition',	'Ctrl+]'],
-			[9,	'Call Tr&ee',		'Ctrl+\\'],
-			[None],
-			[-1,	'Re&build Database',	self.cb_rebuild],
-		]
 		for c in menu_cmd_list:
-			if c[0] == None:
+			if c[0] == '---':
 				menu.addSeparator()
 				continue
-			if c[0] == -1:
-				act = menu.addAction(c[1], c[2])
+			if c[2] == None:
+				if c[0] == 'UPD':
+					func = self.cb_rebuild
+					act = menu.addAction(c[1], func)
+				act.cmd_str = None
 			else:
 				act = menu.addAction(c[1])
 				act.setShortcut(c[2])
-			act.cmd_id = c[0]
+				act.cmd_str = c[0]
 
 	def do_cs_query_qdef(self, cmd_id, req, opt):
 		sig_res = self.query.cs_query(cmd_id, req, opt)
@@ -281,7 +226,7 @@ class ProjectSettingsCscopeDialog(QDialog):
 			li.takeItem(row)
 
 	def src_add_files(self, src_dir):
-		file_list = get_cscope_files_list(src_dir)
+		file_list = dir_scan_csope_files(src_dir)
 		self.pd_src_list.addItems(file_list)
 
 	def ok_btn_cb(self):
