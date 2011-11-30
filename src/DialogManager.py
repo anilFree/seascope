@@ -18,7 +18,7 @@ def show_yes_no(msg):
 	return ret == QMessageBox.Yes
 
 def show_yes_no_dontask(msg):
-	return QMessageBox.question(None, "SeaScope", msg, "No", "Yes", "Yes, Don't ask again")
+	return QMessageBox.question(None, "SeaScope", msg, "Yes", "No", "Yes, Don't ask again")
 
 def show_proj_close():
 	return show_yes_no("\nClose current project?")

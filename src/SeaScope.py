@@ -41,7 +41,7 @@ class SeaScopeApp(QMainWindow):
 	def closeEvent(self, ev):
 		if not self.exit_dont_ask and backend.proj_is_open():
 			ret = DialogManager.show_yes_no_dontask('Close project and quit?')
-			if ret == 0:
+			if ret == 1:
 				ev.ignore()
 				return
 			if ret == 2:

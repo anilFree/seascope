@@ -13,13 +13,13 @@ from .. import PluginBase, PluginHelper
 
 
 cmd_table = [
-	[	['REF',	'-r'],	['&References',		'Ctrl+0'],	['References to'	]	],
+	[	['REF',	''],	['&References',		'Ctrl+0'],	['References to'	]	],
 	[	['DEF',	''],	['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
 	#[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
 	#[	['-->',	'3'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
 	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
-	[	['GRP',	'-g'],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
-	[	['FIL',	'-P'],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
+	[	['GRP',	''],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
+	[	['FIL',	''],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
 	#[	['INC',	'8'],	['&Including Files',	'Ctrl+8'],	['Find #including'	]	],
 	#[	['---', None],	[None				]					],
 	#[	['FSYM', '-f'],	['&List objects in file',None],	['Find objects in file'	]	],
@@ -48,7 +48,7 @@ class QueryDialog(QDialog):
 	def __init__(self):
 		QDialog.__init__(self)
 
-		self.ui = uic.loadUi('backend/plugins/gtags/ui/gt_query.ui', self)
+		self.ui = uic.loadUi('backend/plugins/idutils/ui/id_query.ui', self)
 		self.qd_sym_inp.setAutoCompletion(False)
 		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
 		self.qd_cmd_inp.addItems(cmd_qstrlist)
@@ -88,7 +88,7 @@ class QueryDialog(QDialog):
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
 
-def get_gtags_files_list(rootdir):
+def get_idutils_files_list(rootdir):
 	file_list = []
 	if (not os.path.isdir(rootdir)):
 		print "Not a directory:", rootdir
@@ -100,25 +100,25 @@ def get_gtags_files_list(rootdir):
 				file_list.append(f)
 	return file_list
 
-class QueryUiGtags(QueryUiBase):
+class QueryUiIdutils(QueryUiBase):
 	def __init__(self, qry):
 		QueryUiBase.__init__(self)
 		self.query = qry
 
-	def do_gt_query_ctree(self, cmd_id, req, opt):
-		PluginHelper.call_view_page_new(req, self.query.gt_query, ctree_query_args)
+	def do_id_query_ctree(self, cmd_id, req, opt):
+		PluginHelper.call_view_page_new(req, self.query.id_query, ctree_query_args)
 		
-	def do_gt_query(self, cmd_str, req, opt):
+	def do_id_query(self, cmd_str, req, opt):
 		## create page
 		name = cmd_str + ' ' + req
 		cmd_id = cmd_str2id[cmd_str]
-		sig_res = self.query.gt_query(cmd_id, req, opt)
+		sig_res = self.query.id_query(cmd_id, req, opt)
 		PluginHelper.result_page_new(name, sig_res)
 
-	def gt_query_cb(self, cmd_str):
-		if (not self.query.gt_is_open()):
+	def id_query_cb(self, cmd_str):
+		if (not self.query.id_is_open()):
 			return
-		if (not self.query.gt_is_ready()):
+		if (not self.query.id_is_ready()):
 			show_msg_dialog('\nProject has no source files')
 			return
 		req = PluginHelper.editor_current_word()
@@ -134,17 +134,17 @@ class QueryUiGtags(QueryUiBase):
 			return
 
 		if cmd_str == 'QDEF':
-			self.do_gt_query_qdef(cmd_str2id[cmd_str], req, opt)
+			self.do_id_query_qdef(cmd_str2id[cmd_str], req, opt)
 		elif cmd_str == 'CTREE':
-			self.do_gt_query_ctree(cmd_str2id[cmd_str], req, opt)
+			self.do_id_query_ctree(cmd_str2id[cmd_str], req, opt)
 		else:
-			self.do_gt_query(cmd_str, req, opt)
+			self.do_id_query(cmd_str, req, opt)
 				
 	def cb_rebuild(self):
-		sig_rebuild = self.query.gt_rebuild()
+		sig_rebuild = self.query.id_rebuild()
 		dlg = QProgressDialog()
 		dlg.setWindowTitle('SeaScope rebuild')
-		dlg.setLabelText('Rebuilding gtags database...')
+		dlg.setLabelText('Rebuilding idutils database...')
 		dlg.setCancelButton(None)
 		dlg.setMinimum(0)
 		dlg.setMaximum(0)
@@ -154,12 +154,12 @@ class QueryUiGtags(QueryUiBase):
 
 	def menu_cb(self, act):
 		if act.cmd_str != None:
-			self.gt_query_cb(act.cmd_str)
+			self.id_query_cb(act.cmd_str)
 
 	def prepare_menu(self):
 		menu = PluginHelper.backend_menu
 		menu.triggered.connect(self.menu_cb)
-		menu.setTitle('G&tags')
+		menu.setTitle('&Idutils')
 		#menu.setFont(QFont("San Serif", 8))
 		for c in menu_cmd_list:
 			if c[0] == '---':
@@ -175,20 +175,20 @@ class QueryUiGtags(QueryUiBase):
 				act.setShortcut(c[2])
 				act.cmd_str = c[0]
 
-	def do_gt_query_qdef(self, cmd_id, req, opt):
-		sig_res = self.query.gt_query(cmd_id, req, opt)
+	def do_id_query_qdef(self, cmd_id, req, opt):
+		sig_res = self.query.id_query(cmd_id, req, opt)
 		PluginHelper.quick_def_page_new(sig_res)
 
 	@staticmethod
 	def prj_show_settings_ui(proj_args):
-		dlg = ProjectSettingsGtagsDialog()
+		dlg = ProjectSettingsIdutilsDialog()
 		return dlg.run_dialog(proj_args)
 
-class ProjectSettingsGtagsDialog(QDialog):
+class ProjectSettingsIdutilsDialog(QDialog):
 	def __init__(self):
 		QDialog.__init__(self)
 
-		self.ui = uic.loadUi('backend/plugins/gtags/ui/gt_project_settings.ui', self)
+		self.ui = uic.loadUi('backend/plugins/idutils/ui/id_project_settings.ui', self)
 		self.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
 
 		self.pd_src_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -228,7 +228,7 @@ class ProjectSettingsGtagsDialog(QDialog):
 			li.takeItem(row)
 
 	def src_add_files(self, src_dir):
-		file_list = get_gtags_files_list(src_dir)
+		file_list = get_idutils_files_list(src_dir)
 		self.pd_src_list.addItems(file_list)
 
 	def ok_btn_cb(self):
@@ -242,30 +242,30 @@ class ProjectSettingsGtagsDialog(QDialog):
 				return
 			os.mkdir(proj_dir)
 		# File list
-		gt_list = []
+		id_list = []
 		for inx in range(self.pd_src_list.count()):
 			val = str(self.pd_src_list.item(inx).text())
-			gt_list.append(val)
-		gt_list = list(set(gt_list))
-		# Gtags opt
-		gt_opt = []
+			id_list.append(val)
+		id_list = list(set(id_list))
+		# Idutils opt
+		id_opt = []
 		if self.pd_invert_chkbox.isChecked():
-			gt_opt.append('-q')
+			id_opt.append('-q')
 		if self.pd_kernel_chkbox.isChecked():
-			gt_opt.append('-k')
+			id_opt.append('-k')
 
-		self.res = [proj_dir, gt_opt, gt_list]
+		self.res = [proj_dir, id_opt, id_list]
 
 	def set_proj_args(self, proj_args):
-		(proj_dir, gt_opt, gt_list) = proj_args
+		(proj_dir, id_opt, id_list) = proj_args
 		(proj_base, proj_name) = os.path.split(proj_dir)
 		self.pd_path_inp.setText(proj_base)
 		self.pd_name_inp.setText(proj_name)
 		# File list
-		fl = gt_list
+		fl = id_list
 		self.pd_src_list.addItems(fl)
-		# Gtags opt
-		for opt in gt_opt:
+		# Idutils opt
+		for opt in id_opt:
 			if (opt == '-q'):
 				self.pd_invert_chkbox.setChecked(True)
 			if (opt == '-k'):
