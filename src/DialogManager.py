@@ -93,8 +93,8 @@ class FilePreferencesDialog(QObject):
 		self.app_style = app_style
 		self.ev_font = ev_font
 		self.edit_ext_cmd = edit_ext_cmd
-		self.dontask = dontask
-		if self.dontask:
+		self.exit_dontask = dontask
+		if self.exit_dontask:
 			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Unchecked)
 		else:
 			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Checked)
@@ -127,7 +127,7 @@ class FilePreferencesDialog(QObject):
 			QApplication.setFont(self.dlg.prd_font_app_btn.font())
 			self.ev_font = self.dlg.prd_font_ev_btn.font()
 			self.edit_ext_cmd = self.dlg.prd_edit_ext_inp.text()
-			self.exit_dontask = self.dlg.prd_opt_ask_chkb.checkStateSet() == Qt.Unchecked
+			self.exit_dontask = self.dlg.prd_opt_ask_chkb.checkState() == Qt.Unchecked
 		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, self.ev_font, self.exit_dontask)
 
 def show_preferences_dialog(app_style, edit_ext_cmd, ev_font, dontask):
