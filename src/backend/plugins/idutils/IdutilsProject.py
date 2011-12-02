@@ -187,6 +187,7 @@ class GtProcess(PluginProcess):
 			#print res[0], '...', len(res), 'results'
 		#else:
 			#print '0 results'
+		self.apply_ctags_fix(res, [ '<unknown>' ])
 		return res
 
 class QueryIdutils(QueryBase):

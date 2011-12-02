@@ -104,3 +104,46 @@ class PluginProcess(QObject):
 
 	def parse_result(self, text):
 		print 'parse_result not implemented'
+
+	def _ctags_for_file(self, filename):
+		cmd = 'ctags -n -u --fields=+K -f -'
+		args = cmd.split()
+		args.append(filename)
+		import subprocess
+		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+		(out_data, err_data) = proc.communicate()
+		out_data = out_data.split('\n')
+		res = []
+		for line in out_data:
+			if (line == ''):
+				break
+			line = line.split('\t')
+			num = line[2].split(';', 1)[0]
+			line = [line[0], num, line[3]]
+			res.append(line)
+		return res
+
+	def _ctags_fix(self, line):
+		f = line[1]
+		n = int(line[2])
+		if f not in self.ct_dict:
+			#print 'ctags_for_file: ', f
+			self.ct_dict[f] = self._ctags_for_file(f)
+		prev = None
+		for k in self.ct_dict[f]:
+			#print k
+			if int(k[1]) > n:
+				break
+			prev = k
+		if prev:
+			line[0] = '[' + prev[0] + ']'
+
+	def apply_ctags_fix(self, res, cond_list):
+		import os
+		if not os.path.exists(os.path.expanduser('~/.seascope_ctags_fix')):
+			return
+		self.ct_dict = {}
+		for line in res:
+			if line[0] in cond_list:
+				self._ctags_fix(line)
+		self.ct_dict = {}
