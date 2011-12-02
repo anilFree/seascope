@@ -105,7 +105,7 @@ class QueryUiIdutils(QueryUiBase):
 		QueryUiBase.__init__(self)
 		self.query = qry
 
-	def do_id_query_ctree(self, cmd_id, req, opt):
+	def do_id_query_ctree(self, req, opt):
 		PluginHelper.call_view_page_new(req, self.query.id_query, ctree_query_args)
 		
 	def do_id_query(self, cmd_str, req, opt):
@@ -134,9 +134,9 @@ class QueryUiIdutils(QueryUiBase):
 			return
 
 		if cmd_str == 'QDEF':
-			self.do_id_query_qdef(cmd_str2id[cmd_str], req, opt)
+			self.do_id_query_qdef(cmd_str2id['DEF'], req, opt)
 		elif cmd_str == 'CTREE':
-			self.do_id_query_ctree(cmd_str2id[cmd_str], req, opt)
+			self.do_id_query_ctree(req, opt)
 		else:
 			self.do_id_query(cmd_str, req, opt)
 				
