@@ -185,6 +185,7 @@ class CsProcess(PluginProcess):
 			#print res[0], '...', len(res), 'results'
 		#else:
 			#print '0 results'
+		self.apply_ctags_fix(res, [ '<unknown>', '<global>' ])
 		return res
 
 class QueryCscope(QueryBase):

@@ -21,6 +21,7 @@ def ct_query(filename):
 		if (line == ''):
 			break
 		line = line.split('\t')
+		print '\t%s' % line
 		num = line[2].split(';', 1)[0]
 		line = [line[0], num, line[3]]
 		res.append(line)
