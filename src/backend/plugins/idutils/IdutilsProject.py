@@ -166,16 +166,38 @@ class ProjectIdutils(ProjectBase):
 
 from ..PluginBase import PluginProcess
 
-class GtProcess(PluginProcess):
-	def __init__(self, wdir):
+class IdProcess(PluginProcess):
+	def __init__(self, wdir, rq):
 		PluginProcess.__init__(self, wdir)
-		self.name = 'gtags process'
+		self.name = 'idutils process'
+		self.cmd_str = rq[0]
+		self.req = rq[1]
+		print rq
+
+	def _filter_res(self, res):
+		print 'cmd:', self.cmd_str
+		import re
+		out_res = []
+		if self.cmd_str == 'DEF':
+			for line in res:
+				if  line[0] == self.req:
+					out_res.append(line)
+			return out_res
+		if self.cmd_str == '-->':
+			call_re = re.compile('\\b%s\\b\s*\(' % self.req)
+			for line in res:
+				if line[0] != self.req:
+					if call_re.search(line[3]):
+						out_res.append(line)
+			return out_res
+		if self.cmd_str == '<--':
+			return res
+		return res
 
 	def parse_result(self, text):
 		text = text.split('\n')
 		res = []
 		for line in text:
-			print line
 			if line == '':
 				continue
 			if line[-1:] == '\r':
@@ -188,6 +210,9 @@ class GtProcess(PluginProcess):
 		#else:
 			#print '0 results'
 		self.apply_ctags_fix(res, [ '<unknown>' ])
+
+		res = self._filter_res(res)
+
 		return res
 
 class QueryIdutils(QueryBase):
@@ -195,14 +220,25 @@ class QueryIdutils(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def id_query(self, cmd_id, req, opt = None):
-		print cmd_id, req, opt
+	def id_query(self, cmd_str, req, opt = None):
+		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = 'lid -R grep ' + str(cmd_id) + ' ' + req
-		qsig = GtProcess(self.conf.id_dir).run_query_process(pargs, req)
+		if opt == None:
+			opt = []
+		pargs = 'lid -R grep '
+		if cmd_str == 'TXT':
+			pargs += ' -l'
+		elif 'substring' in opt:
+			#req = '.*' + req + '.*'
+			#pargs += ' -s'
+			pass
+		elif cmd_str in ['-->', '<--']:
+			pargs += ' -l'
+		pargs = pargs + ' ' + req
+		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req)
 		return qsig
 
 	def id_rebuild(self):
@@ -210,7 +246,7 @@ class QueryIdutils(QueryBase):
 			print "pm_query not is_ready"
 			return None
 		pargs = 'mkid'
-		qsig = GtProcess(self.conf.id_dir).run_rebuild_process(pargs)
+		qsig = IdProcess(self.conf.id_dir).run_rebuild_process(pargs)
 		return qsig
 
 	def id_is_open(self):

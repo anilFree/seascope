@@ -104,7 +104,7 @@ class QueryUiCscope(QueryUiBase):
 		self.query = qry
 
 	def do_cs_query_ctree(self, req, opt):
-		PluginHelper.call_view_page_new(req, self.query.cs_query, ctree_query_args)
+		PluginHelper.call_view_page_new(req, self.query.cs_query, ctree_query_args, opt)
 		
 	def do_cs_query(self, cmd_str, req, opt):
 		## create page

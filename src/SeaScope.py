@@ -263,6 +263,7 @@ class SeaScopeApp(QMainWindow):
 		PluginHelper.edit_book = self.edit_book
 		PluginHelper.res_book = self.res_book
 		PluginHelper.call_view = CallView
+		PluginHelper.file_view = self.file_view
 		PluginHelper.dbg_mgr = DebugManager
 		
 

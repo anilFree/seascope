@@ -5,6 +5,7 @@ backend_menu = None
 edit_book = None
 res_book = None
 call_view = None
+file_view = None
 dbg_mgr = None
 
 def editor_current_word():
@@ -48,7 +49,8 @@ def quick_def_page_new(sig_res):
 	sig_res[0].connect(_quick_def_result)
 	dbg_mgr.connect_to_cs_sig_res(sig_res[1])
 
-def call_view_page_new(req, query_func, ctree_query_args):
-	call_view.create_page(req, query_func, ctree_query_args)
+def call_view_page_new(req, query_func, ctree_query_args, opt):
+	call_view.create_page(req, query_func, ctree_query_args, opt)
 
-
+def file_view_update(src_list):
+	self.file_view.add_files(src_files)

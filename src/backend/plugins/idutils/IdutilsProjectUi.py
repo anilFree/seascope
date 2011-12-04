@@ -15,8 +15,8 @@ from .. import PluginBase, PluginHelper
 cmd_table = [
 	[	['REF',	''],	['&References',		'Ctrl+0'],	['References to'	]	],
 	[	['DEF',	''],	['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
-	#[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
-	#[	['-->',	'3'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
+	[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
+	[	['-->',	'3'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
 	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
 	[	['GRP',	''],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
 	[	['FIL',	''],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
@@ -37,9 +37,9 @@ cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
 cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != None ]
 
 ctree_query_args = [
-	#[cmd_str2id['-->'],	'--> F', 'Calling tree'			],
-	#[cmd_str2id['<--'],	'F -->', 'Called tree'			],
-	[cmd_str2id['REF'],	'==> F', 'Advanced calling tree'	],
+	['-->',	'--> F', 'Calling tree'			],
+	['<--',	'F -->', 'Called tree'			],
+	['REF',	'==> F', 'Advanced calling tree'	],
 ]
 		
 class QueryDialog(QDialog):
@@ -70,11 +70,12 @@ class QueryDialog(QDialog):
 			req = str(self.qd_sym_inp.currentText())
 			cmd_str = cmd_qstr2str[s]
 			#self.qd_sym_inp.addItem(req)
-			if (req != '' and self.qd_substr_chkbox.isChecked()):
+			opt = []
+			if cmd_str != 'TXT' and req != '' and self.qd_substr_chkbox.isChecked():
+				opt.append('substring')
 				req = '.*' + req + '.*'
-			opt = None
 			if (self.qd_icase_chkbox.isChecked()):
-				opt = '-C'
+				opt.append('ignorecase')
 			res = (cmd_str, req, opt)
 			return res
 		return None
@@ -106,12 +107,13 @@ class QueryUiIdutils(QueryUiBase):
 		self.query = qry
 
 	def do_id_query_ctree(self, req, opt):
-		PluginHelper.call_view_page_new(req, self.query.id_query, ctree_query_args)
+		PluginHelper.call_view_page_new(req, self.query.id_query, ctree_query_args, opt)
 		
 	def do_id_query(self, cmd_str, req, opt):
 		## create page
 		name = cmd_str + ' ' + req
-		cmd_id = cmd_str2id[cmd_str]
+		#cmd_id = cmd_str2id[cmd_str]
+		cmd_id = cmd_str
 		sig_res = self.query.id_query(cmd_id, req, opt)
 		PluginHelper.result_page_new(name, sig_res)
 
@@ -133,8 +135,10 @@ class QueryUiIdutils(QueryUiBase):
 		if (req == None or req == ''):
 			return
 
+			print '***', (cmd_str, req, opt)
+
 		if cmd_str == 'QDEF':
-			self.do_id_query_qdef(cmd_str2id['DEF'], req, opt)
+			self.do_id_query_qdef('DEF', req, opt)
 		elif cmd_str == 'CTREE':
 			self.do_id_query_ctree(req, opt)
 		else:
