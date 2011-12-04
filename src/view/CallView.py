@@ -44,11 +44,12 @@ class CallTreeWidgetItem(QTreeWidgetItem):
 class CallTreeWidget(QTreeWidget):
 	sig_show_file_line = pyqtSignal(str, int)
 
-	def __init__(self, parent, cmd_func, cmd_id):
+	def __init__(self, parent, cmd_func, cmd_id, cmd_opt):
 		QTreeWidget.__init__(self, parent)
 		self.is_busy = False
 		self.cmd_func = cmd_func
 		self.cmd_id = cmd_id
+		self.cmd_opt = cmd_opt
 		
 		self.itemExpanded.connect(self.ctree_itemExpanded)
 		self.itemActivated.connect(self.ctree_itemActivated)
@@ -92,12 +93,16 @@ class CallTreeWidget(QTreeWidget):
 		if (item.is_done):
 			return
 		func = str(item.data(0, Qt.DisplayRole).toString())
+		if str(item.data(1, Qt.DisplayRole).toString()) == '':
+			opt = self.cmd_opt
+		else:
+			opt = None
 		if (self.is_busy):
 			return
 		self.is_busy = True
 		
 		## add result
-		sig_res = self.cmd_func(self.cmd_id, func)
+		sig_res = self.cmd_func(self.cmd_id, func, opt)
 		self.query_item = item
 		sig_res[0].connect(self.ctree_add_result)
 
@@ -109,7 +114,7 @@ class CallTreeWindow(QMainWindow):
 	sig_show_file_line = pyqtSignal(str, int)
 	parent = None
 
-	def __init__(self, req, cmd_func, cmd_args):
+	def __init__(self, req, cmd_func, cmd_args, cmd_opt):
 		QMainWindow.__init__(self, CallTreeWindow.parent)
 		self.req = req
 
@@ -146,7 +151,7 @@ class CallTreeWindow(QMainWindow):
 			self.bgrp.addButton(btn, inx)
 			self.hlay.addWidget(btn)
 
-			ct = CallTreeWidget(self, cmd_func, cmd[0])
+			ct = CallTreeWidget(self, cmd_func, cmd[0], cmd_opt)
 			ct.sig_show_file_line.connect(self.sig_show_file_line)
 			self.sw.addWidget(ct)
 
@@ -170,7 +175,7 @@ def ctree_show_file_line(filename, line):
 	parent.activateWindow()
 	parent.show_file_line(filename, line)
 
-def create_page(req, cmd_func, cmd_args):
-	w = CallTreeWindow(req, cmd_func, cmd_args)
+def create_page(req, cmd_func, cmd_args, cmd_opt):
+	w = CallTreeWindow(req, cmd_func, cmd_args, cmd_opt)
 	w.sig_show_file_line.connect(ctree_show_file_line)
 	w.show()

@@ -58,6 +58,7 @@ class PluginProcess(QObject):
 	sig_rebuild = pyqtSignal()
 
 	proc_list = []
+	ct_dict = {}
 
 	def __init__(self, wdir):
 		QObject.__init__(self)
@@ -77,7 +78,7 @@ class PluginProcess(QObject):
 		res = str(self.proc.readAllStandardOutput())
 		err_str = str(self.proc.readAllStandardError())
 
-		print 'output', res
+		#print 'output', res
 		print 'cmd:', self.p_cmd
 		if self.is_rebuild:
 			self.sig_rebuild.emit()
@@ -126,24 +127,28 @@ class PluginProcess(QObject):
 	def _ctags_fix(self, line):
 		f = line[1]
 		n = int(line[2])
-		if f not in self.ct_dict:
+		if f not in PluginProcess.ct_dict:
 			#print 'ctags_for_file: ', f
-			self.ct_dict[f] = self._ctags_for_file(f)
+			PluginProcess.ct_dict[f] = self._ctags_for_file(f)
 		prev = None
-		for k in self.ct_dict[f]:
+		for k in PluginProcess.ct_dict[f]:
 			#print k
-			if int(k[1]) > n:
+			kn = int(k[1])
+			if kn > n:
 				break
+			#if kn == n:
 			prev = k
+			#break
 		if prev:
-			line[0] = '[' + prev[0] + ']'
+			line[0] = prev[0]
+			line[2] = '0000' + line[2]
 
 	def apply_ctags_fix(self, res, cond_list):
 		import os
 		if not os.path.exists(os.path.expanduser('~/.seascope_ctags_fix')):
 			return
-		self.ct_dict = {}
+		#PluginProcess.ct_dict = {}
 		for line in res:
 			if line[0] in cond_list:
 				self._ctags_fix(line)
-		self.ct_dict = {}
+		#PluginProcess.ct_dict = {}
