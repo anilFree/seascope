@@ -1,7 +1,7 @@
 import os
 
 def name():
-	return 'gtags'
+	return 'idutils'
 
 def is_your_prj(path):
 	f = os.path.join(path, 'ID')

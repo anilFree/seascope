@@ -15,7 +15,7 @@ from .. import PluginBase, PluginHelper
 cmd_table = [
 	[	['REF',	''],	['&References',		'Ctrl+0'],	['References to'	]	],
 	[	['DEF',	''],	['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
-	[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
+	#[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
 	[	['-->',	'3'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
 	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
 	[	['GRP',	''],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
@@ -38,7 +38,7 @@ cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != No
 
 ctree_query_args = [
 	['-->',	'--> F', 'Calling tree'			],
-	['<--',	'F -->', 'Called tree'			],
+	#['<--',	'F -->', 'Called tree'			],
 	['REF',	'==> F', 'Advanced calling tree'	],
 ]
 		
@@ -73,7 +73,10 @@ class QueryDialog(QDialog):
 			opt = []
 			if cmd_str != 'TXT' and req != '' and self.qd_substr_chkbox.isChecked():
 				opt.append('substring')
-				req = '.*' + req + '.*'
+				if cmd_str == 'FIL':
+					req = '*' + req + '*'
+				else:
+					req = '.*' + req + '.*'
 			if (self.qd_icase_chkbox.isChecked()):
 				opt.append('ignorecase')
 			res = (cmd_str, req, opt)

@@ -16,7 +16,7 @@ def _load_plugins(module, directory):
 	pluginImports = __import__(module, globals(), locals())
 	print 'Scanning for plugins...'
 	plist = []
-	for i in os.listdir(directory):
+	for i in sorted(os.listdir(directory)):
 		path = os.path.join( directory, i, '__init__.py' )
 		if os.path.isfile( path ):
 			p = __import__( '%s.%s' % (module, i), globals(), locals(), ['*'] )
@@ -84,6 +84,9 @@ def proj_close():
 	PluginHelper.backend_menu.setTitle('')
 	for act in prj_actions:
 		act.setEnabled(False)
+
+	from plugins.PluginBase import CtagsCache
+	CtagsCache.flush()
 
 def proj_is_open():
 	return prj != None
