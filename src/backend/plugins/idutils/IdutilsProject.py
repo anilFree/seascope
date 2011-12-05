@@ -18,6 +18,13 @@ class ConfigIdutils(ConfigBase):
 		return os.path.split(self.id_dir)[1]
 	def get_proj_src_files(self):
 		fl = self.id_list
+		cmd = 'fnid -S newline -f ' + self.id_dir + '/ID'
+		args = cmd.split()
+		import subprocess
+		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		(out_data, err_data) = proc.communicate()
+		fl = out_data.strip().split('\n')
+		#self.id_list = fl
 		return fl
 
 	#def read_id_files_common(self, filename):
@@ -170,6 +177,8 @@ class IdProcess(PluginProcess):
 	def __init__(self, wdir, rq):
 		PluginProcess.__init__(self, wdir)
 		self.name = 'idutils process'
+		if rq == None:
+			rq = ['', '']
 		self.cmd_str = rq[0]
 		self.req = rq[1]
 		print rq
@@ -195,7 +204,18 @@ class IdProcess(PluginProcess):
 		return res
 
 	def parse_result(self, text):
+		from datetime import datetime
+		t1 = datetime.now()
+
 		text = text.split('\n')
+
+		t2 = datetime.now()
+		print 'parse-split', t2 - t1
+
+		if self.cmd_str == 'FIL':
+			res = [ ['',  os.path.join(self.wdir, line), '1', '' ] for line in text if line != '' ]
+			return res
+
 		res = []
 		for line in text:
 			if line == '':
@@ -205,13 +225,20 @@ class IdProcess(PluginProcess):
 			line = line.split(':', 2)
 			line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
 			res.append(line)
-		#if len(res) > 0:
-			#print res[0], '...', len(res), 'results'
-		#else:
-			#print '0 results'
+
+		t3 = datetime.now()
+		print 'parse-loop', t3 - t2
+			
 		self.apply_ctags_fix(res, [ '<unknown>' ])
 
+		t4 = datetime.now()
+		print 'parse-ctags', t4 - t3
+
 		res = self._filter_res(res)
+
+		t5 = datetime.now()
+		print 'parse-filter', t5 - t4
+		print 'total', t5 - t1
 
 		return res
 
@@ -228,8 +255,11 @@ class QueryIdutils(QueryBase):
 			return None
 		if opt == None:
 			opt = []
+		
 		pargs = 'lid -R grep '
-		if cmd_str == 'TXT':
+		if cmd_str == 'FIL':
+			pargs = 'fnid -S newline'
+		elif cmd_str == 'TXT':
 			pargs += ' -l'
 		elif 'substring' in opt:
 			#req = '.*' + req + '.*'
@@ -246,7 +276,7 @@ class QueryIdutils(QueryBase):
 			print "pm_query not is_ready"
 			return None
 		pargs = 'mkid'
-		qsig = IdProcess(self.conf.id_dir).run_rebuild_process(pargs)
+		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
 		return qsig
 
 	def id_is_open(self):
