@@ -24,7 +24,7 @@ cmd_table = [
 	#[	['---', None],	[None				]					],
 	#[	['FSYM', '-f'],	['&List objects in file',None],	['Find objects in file'	]	],
 	[	['---', None],	[None				]					],
-	[	['QDEF', ''], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
+	[	['QDEF', ''],	['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
 	[	['---', None],	[None				],					],
 	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],

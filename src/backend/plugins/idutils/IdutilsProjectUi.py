@@ -149,6 +149,8 @@ class QueryUiIdutils(QueryUiBase):
 				
 	def cb_rebuild(self):
 		sig_rebuild = self.query.id_rebuild()
+		if not sig_rebuild:
+			return
 		dlg = QProgressDialog()
 		dlg.setWindowTitle('SeaScope rebuild')
 		dlg.setLabelText('Rebuilding idutils database...')

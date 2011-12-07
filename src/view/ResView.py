@@ -240,9 +240,9 @@ class ResultManager(QTabWidget):
 		if (m_ev.button() == Qt.RightButton):
 			# setup popup menu
 			self.pmenu = QMenu()
-			self.pmenu.addAction("&New", self.new_cb)
-			self.pmenu.addAction("&Refresh", self.refresh_cb)
-			self.pmenu.addSeparator()
+			#self.pmenu.addAction("&New", self.new_cb)
+			#self.pmenu.addAction("&Refresh", self.refresh_cb)
+			#self.pmenu.addSeparator()
 			self.pmenu.addAction("Close &All", self.close_all_cb)
 			self.pmenu.exec_(QCursor.pos())
 

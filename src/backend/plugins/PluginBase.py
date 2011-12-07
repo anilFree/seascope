@@ -52,58 +52,90 @@ class QueryUiBase(QObject):
 
 from PyQt4.QtGui import QMessageBox
 
-class PluginProcess(QObject):
+class QuerySignal(QObject):
 	sig_result = pyqtSignal(str, list)
 	sig_result_dbg = pyqtSignal(str, str, str)
 	sig_rebuild = pyqtSignal()
 
+	def __init__(self):
+		QObject.__init__(self)
+
+class PluginProcess(QObject):
 	proc_list = []
 
 	def __init__(self, wdir):
 		QObject.__init__(self)
 		
-		self.is_rebuild = False
 		PluginProcess.proc_list.append(self)
+		self.is_rebuild = False
+
+		self.sig = QuerySignal()
 
 		self.proc = QProcess()
 		self.proc.finished.connect(self._finished_cb)
+		self.proc.error.connect(self._error_cb)
 
 		self.proc.setWorkingDirectory(wdir)
 		self.wdir = wdir
 
-	def _finished_cb(self, ret):
+	def _cleanup(self):
 		PluginProcess.proc_list.remove(self)
-		
-		res = str(self.proc.readAllStandardOutput())
-		err_str = str(self.proc.readAllStandardError())
+		if self.err_str != '':
+			QMessageBox.warning(None, "SeaScope", str(self.err_str), QMessageBox.Ok)
 
+	def _error_cb(self, err):
+		err_dict = { 
+			QProcess.FailedToStart:	'FailedToStart',
+			QProcess.Crashed:	'Crashed',
+			QProcess.Timedout:	'The last waitFor...() function timed out',
+			QProcess.WriteError:	'An error occurred when attempting to write to the process',
+			QProcess.ReadError:	'An error occurred when attempting to read from the process',
+			QProcess.UnknownError:	'An unknown error occurred',
+		}
+		self.err_str = '<b>' + self.p_cmd + '</b><p>' + err_dict[err]
+		self._cleanup()
+
+	def _finished_cb(self, ret):
+		res = str(self.proc.readAllStandardOutput())
+		self.err_str = str(self.proc.readAllStandardError())
+		
 		#print 'output', res
 		print 'cmd:', self.p_cmd
 		if self.is_rebuild:
-			self.sig_rebuild.emit()
+			self.sig.sig_rebuild.emit()
 		else:
-			self.sig_result_dbg.emit(self.p_cmd, res, err_str)
+			self.sig.sig_result_dbg.emit(self.p_cmd, res, self.err_str)
 			res = self.parse_result(res)
-			self.sig_result.emit(self.p_sym, res)
+			self.sig.sig_result.emit(self.p_sym, res)
 
-		if (err_str != ''):
-			QMessageBox.warning(None, "SeaScope", str(err_str), QMessageBox.Ok)
+		self._cleanup()
 
 	def run_query_process(self, pargs, sym):
 		self.p_sym = sym
-		self.p_cmd = pargs
-		self.proc.start(pargs)
+		self.p_cmd = ' '.join(pargs)
+		print 'pp:cmd:', pargs[0], pargs[1:]
+		self.proc.start(pargs[0], pargs[1:])
+		if self.proc.waitForStarted() == False:
+			return None
 		self.proc.closeWriteChannel()
-		return [self.sig_result, self.sig_result_dbg]
+		return [self.sig.sig_result, self.sig.sig_result_dbg]
 
 	def run_rebuild_process(self, pargs):
 		self.is_rebuild = True
-		self.p_cmd = pargs
-		self.proc.start(pargs)
-		return self.sig_rebuild
+		self.p_cmd = ' '.join(pargs)
+		self.proc.start(pargs[0], pargs[1:])
+		if self.proc.waitForStarted() == False:
+			return None
+		print 'cmd:', pargs
+		return self.sig.sig_rebuild
 
 	def parse_result(self, text):
 		print 'parse_result not implemented'
+		if text == '':
+			text = ['Empty output']
+		else:
+			text = text.strip().split('\n')
+		return text
 
 	def apply_ctags_fix(self, res, cond_list):
 		CtagsCache.apply_ctags_fix(res, cond_list)
@@ -182,44 +214,6 @@ class CtagsCache:
 		#assert x == m or y == m or ct[m][1] == n
 		line[0] = ct[m][0]
 
-	def _ctags_fix_linear(self, line):
-		f = line[1]
-		n = int(line[2])
-		if f not in self.ct_dict:
-			#print 'ctags_for_file: ', f
-			self.ct_dict[f] = self._ctags_for_file(f)
-		prev = None
-		for k in self.ct_dict[f]:
-			#print k
-			kn = int(k[1])
-			if kn > n:
-				break
-			#if kn == n:
-			prev = k
-			#break
-		if prev:
-			line[0] = prev[0]
-			#line[2] = '0000' + line[2]
-
-	def _ctags_for_file(self, filename):
-		#print 'ct:', filename
-		cmd = 'ctags -n -u --fields=+K -f -'
-		args = cmd.split()
-		args.append(filename)
-		import subprocess
-		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
-		(out_data, err_data) = proc.communicate()
-		out_data = out_data.split('\n')
-		res = []
-		for line in out_data:
-			if (line == ''):
-				break
-			line = line.split('\t')
-			num = line[2].split(';', 1)[0]
-			line = [line[0], num, line[3]]
-			res.append(line)
-		return res
-
 	def _ctags_for_file_list(self, flist):
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
 		args = cmd.split()
@@ -241,3 +235,24 @@ class CtagsCache:
 		return res
 
 
+if __name__ == '__main__':
+	import sys
+
+	def slot_result(sym, res):
+		print 'slot_result:    ', [str(sym), res]
+		sys.exit(0)
+	def slot_result_dbg(cmd, res, err_str):
+		print 'slot_result_dbg:', [str(cmd), str(res).strip().split('\n'), str(err_str)]
+	def slot_rebuild():
+		print 'slot_rebuild'
+
+	app = QCoreApplication(sys.argv)
+
+	#qsig = PluginProcess('.').run_query_process(['ls'], 'ls')
+	qsig = PluginProcess('/home/anil/prj/ss/lin').run_query_process(['cscope', '-q', '-k', '-L', '-d', '-0', 'vdso'], 'ls')
+	if qsig == None:
+		sys.exit(-1)
+	qsig[0].connect(slot_result)
+	qsig[1].connect(slot_result_dbg)
+
+	app.exec_()

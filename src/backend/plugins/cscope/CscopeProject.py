@@ -6,6 +6,8 @@ from PyQt4.QtCore import *
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from CscopeProjectUi import QueryUiCscope
 
+from .. import PluginHelper
+
 class ConfigCscope(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self)
@@ -113,6 +115,8 @@ class ProjectCscope(ProjectBase):
 		prj.conf = conf
 		prj.qry = QueryCscope(prj.conf)
 		prj.qryui = QueryUiCscope(prj.qry)
+		
+		PluginHelper.file_view_update(prj.conf.get_proj_src_files())
 		return (prj)
 
 	@staticmethod
@@ -197,9 +201,11 @@ class QueryCscope(QueryBase):
 		if (not self.conf or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		if opt == None:
-			opt = ''
-		pargs = 'cscope ' + string.join(self.conf.cs_opt) + ' -L -d ' + opt + ' -' + str(cmd_id) + ' ' + req
+		if opt == None or opt == '':
+			opt = []
+		else:
+			opt = opt.split()
+		pargs  = [ 'cscope' ] + self.conf.cs_opt + opt + [ '-L', '-d',  '-' + str(cmd_id), req ]
 		qsig = CsProcess(self.conf.cs_dir).run_query_process(pargs, req)
 		return qsig
 
@@ -207,7 +213,7 @@ class QueryCscope(QueryBase):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = 'cscope ' + string.join(self.conf.cs_opt) + ' -L'
+		pargs = [ 'cscope' ] + self.conf.cs_opt + [ '-L' ]
 		qsig = CsProcess(self.conf.cs_dir).run_rebuild_process(pargs)
 		return qsig
 

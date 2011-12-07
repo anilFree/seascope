@@ -12,6 +12,8 @@ def editor_current_word():
 	return edit_book.get_current_word()
 
 def result_page_new(name, sig_res):
+	if sig_res == None:
+		return
 	page = res_book.create_result_page(name)
 	## add result
 	sig_res[0].connect(page.add_result)
@@ -46,11 +48,13 @@ def _quick_def_result(req, res):
 		edit_book.show_file_line(filename, line)
 
 def quick_def_page_new(sig_res):
+	if sig_res == None:
+		return
 	sig_res[0].connect(_quick_def_result)
 	dbg_mgr.connect_to_cs_sig_res(sig_res[1])
 
 def call_view_page_new(req, query_func, ctree_query_args, opt):
 	call_view.create_page(req, query_func, ctree_query_args, opt)
 
-def file_view_update(src_list):
-	self.file_view.add_files(src_files)
+def file_view_update(flist):
+	file_view.add_files(flist)
