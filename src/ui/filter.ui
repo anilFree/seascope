@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>345</width>
-    <height>201</height>
+    <height>222</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -54,6 +54,19 @@
       <widget class="QLineEdit" name="fd_filter_inp"/>
      </item>
     </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="fd_regex_err_lbl">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QGridLayout" name="glay2">

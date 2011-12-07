@@ -198,7 +198,6 @@ class SeaScopeApp(QMainWindow):
 	def proj_new_or_open(self):
 		self.editor_tab_changed_cb('SeaScope')
 		self.update_recent_projects(backend.proj_dir())
-		self.file_view.add_files(backend.proj_src_files())
 
 	def proj_new_cb(self):
 		if (backend.proj_is_open()):
@@ -232,8 +231,7 @@ class SeaScopeApp(QMainWindow):
 		self.file_view.clear()
 
 	def proj_settings_cb(self):
-		if backend.proj_settings_trigger():
-			self.file_view.add_files(backend.proj_src_files())
+		backend.proj_settings_trigger()
 
 	def editor_tab_changed_cb(self, fname):
 		title = backend.proj_name()

@@ -192,20 +192,35 @@ class FilterDialog:
 		self.dlg = uic.loadUi('ui/filter.ui')
 		self.dlg.fd_cmd_inp.addItems(cmd_items)
 		self.dlg.fd_cmd_inp.setCurrentIndex(cmd_items.index(cmd_sel))
+		self.dlg.fd_regex_err_lbl.setVisible(False)
 
 	def run_dialog(self):
-		res = None
-		if self.dlg.exec_() == QDialog.Accepted:
+		while True:
+			ret = self.dlg.exec_()
+			if ret != QDialog.Accepted:
+				return None
+			is_regex = self.dlg.fd_regex_chkbox.isChecked()
+			text = str(self.dlg.fd_filter_inp.text())
+			if is_regex == True:
+				try:
+					import re
+					re.compile(text)
+				except:
+					e = str(sys.exc_info()[1])
+					lbl = self.dlg.fd_regex_err_lbl
+					lbl.setVisible(True)
+					lbl.setText("<font color='red'>regex: " + e + '</font>')
+					continue
+					
 			res = [
-				str(self.dlg.fd_filter_inp.text()),
-				self.dlg.fd_regex_chkbox.isChecked(),
+				text,
+				is_regex,
 				self.dlg.fd_negate_chkbox.isChecked(),
 				self.dlg.fd_icase_chkbox.isChecked(),
 				str(self.dlg.fd_cmd_inp.currentText())
 			]
-		self.dlg = None
-		return res
+			return res
 
-def show_filter_dialog(cmd_items,cmd_sel):
+def show_filter_dialog(cmd_items, cmd_sel):
 	dlg = FilterDialog(cmd_items,cmd_sel)
 	return dlg.run_dialog()

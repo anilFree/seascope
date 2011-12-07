@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
-import os, string
+import sys, os, string
 from PyQt4.QtCore import *
 
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from IdutilsProjectUi import QueryUiIdutils
+
+from .. import PluginHelper
 
 class ConfigIdutils(ConfigBase):
 	def __init__(self):
@@ -17,15 +19,7 @@ class ConfigIdutils(ConfigBase):
 	def get_proj_name(self):
 		return os.path.split(self.id_dir)[1]
 	def get_proj_src_files(self):
-		fl = self.id_list
-		cmd = 'fnid -S newline -f ' + self.id_dir + '/ID'
-		args = cmd.split()
-		import subprocess
-		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-		(out_data, err_data) = proc.communicate()
-		fl = out_data.strip().split('\n')
-		#self.id_list = fl
-		return fl
+		return []
 
 	#def read_id_files_common(self, filename):
 		#fl = []
@@ -247,6 +241,8 @@ class QueryIdutils(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
+		self.id_file_list_update()
+
 	def id_query(self, cmd_str, req, opt = None):
 		print cmd_str, req, opt
 		if (not self.conf):
@@ -256,18 +252,18 @@ class QueryIdutils(QueryBase):
 		if opt == None:
 			opt = []
 		
-		pargs = 'lid -R grep '
+		pargs = ['lid', '-R', 'grep']
 		if cmd_str == 'FIL':
-			pargs = 'fnid -S newline'
+			pargs = ['fnid', '-S', 'newline']
 		elif cmd_str == 'TXT':
-			pargs += ' -l'
+			pargs += ['-l']
 		elif 'substring' in opt:
 			#req = '.*' + req + '.*'
 			#pargs += ' -s'
 			pass
 		elif cmd_str in ['-->', '<--']:
-			pargs += ' -l'
-		pargs = pargs + ' ' + req
+			pargs += ['-l']
+		pargs += [ req ]
 		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req)
 		return qsig
 
@@ -275,9 +271,28 @@ class QueryIdutils(QueryBase):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = 'mkid'
+		pargs = [ 'mkid' ]
 		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
+		qsig.sig_rebuild.connect(self.id_file_list_update)
 		return qsig
+
+	def id_file_list_update(self):
+		id_file = os.path.join(self.conf.id_dir, 'ID')
+		if not os.path.exists(id_file):
+			return
+		fl = []
+		try:
+			import subprocess
+			pargs = [ 'fnid', '-S', 'newline', '-f', id_file ]
+			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			(out_data, err_data) = proc.communicate()
+			fl = out_data.strip().split('\n')
+			PluginHelper.file_view_update(fl)
+		except:
+			import sys
+			e = sys.exc_info()[1]
+			print ' '.join(pargs)
+			print e
 
 	def id_is_open(self):
 		return self.conf != None

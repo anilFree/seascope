@@ -6,6 +6,8 @@ from PyQt4.QtCore import *
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from GtagsProjectUi import QueryUiGtags
 
+from .. import PluginHelper
+
 class ConfigGtags(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self)
@@ -114,6 +116,8 @@ class ProjectGtags(ProjectBase):
 		prj.conf = conf
 		prj.qry = QueryGtags(prj.conf)
 		prj.qryui = QueryUiGtags(prj.qry)
+
+		PluginHelper.file_view_update(prj.conf.get_proj_src_files())
 		return (prj)
 
 	@staticmethod
@@ -199,7 +203,7 @@ class QueryGtags(QueryBase):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = 'global -a --result=cscope ' +' -x ' + str(cmd_id) + ' ' + req
+		pargs = [ 'global', '-a', '--result=cscope', ' -x ', str(cmd_id), req ]
 		qsig = GtProcess(self.conf.gt_dir).run_query_process(pargs, req)
 		return qsig
 
@@ -208,9 +212,9 @@ class QueryGtags(QueryBase):
 			print "pm_query not is_ready"
 			return None
 		if (os.path.exists(os.path.join(self.conf.gt_dir, 'GTAGS'))):
-			pargs = 'global -u'
+			pargs = [ 'global', '-u' ]
 		else:
-			pargs = 'gtags -i'
+			pargs = [ 'gtags', '-i' ]
 		qsig = GtProcess(self.conf.gt_dir).run_rebuild_process(pargs)
 		return qsig
 
