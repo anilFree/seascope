@@ -174,7 +174,7 @@ class CsProcess(PluginProcess):
 		PluginProcess.__init__(self, wdir)
 		self.name = 'cscope process'
 
-	def parse_result(self, text):
+	def parse_result(self, text, sig):
 		text = text.split('\n')
 		res = []
 		for line in text:
@@ -185,10 +185,7 @@ class CsProcess(PluginProcess):
 			line = line.split(' ', 3)
 			line = [line[1], line[0], line[2], line[3]]
 			res.append(line)
-		#if len(res) > 0:
-			#print res[0], '...', len(res), 'results'
-		#else:
-			#print '0 results'
+
 		#self.apply_ctags_fix(res, [ '<unknown>', '<global>' ])
 		return res
 
