@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Cscope Query</string>
+   <string>gtags query</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

@@ -6,7 +6,8 @@ from PyQt4.QtCore import *
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from IdutilsProjectUi import QueryUiIdutils
 
-from .. import PluginHelper
+from .. import PluginHelper, CtagsCache
+from ..CtagsCache import CtagsThread
 
 class ConfigIdutils(ConfigBase):
 	def __init__(self):
@@ -177,7 +178,7 @@ class IdProcess(PluginProcess):
 		self.req = rq[1]
 		print rq
 
-	def _filter_res(self, res):
+	def _filter_res(self, res, sig):
 		print 'cmd:', self.cmd_str
 		import re
 		out_res = []
@@ -195,9 +196,15 @@ class IdProcess(PluginProcess):
 			return out_res
 		if self.cmd_str == '<--':
 			return res
+		if self.cmd_str == 'INC':
+			inc_re = re.compile('^\s*(#\s*include|import)\s+.*%s.*' % self.req)
+			for line in res:
+				if inc_re.search(line[3]):
+					out_res.append(line)
+			return out_res
 		return res
 
-	def parse_result(self, text):
+	def parse_result(self, text, sig):
 		from datetime import datetime
 		t1 = datetime.now()
 
@@ -208,7 +215,7 @@ class IdProcess(PluginProcess):
 
 		if self.cmd_str == 'FIL':
 			res = [ ['',  os.path.join(self.wdir, line), '1', '' ] for line in text if line != '' ]
-			return res
+			return [res, None]
 
 		res = []
 		for line in text:
@@ -222,19 +229,10 @@ class IdProcess(PluginProcess):
 
 		t3 = datetime.now()
 		print 'parse-loop', t3 - t2
-			
-		self.apply_ctags_fix(res, [ '<unknown>' ])
 
-		t4 = datetime.now()
-		print 'parse-ctags', t4 - t3
+		CtagsThread(sig, self._filter_res).apply_fix(res, ['<unknown>'])
 
-		res = self._filter_res(res)
-
-		t5 = datetime.now()
-		print 'parse-filter', t5 - t4
-		print 'total', t5 - t1
-
-		return res
+		return None
 
 class QueryIdutils(QueryBase):
 	def __init__(self, conf):

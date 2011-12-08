@@ -85,7 +85,7 @@ def proj_close():
 	for act in prj_actions:
 		act.setEnabled(False)
 
-	from plugins.PluginBase import CtagsCache
+	from plugins import CtagsCache
 	CtagsCache.flush()
 
 def proj_is_open():

@@ -186,10 +186,6 @@ class GtProcess(PluginProcess):
 			line = line.split(' ', 3)
 			line = [line[1], line[0], line[2], line[3]]
 			res.append(line)
-		#if len(res) > 0:
-			#print res[0], '...', len(res), 'results'
-		#else:
-			#print '0 results'
 		return res
 
 class QueryGtags(QueryBase):
