@@ -56,7 +56,7 @@ class CallTreeWidget(QTreeWidget):
 
 		self.setExpandsOnDoubleClick(False)
 		self.setColumnCount(4)
-		self.setHeaderLabels(['Function', 'File', 'Line', 'Text'])
+		self.setHeaderLabels(['Tag', 'File', 'Line', 'Text'])
 
 		self.setSelectionMode(QAbstractItemView.SingleSelection)
 		#self.resize(QSize(800, 500))
@@ -92,7 +92,7 @@ class CallTreeWidget(QTreeWidget):
 	def ctree_itemExpanded(self, item):
 		if (item.is_done):
 			return
-		func = str(item.data(0, Qt.DisplayRole).toString())
+		tag = str(item.data(0, Qt.DisplayRole).toString())
 		if str(item.data(1, Qt.DisplayRole).toString()) == '':
 			opt = self.cmd_opt
 		else:
@@ -102,7 +102,7 @@ class CallTreeWidget(QTreeWidget):
 		self.is_busy = True
 		
 		## add result
-		sig_res = self.cmd_func(self.cmd_id, func, opt)
+		sig_res = self.cmd_func(self.cmd_id, tag, opt)
 		self.query_item = item
 		sig_res[0].connect(self.ctree_add_result)
 

@@ -11,14 +11,14 @@ from PyQt4.QtCore import *
 
 
 def show_msg_dialog(msg):
-	QMessageBox.information(None, "SeaScope", msg, QMessageBox.Ok)
+	QMessageBox.information(None, "Seascope", msg, QMessageBox.Ok)
 
 def show_yes_no(msg):
-	ret = QMessageBox.question(None, "SeaScope", msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+	ret = QMessageBox.question(None, "Seascope", msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
 	return ret == QMessageBox.Yes
 
 def show_yes_no_dontask(msg):
-	return QMessageBox.question(None, "SeaScope", msg, "Yes", "No", "Yes, Don't ask again")
+	return QMessageBox.question(None, "Seascope", msg, "Yes", "No", "Yes, Don't ask again")
 
 def show_proj_close():
 	return show_yes_no("\nClose current project?")

@@ -86,7 +86,7 @@ class QueryDialog(QDialog):
 		return QueryDialog.dlg.run_dialog(cmd_str, req)
 
 def show_msg_dialog(msg):
-	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
 def get_gtags_files_list(rootdir):
 	file_list = []
@@ -143,7 +143,7 @@ class QueryUiGtags(QueryUiBase):
 	def cb_rebuild(self):
 		sig_rebuild = self.query.gt_rebuild()
 		dlg = QProgressDialog()
-		dlg.setWindowTitle('SeaScope rebuild')
+		dlg.setWindowTitle('Seascope rebuild')
 		dlg.setLabelText('Rebuilding gtags database...')
 		dlg.setCancelButton(None)
 		dlg.setMinimum(0)

@@ -84,7 +84,7 @@ class QueryDialog(QDialog):
 		return QueryDialog.dlg.run_dialog(cmd_str, req)
 
 def show_msg_dialog(msg):
-	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
 def dir_scan_csope_files(rootdir):
 	file_list = []
@@ -141,7 +141,7 @@ class QueryUiCscope(QueryUiBase):
 	def cb_rebuild(self):
 		sig_rebuild = self.query.cs_rebuild()
 		dlg = QProgressDialog()
-		dlg.setWindowTitle('SeaScope rebuild')
+		dlg.setWindowTitle('Seascope rebuild')
 		dlg.setLabelText('Rebuilding cscope database...')
 		dlg.setCancelButton(None)
 		dlg.setMinimum(0)

@@ -22,7 +22,7 @@ except ImportError:
 	print "Error: failed to import supporting packages.\nError: program aborted."
 	sys.exit(-1)
 
-class SeaScopeApp(QMainWindow):
+class SeascopeApp(QMainWindow):
 
 	def file_preferences_cb(self):
 		ev_font = QFont()
@@ -123,7 +123,7 @@ class SeaScopeApp(QMainWindow):
 		m_go.addAction('Search ctags', self.go_search_ctags_cb, 'Ctrl+Shift+T')
 		
 		m_help = menubar.addMenu('&Help')
-		m_help.addAction('About SeaScope', self.help_about_cb)
+		m_help.addAction('About Seascope', self.help_about_cb)
 		m_help.addAction('About Qt', QApplication.aboutQt)
 
 	# app config
@@ -196,7 +196,7 @@ class SeaScopeApp(QMainWindow):
 
 	# project menu functions
 	def proj_new_or_open(self):
-		self.editor_tab_changed_cb('SeaScope')
+		self.editor_tab_changed_cb('Seascope')
 		self.update_recent_projects(backend.proj_dir())
 
 	def proj_new_cb(self):
@@ -222,7 +222,7 @@ class SeaScopeApp(QMainWindow):
 
 	def proj_close_cb(self):
 		self.update_recent_projects(backend.proj_dir())
-		self.setWindowTitle("SeaScope")
+		self.setWindowTitle("Seascope")
 
 		backend.proj_close()
 		
@@ -236,7 +236,7 @@ class SeaScopeApp(QMainWindow):
 	def editor_tab_changed_cb(self, fname):
 		title = backend.proj_name()
 		if not title:
-			title = 'SeaScope'
+			title = 'Seascope'
 		if (fname and fname != ''):
 			title = title + ' - ' + fname
 		self.setWindowTitle(title)
@@ -282,7 +282,7 @@ class SeaScopeApp(QMainWindow):
 		self.vsp.setSizes([1, 1])
 
 		self.setCentralWidget(self.vsp)
-		self.setWindowTitle('SeaScope')
+		self.setWindowTitle('Seascope')
 		self.setGeometry(300, 100, 800, 600)
 		#self.showMaximized()
 
@@ -316,6 +316,6 @@ if __name__ == "__main__":
 	backend.load_plugins()
 
 	app = QApplication(sys.argv)
-	ma = SeaScopeApp()
+	ma = SeascopeApp()
 	ma.show()
 	sys.exit(app.exec_())
