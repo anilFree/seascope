@@ -81,7 +81,7 @@ class PluginProcess(QObject):
 	def _cleanup(self):
 		PluginProcess.proc_list.remove(self)
 		if self.err_str != '':
-			QMessageBox.warning(None, "SeaScope", str(self.err_str), QMessageBox.Ok)
+			QMessageBox.warning(None, "Seascope", str(self.err_str), QMessageBox.Ok)
 
 	def _error_cb(self, err):
 		err_dict = { 

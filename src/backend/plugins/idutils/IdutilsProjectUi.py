@@ -90,7 +90,7 @@ class QueryDialog(QDialog):
 		return QueryDialog.dlg.run_dialog(cmd_str, req)
 
 def show_msg_dialog(msg):
-	QMessageBox.warning(None, "SeaScope", msg, QMessageBox.Ok)
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
 def get_idutils_files_list(rootdir):
 	file_list = []
@@ -152,7 +152,7 @@ class QueryUiIdutils(QueryUiBase):
 		if not sig_rebuild:
 			return
 		dlg = QProgressDialog()
-		dlg.setWindowTitle('SeaScope rebuild')
+		dlg.setWindowTitle('Seascope rebuild')
 		dlg.setLabelText('Rebuilding idutils database...')
 		dlg.setCancelButton(None)
 		dlg.setMinimum(0)

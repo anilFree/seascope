@@ -29,7 +29,7 @@ class ResultPage(QTreeWidget):
 		self.parent = parent
 
 		self.setColumnCount(4)
-		self.cmd_items = ['Function', 'File', 'Line', 'Text'] 
+		self.cmd_items = ['Tag', 'File', 'Line', 'Text'] 
 		self.setHeaderLabels(self.cmd_items)
 		self.setColumnWidth(0, 200)
 		self.setColumnWidth(1, 300)

@@ -22,69 +22,12 @@ class ConfigIdutils(ConfigBase):
 	def get_proj_src_files(self):
 		return []
 
-	#def read_id_files_common(self, filename):
-		#fl = []
-		#config_file = os.path.join(self.id_dir, filename)
-		#if (os.path.exists(config_file)):
-			#cf = open(config_file, 'r')
-			#for f in cf:
-				#f = f[:-1]
-				#fl.append(f)
-			#cf.close()
-		#return fl
-
-	#def read_id_files(self):
-		#self.id_list = self.read_id_files_common('cscope.files')
-
-	#def write_id_files_common(self, filename, fl):
-		#if (len(fl) <= 0):
-			#return
-		#config_file = os.path.join(self.id_dir, filename)
-		#cf = open(config_file, 'w')
-		#for f in fl:
-			#cf.write(f + '\n')
-		#cf.close()
-
-	#def write_id_files(self):
-		#self.write_id_files_common("cscope.files", self.id_list)
-
-	#def get_config_file(self):
-		#config_file = 'seascope.opt'
-		#return os.path.join(self.id_dir, config_file)
-
-	#def read_seascope_opt(self):
-		#config_file = self.get_config_file()
-		#if (not os.path.exists(config_file)):
-			#return
-		#cf = open(config_file, 'r')
-		#for line in cf:
-			#line = line.split('=', 1)
-			#key = line[0].strip()
-			#if (key == 'id_opt'):
-				#self.id_opt = line[1].split()
-		#cf.close()
-		
-	#def write_seascope_opt(self):
-		#config_file = self.get_config_file()
-		#cf = open(config_file, 'w')
-		#cf.write('id_opt' + '=' + string.join(self.id_opt)+ '\n')
-		#cf.close()
-		
-	#def read_config(self):
-		#self.read_seascope_opt()
-		#self.read_id_files()
-
-	#def write_config(self):
-		#self.write_seascope_opt()
-		#self.write_id_files()
-
 	def proj_start(self):
 		id_args = string.join(self.id_opt)
 
 	def proj_open(self, proj_path):
 		self.id_dir = proj_path
 		print self.id_dir
-		#self.read_config()
 		self.proj_start()
 
 	def proj_update(self, proj_args):
@@ -93,7 +36,6 @@ class ConfigIdutils(ConfigBase):
 	def proj_new(self, proj_args):
 		self.proj_args = proj_args
 		(self.id_dir, self.id_opt, self.id_list) = proj_args
-		#self.write_config()
 		self.proj_start()
 
 	def proj_close(self):
@@ -179,28 +121,35 @@ class IdProcess(PluginProcess):
 		print rq
 
 	def _filter_res(self, res, sig):
-		print 'cmd:', self.cmd_str
+		print 'filter_res:', self.cmd_str, sig.sym
 		import re
 		out_res = []
 		if self.cmd_str == 'DEF':
 			for line in res:
-				if  line[0] == self.req:
-					out_res.append(line)
+				if not re.match(self.req, line[0]):
+					continue
+				out_res.append(line)
 			return out_res
 		if self.cmd_str == '-->':
 			call_re = re.compile('\\b%s\\b\s*\(' % self.req)
+			extern_re = re.compile('^\s*extern\s+')
 			for line in res:
-				if line[0] != self.req:
-					if call_re.search(line[3]):
-						out_res.append(line)
+				if line[0] == self.req:
+					continue
+				if not call_re.search(line[3]):
+					continue
+				if extern_re.search(line[3]):
+					continue
+				out_res.append(line)
 			return out_res
 		if self.cmd_str == '<--':
 			return res
 		if self.cmd_str == 'INC':
-			inc_re = re.compile('^\s*(#\s*include|import)\s+.*%s.*' % self.req)
+			inc_re = re.compile('^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % self.req)
 			for line in res:
-				if inc_re.search(line[3]):
-					out_res.append(line)
+				if not inc_re.search(line[3]):
+					continue
+				out_res.append(line)
 			return out_res
 		return res
 
@@ -230,7 +179,7 @@ class IdProcess(PluginProcess):
 		t3 = datetime.now()
 		print 'parse-loop', t3 - t2
 
-		CtagsThread(sig, self._filter_res).apply_fix(res, ['<unknown>'])
+		CtagsThread(sig, self._filter_res).apply_fix(self.cmd_str, res, ['<unknown>'])
 
 		return None
 
