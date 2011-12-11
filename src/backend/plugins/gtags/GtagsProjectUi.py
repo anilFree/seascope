@@ -68,6 +68,7 @@ class QueryDialog(QDialog):
 		self.show()
 		if (self.exec_() == QDialog.Accepted):
 			req = str(self.qd_sym_inp.currentText())
+			s = str(self.qd_cmd_inp.currentText())
 			cmd_str = cmd_qstr2str[s]
 			#self.qd_sym_inp.addItem(req)
 			if (req != '' and self.qd_substr_chkbox.isChecked()):

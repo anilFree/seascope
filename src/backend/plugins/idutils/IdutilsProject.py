@@ -163,8 +163,8 @@ class IdProcess(PluginProcess):
 		print 'parse-split', t2 - t1
 
 		if self.cmd_str == 'FIL':
-			res = [ ['',  os.path.join(self.wdir, line), '1', '' ] for line in text if line != '' ]
-			return [res, None]
+			res = [ ['',  os.path.join(self.wdir, line), '', '' ] for line in text if line != '' ]
+			return res
 
 		res = []
 		for line in text:

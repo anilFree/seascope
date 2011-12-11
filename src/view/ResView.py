@@ -135,7 +135,7 @@ class ResultPage(QTreeWidget):
 		try:
 			line = int(str(model.data(model.index(row, 2)).toString()))
 		except:
-			return (None, None)
+			line = None
 		return (filename, line)
 
 	def add_result_continue(self):

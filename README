@@ -1,9 +1,9 @@
-SeaScope is a GUI frontend for cscope.
+Seascope is a GUI frontend for cscope, idutils.
 
 * Running the application
 
 	cd src
-	python SeaScope.py
+	python Seascope.py
 
 * Generating source distribution package
 	python setup.py sdist
