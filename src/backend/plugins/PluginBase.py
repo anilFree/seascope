@@ -1,5 +1,8 @@
 from PyQt4.QtCore import *
 
+def msg_box(msg):
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+
 class ProjectBase(QObject):
 	prj = None
 	qry = None
@@ -8,28 +11,28 @@ class ProjectBase(QObject):
 		QObject.__init__(self)
 
 	def prj_close(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 
 	def prj_get_dir(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_get_name(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_get_src_files(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 
 	def prj_is_open(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_is_ready(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_get_conf(self):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_update_conf(self, proj_args):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 
 	def prj_show_settings(self, proj_args):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_settings(self, proj_args):
-		print 'ProjectBase: Not implemeted'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 
 class ConfigBase(QObject):
 	@staticmethod
@@ -41,13 +44,37 @@ class QueryBase(QObject):
 	def prepare_menu(menubar):
 		pass
 
+	def query(self, cmd_str, req, opt):
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		
+	def rebuild():
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		
+
+import PluginHelper
+
 class QueryUiBase(QObject):
 	def __init__(self):
 		QObject.__init__(self)
 		self.prepare_menu()
 
 	def prepare_menu(self):
-		print 'Plugin is not implementing prepare_menu'
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+
+	def query_ctree(self, req, opt):
+		PluginHelper.call_view_page_new(req, self.query.query, self.ctree_args, opt)
+
+	def query_qdef(self, req, opt):
+		sig_res = self.query.query('DEF', req, opt)
+		PluginHelper.quick_def_page_new(sig_res)
+
+	def do_query(self, cmd_str, req, opt):
+		## create page
+		name = cmd_str + ' ' + req
+		sig_res = self.query.query(cmd_str, req, opt)
+		PluginHelper.result_page_new(name, sig_res)
+
+
 
 
 from PyQt4.QtGui import QMessageBox

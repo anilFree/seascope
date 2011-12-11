@@ -45,10 +45,10 @@ class FileTree(QTabWidget):
 		self.ted.setToolTip("Current folder")
 		self.ted.setCompleter(self.completer)
 		self.tdbtn = QPushButton()
-		self.tdbtn.setIcon(QIcon.fromTheme("document-open", QIcon("icons/document-open.svg")))
+		self.tdbtn.setIcon(QApplication.style().standardIcon(QStyle.SP_DirIcon))
 		self.tdbtn.setToolTip("Open folder for browsing")
 		self.trbtn = QPushButton()
-		self.trbtn.setIcon(QIcon.fromTheme("view-refresh", QIcon("icons/view-refresh.svg")))
+		self.trbtn.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
 		self.trbtn.setToolTip("Reset to common top-level folder of file in list")
 
 		self.completer.setModel(self.tmodel)

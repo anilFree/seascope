@@ -21,8 +21,6 @@ cmd_table = [
 	#[	['GRP',	''],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
 	[	['FIL',	''],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
 	[	['INC',	'8'],	['&Includes/Imports',	'Ctrl+8'],	['Find include/import'	]	],
-	#[	['---', None],	[None				]					],
-	#[	['FSYM', '-f'],	['&List objects in file',None],	['Find objects in file'	]	],
 	[	['---', None],	[None				]					],
 	[	['QDEF', ''], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
@@ -109,17 +107,7 @@ class QueryUiIdutils(QueryUiBase):
 	def __init__(self, qry):
 		QueryUiBase.__init__(self)
 		self.query = qry
-
-	def do_id_query_ctree(self, req, opt):
-		PluginHelper.call_view_page_new(req, self.query.id_query, ctree_query_args, opt)
-		
-	def do_id_query(self, cmd_str, req, opt):
-		## create page
-		name = cmd_str + ' ' + req
-		#cmd_id = cmd_str2id[cmd_str]
-		cmd_id = cmd_str
-		sig_res = self.query.id_query(cmd_id, req, opt)
-		PluginHelper.result_page_new(name, sig_res)
+		self.ctree_args = ctree_query_args
 
 	def id_query_cb(self, cmd_str):
 		if (not self.query.id_is_open()):
@@ -139,17 +127,15 @@ class QueryUiIdutils(QueryUiBase):
 		if (req == None or req == ''):
 			return
 
-			print '***', (cmd_str, req, opt)
-
 		if cmd_str == 'QDEF':
-			self.do_id_query_qdef('DEF', req, opt)
+			self.query_qdef(req, opt)
 		elif cmd_str == 'CTREE':
-			self.do_id_query_ctree(req, opt)
+			self.query_ctree(req, opt)
 		else:
-			self.do_id_query(cmd_str, req, opt)
+			self.do_query(cmd_str, req, opt)
 				
 	def cb_rebuild(self):
-		sig_rebuild = self.query.id_rebuild()
+		sig_rebuild = self.query.rebuild()
 		if not sig_rebuild:
 			return
 		dlg = QProgressDialog()
@@ -185,10 +171,6 @@ class QueryUiIdutils(QueryUiBase):
 				act.setShortcut(c[2])
 				act.cmd_str = c[0]
 
-	def do_id_query_qdef(self, cmd_id, req, opt):
-		sig_res = self.query.id_query(cmd_id, req, opt)
-		PluginHelper.quick_def_page_new(sig_res)
-
 	@staticmethod
 	def prj_show_settings_ui(proj_args):
 		dlg = ProjectSettingsIdutilsDialog()
@@ -198,103 +180,10 @@ class ProjectSettingsIdutilsDialog(QDialog):
 	def __init__(self):
 		QDialog.__init__(self)
 
-		self.ui = uic.loadUi('backend/plugins/idutils/ui/id_project_settings.ui', self)
-		self.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
-
-		self.pd_src_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
-		QObject.connect(self.pd_path_tbtn, SIGNAL("clicked()"), self.path_open_cb)
-		QObject.connect(self.pd_add_btn, SIGNAL("clicked()"), self.src_add_cb)
-		QObject.connect(self.pd_rem_btn, SIGNAL("clicked()"), self.src_rem_cb)
-		QObject.connect(self, SIGNAL("accepted()"), self.ok_btn_cb)
-
-	def path_open_cb(self):
-                fdlg = QFileDialog(None, "Choose directory")
-		fdlg.setFileMode(QFileDialog.Directory);
-		fdlg.setDirectory(self.pd_path_inp.text())
-		if (fdlg.exec_()):
-			path_dir = fdlg.selectedFiles()[0];
-			self.pd_path_inp.setText(str(path_dir))
-
-	def src_add_cb(self):
-                fdlg = QFileDialog(None, "Choose directory")
-		fdlg.setFileMode(QFileDialog.Directory);
-		fdlg.setDirectory(self.pd_path_inp.text())
-		if (fdlg.exec_()):
-			d = fdlg.selectedFiles()[0];
-			d = str(d)
-			d = d.strip()
-			if (d == None):
-				return
-			d = os.path.normpath(d)
-			if (d == '' or not os.path.isabs(d)):
-				return
-			self.src_add_files(d)
-
-	def src_rem_cb(self):
-		li = self.pd_src_list
-		for item in li.selectedItems():
-			row = li.row(item)
-			li.takeItem(row)
-
-	def src_add_files(self, src_dir):
-		file_list = get_idutils_files_list(src_dir)
-		self.pd_src_list.addItems(file_list)
-
-	def ok_btn_cb(self):
-		proj_dir = os.path.join(str(self.pd_path_inp.text()), str(self.pd_name_inp.text()))
-		proj_dir = os.path.normpath(proj_dir)
-		if (self.is_new_proj):
-			if (proj_dir == '' or not os.path.isabs(proj_dir)):
-				return
-			if (os.path.exists(proj_dir)):
-				show_msg_dialog("\nProject already exists")
-				return
-			os.mkdir(proj_dir)
-		# File list
-		id_list = []
-		for inx in range(self.pd_src_list.count()):
-			val = str(self.pd_src_list.item(inx).text())
-			id_list.append(val)
-		id_list = list(set(id_list))
-		# Idutils opt
-		id_opt = []
-		if self.pd_invert_chkbox.isChecked():
-			id_opt.append('-q')
-		if self.pd_kernel_chkbox.isChecked():
-			id_opt.append('-k')
-
-		self.res = [proj_dir, id_opt, id_list]
-
-	def set_proj_args(self, proj_args):
-		(proj_dir, id_opt, id_list) = proj_args
-		(proj_base, proj_name) = os.path.split(proj_dir)
-		self.pd_path_inp.setText(proj_base)
-		self.pd_name_inp.setText(proj_name)
-		# File list
-		fl = id_list
-		self.pd_src_list.addItems(fl)
-		# Idutils opt
-		for opt in id_opt:
-			if (opt == '-q'):
-				self.pd_invert_chkbox.setChecked(True)
-			if (opt == '-k'):
-				self.pd_kernel_chkbox.setChecked(True)
+		self.ui = uic.loadUi('ui/project_settings.ui', self)
 
 	def run_dialog(self, proj_args):
-		self.pd_src_list.clear()
-		if (proj_args == None):
-			self.is_new_proj = True
-			self.pd_invert_chkbox.setChecked(True)
-		else:
-			self.is_new_proj = False
-			self.set_proj_args(proj_args)
-		self.res = None
-		
-		self.pd_path_frame.setEnabled(self.is_new_proj)
-
-		while True:
-			ret = self.exec_()
-			if (ret == QDialog.Accepted or ret == QDialog.Rejected):
-				break
-		return self.res
+		self.pi_path_lbl.setText(proj_args[0])
+		self.pi_type_lbl.setText('idutils')
+		self.exec_()
+		return proj_args
