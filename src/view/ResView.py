@@ -285,4 +285,3 @@ class ResultManager(QTabWidget):
 
 	def create_result_page_single(self):
 		return ResultPage(self)
-

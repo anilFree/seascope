@@ -45,7 +45,6 @@ class ConfigGtags(ConfigBase):
 		pass
 
 	def get_proj_conf(self):
-		self.read_gt_files()
 		return (self.gt_dir, self.gt_opt, self.gt_list)
 
 	def is_ready(self):
@@ -108,10 +107,11 @@ class ProjectGtags(ProjectBase):
 	def prj_settings_trigger(self):
 		proj_args = self.prj_conf()
 		proj_args = QueryUiGtags.prj_show_settings_ui(proj_args)
-		if (proj_args == None):
-			return False
-		self.prj_update_conf(proj_args)
-		return True
+		#if (proj_args == None):
+			#return False
+		#self.prj_update_conf(proj_args)
+		#return True
+		return False
 
 from ..PluginBase import PluginProcess
 
@@ -136,7 +136,7 @@ class QueryGtags(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def gt_query(self, cmd_str, req, opt = None):
+	def query(self, cmd_str, req, opt = None):
 		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
@@ -147,7 +147,7 @@ class QueryGtags(QueryBase):
 		qsig = GtProcess(self.conf.gt_dir).run_query_process(pargs, req)
 		return qsig
 
-	def gt_rebuild(self):
+	def rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None

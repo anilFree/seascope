@@ -103,15 +103,7 @@ class QueryUiCscope(QueryUiBase):
 	def __init__(self, qry):
 		QueryUiBase.__init__(self)
 		self.query = qry
-
-	def do_cs_query_ctree(self, req, opt):
-		PluginHelper.call_view_page_new(req, self.query.cs_query, ctree_query_args, opt)
-		
-	def do_cs_query(self, cmd_str, req, opt):
-		## create page
-		name = cmd_str + ' ' + req
-		sig_res = self.query.cs_query(cmd_str, req, opt)
-		PluginHelper.result_page_new(name, sig_res)
+		self.ctree_args = ctree_query_args
 
 	def cs_query_cb(self, cmd_str):
 		if (not self.query.cs_is_open()):
@@ -132,14 +124,14 @@ class QueryUiCscope(QueryUiBase):
 			return
 
 		if cmd_str == 'QDEF':
-			self.do_cs_query_qdef('DEF', req, opt)
+			self.query_qdef(req, opt)
 		elif cmd_str == 'CTREE':
-			self.do_cs_query_ctree(req, opt)
+			self.query_ctree(req, opt)
 		else:
-			self.do_cs_query(cmd_str, req, opt)
+			self.do_query(cmd_str, req, opt)
 				
 	def cb_rebuild(self):
-		sig_rebuild = self.query.cs_rebuild()
+		sig_rebuild = self.query.rebuild()
 		dlg = QProgressDialog()
 		dlg.setWindowTitle('Seascope rebuild')
 		dlg.setLabelText('Rebuilding cscope database...')
@@ -172,10 +164,6 @@ class QueryUiCscope(QueryUiBase):
 				act = menu.addAction(c[1])
 				act.setShortcut(c[2])
 				act.cmd_str = c[0]
-
-	def do_cs_query_qdef(self, cmd_str, req, opt):
-		sig_res = self.query.cs_query(cmd_str, req, opt)
-		PluginHelper.quick_def_page_new(sig_res)
 
 	@staticmethod
 	def prj_show_settings_ui(proj_args):

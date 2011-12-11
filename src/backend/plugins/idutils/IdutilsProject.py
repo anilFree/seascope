@@ -39,7 +39,6 @@ class ConfigIdutils(ConfigBase):
 		pass
 
 	def get_proj_conf(self):
-		self.read_id_files()
 		return (self.id_dir, self.id_opt, self.id_list)
 
 	def is_ready(self):
@@ -100,10 +99,11 @@ class ProjectIdutils(ProjectBase):
 	def prj_settings_trigger(self):
 		proj_args = self.prj_conf()
 		proj_args = QueryUiIdutils.prj_show_settings_ui(proj_args)
-		if (proj_args == None):
-			return False
-		self.prj_update_conf(proj_args)
-		return True
+		#if (proj_args == None):
+			#return False
+		#self.prj_update_conf(proj_args)
+		#return True
+		return False
 
 from ..PluginBase import PluginProcess
 from .. import PluginHelper
@@ -202,7 +202,7 @@ class QueryIdutils(QueryBase):
 
 		self.id_file_list_update()
 
-	def id_query(self, cmd_str, req, opt = None):
+	def query(self, cmd_str, req, opt = None):
 		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
@@ -226,7 +226,7 @@ class QueryIdutils(QueryBase):
 		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req)
 		return qsig
 
-	def id_rebuild(self):
+	def rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None

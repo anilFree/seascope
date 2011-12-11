@@ -198,7 +198,7 @@ class QueryCscope(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def cs_query(self, cmd_str, req, opt = None):
+	def query(self, cmd_str, req, opt = None):
 		if (not self.conf or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
@@ -211,7 +211,7 @@ class QueryCscope(QueryBase):
 		qsig = CsProcess(self.conf.cs_dir, [cmd_str, req]).run_query_process(pargs, req)
 		return qsig
 
-	def cs_rebuild(self):
+	def rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
