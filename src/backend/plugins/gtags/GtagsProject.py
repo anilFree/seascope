@@ -4,6 +4,7 @@ import os, string
 from PyQt4.QtCore import *
 
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+import GtagsProjectUi
 from GtagsProjectUi import QueryUiGtags
 
 from .. import PluginHelper
@@ -21,62 +22,6 @@ class ConfigGtags(ConfigBase):
 	def get_proj_src_files(self):
 		fl = self.gt_list
 		return fl
-
-	#def read_gt_files_common(self, filename):
-		#fl = []
-		#config_file = os.path.join(self.gt_dir, filename)
-		#if (os.path.exists(config_file)):
-			#cf = open(config_file, 'r')
-			#for f in cf:
-				#f = f[:-1]
-				#fl.append(f)
-			#cf.close()
-		#return fl
-
-	#def read_gt_files(self):
-		#self.gt_list = self.read_gt_files_common('cscope.files')
-
-	#def write_gt_files_common(self, filename, fl):
-		#if (len(fl) <= 0):
-			#return
-		#config_file = os.path.join(self.gt_dir, filename)
-		#cf = open(config_file, 'w')
-		#for f in fl:
-			#cf.write(f + '\n')
-		#cf.close()
-
-	#def write_gt_files(self):
-		#self.write_gt_files_common("cscope.files", self.gt_list)
-
-	#def get_config_file(self):
-		#config_file = 'seascope.opt'
-		#return os.path.join(self.gt_dir, config_file)
-
-	#def read_seascope_opt(self):
-		#config_file = self.get_config_file()
-		#if (not os.path.exists(config_file)):
-			#return
-		#cf = open(config_file, 'r')
-		#for line in cf:
-			#line = line.split('=', 1)
-			#key = line[0].strip()
-			#if (key == 'gt_opt'):
-				#self.gt_opt = line[1].split()
-		#cf.close()
-		
-	#def write_seascope_opt(self):
-		#config_file = self.get_config_file()
-		#cf = open(config_file, 'w')
-		#cf.write('gt_opt' + '=' + string.join(self.gt_opt)+ '\n')
-		#cf.close()
-		
-	#def read_config(self):
-		#self.read_seascope_opt()
-		#self.read_gt_files()
-
-	#def write_config(self):
-		#self.write_seascope_opt()
-		#self.write_gt_files()
 
 	def proj_start(self):
 		gt_args = string.join(self.gt_opt)
@@ -175,14 +120,12 @@ class GtProcess(PluginProcess):
 		PluginProcess.__init__(self, wdir)
 		self.name = 'gtags process'
 
-	def parse_result(self, text):
-		text = text.split('\n')
+	def parse_result(self, text, sig):
+		text = text.strip().splitlines()
 		res = []
 		for line in text:
 			if line == '':
 				continue
-			if line[-1:] == '\r':
-				line = line[0:-1]
 			line = line.split(' ', 3)
 			line = [line[1], line[0], line[2], line[3]]
 			res.append(line)
@@ -193,13 +136,14 @@ class QueryGtags(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def gt_query(self, cmd_id, req, opt = None):
-		print cmd_id, req, opt
+	def gt_query(self, cmd_str, req, opt = None):
+		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = [ 'global', '-a', '--result=cscope', ' -x ', str(cmd_id), req ]
+		cmd_id = GtagsProjectUi.cmd_str2id[cmd_str]
+		pargs = [ 'global', '-a', '--result=cscope', '-x', str(cmd_id), req ]
 		qsig = GtProcess(self.conf.gt_dir).run_query_process(pargs, req)
 		return qsig
 

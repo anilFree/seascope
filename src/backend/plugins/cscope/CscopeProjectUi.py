@@ -110,8 +110,7 @@ class QueryUiCscope(QueryUiBase):
 	def do_cs_query(self, cmd_str, req, opt):
 		## create page
 		name = cmd_str + ' ' + req
-		cmd_id = cmd_str2id[cmd_str]
-		sig_res = self.query.cs_query(cmd_id, req, opt)
+		sig_res = self.query.cs_query(cmd_str, req, opt)
 		PluginHelper.result_page_new(name, sig_res)
 
 	def cs_query_cb(self, cmd_str):
@@ -133,7 +132,7 @@ class QueryUiCscope(QueryUiBase):
 			return
 
 		if cmd_str == 'QDEF':
-			self.do_cs_query_qdef(cmd_str2id['DEF'], req, opt)
+			self.do_cs_query_qdef('DEF', req, opt)
 		elif cmd_str == 'CTREE':
 			self.do_cs_query_ctree(req, opt)
 		else:
@@ -174,8 +173,8 @@ class QueryUiCscope(QueryUiBase):
 				act.setShortcut(c[2])
 				act.cmd_str = c[0]
 
-	def do_cs_query_qdef(self, cmd_id, req, opt):
-		sig_res = self.query.cs_query(cmd_id, req, opt)
+	def do_cs_query_qdef(self, cmd_str, req, opt):
+		sig_res = self.query.cs_query(cmd_str, req, opt)
 		PluginHelper.quick_def_page_new(sig_res)
 
 	@staticmethod

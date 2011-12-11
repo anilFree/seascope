@@ -6,9 +6,6 @@ from PyQt4.QtCore import *
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
 from IdutilsProjectUi import QueryUiIdutils
 
-from .. import PluginHelper, CtagsCache
-from ..CtagsCache import CtagsThread
-
 class ConfigIdutils(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self)
@@ -109,6 +106,55 @@ class ProjectIdutils(ProjectBase):
 		return True
 
 from ..PluginBase import PluginProcess
+from .. import PluginHelper
+from ..CtagsCache import CtagsThread
+
+
+class IdCtagsThread(CtagsThread):
+	def __init__(self, sig):
+		CtagsThread.__init__(self, sig)
+
+	def ctags_bsearch(self, ct, n):
+		m = CtagsThread.ctags_bsearch(self, ct, n)
+		return m
+
+	def _filter_res(self, res, sig):
+		print 'filter_res:', self.cmd_str, sig.sym
+		req = sig.sym
+		import re
+		out_res = []
+		if self.cmd_str == 'DEF':
+			for line in res:
+				if not re.match(req, line[0]):
+					continue
+				out_res.append(line)
+			return out_res
+		if self.cmd_str == '-->':
+			call_re = re.compile('\\b%s\\b\s*\(' % req)
+			extern_re = re.compile('^\s*extern\s+')
+			for line in res:
+				if line[0] == req:
+					continue
+				if not call_re.search(line[3]):
+					continue
+				if extern_re.search(line[3]):
+					continue
+				out_res.append(line)
+			return out_res
+		if self.cmd_str == '<--':
+			return res
+		if self.cmd_str == 'INC':
+			inc_re = re.compile('^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % req)
+			for line in res:
+				if not inc_re.search(line[3]):
+					continue
+				out_res.append(line)
+			return out_res
+		return res
+
+	def parse_result(self, res, sig):
+		res = self._filter_res(res, sig)
+		return res
 
 class IdProcess(PluginProcess):
 	def __init__(self, wdir, rq):
@@ -120,44 +166,12 @@ class IdProcess(PluginProcess):
 		self.req = rq[1]
 		print rq
 
-	def _filter_res(self, res, sig):
-		print 'filter_res:', self.cmd_str, sig.sym
-		import re
-		out_res = []
-		if self.cmd_str == 'DEF':
-			for line in res:
-				if not re.match(self.req, line[0]):
-					continue
-				out_res.append(line)
-			return out_res
-		if self.cmd_str == '-->':
-			call_re = re.compile('\\b%s\\b\s*\(' % self.req)
-			extern_re = re.compile('^\s*extern\s+')
-			for line in res:
-				if line[0] == self.req:
-					continue
-				if not call_re.search(line[3]):
-					continue
-				if extern_re.search(line[3]):
-					continue
-				out_res.append(line)
-			return out_res
-		if self.cmd_str == '<--':
-			return res
-		if self.cmd_str == 'INC':
-			inc_re = re.compile('^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % self.req)
-			for line in res:
-				if not inc_re.search(line[3]):
-					continue
-				out_res.append(line)
-			return out_res
-		return res
 
 	def parse_result(self, text, sig):
 		from datetime import datetime
 		t1 = datetime.now()
 
-		text = text.split('\n')
+		text = text.strip().splitlines()
 
 		t2 = datetime.now()
 		print 'parse-split', t2 - t1
@@ -170,8 +184,6 @@ class IdProcess(PluginProcess):
 		for line in text:
 			if line == '':
 				continue
-			if line[-1:] == '\r':
-				line = line[0:-1]
 			line = line.split(':', 2)
 			line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
 			res.append(line)
@@ -179,7 +191,7 @@ class IdProcess(PluginProcess):
 		t3 = datetime.now()
 		print 'parse-loop', t3 - t2
 
-		CtagsThread(sig, self._filter_res).apply_fix(self.cmd_str, res, ['<unknown>'])
+		IdCtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
 
 		return None
 
@@ -233,7 +245,7 @@ class QueryIdutils(QueryBase):
 			pargs = [ 'fnid', '-S', 'newline', '-f', id_file ]
 			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			(out_data, err_data) = proc.communicate()
-			fl = out_data.strip().split('\n')
+			fl = out_data.strip().splitlines()
 			PluginHelper.file_view_update(fl)
 		except:
 			import sys
