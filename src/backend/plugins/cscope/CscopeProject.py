@@ -4,6 +4,7 @@ import os, string
 from PyQt4.QtCore import *
 
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+import CscopeProjectUi
 from CscopeProjectUi import QueryUiCscope
 
 from .. import PluginHelper
@@ -170,23 +171,26 @@ class ProjectCscope(ProjectBase):
 from ..PluginBase import PluginProcess
 
 class CsProcess(PluginProcess):
-	def __init__(self, wdir):
+	def __init__(self, wdir, rq):
 		PluginProcess.__init__(self, wdir)
 		self.name = 'cscope process'
+		if rq == None:
+			rq = ['', '']
+		self.cmd_str = rq[0]
+		self.req = rq[1]
 
 	def parse_result(self, text, sig):
-		text = text.split('\n')
+		text = text.strip().splitlines()
+		if self.cmd_str == 'FIL':
+			res = [ ['', line[0], '', ''] for line in text if line != '' ]
+			return res
 		res = []
 		for line in text:
 			if line == '':
 				continue
-			if line[-1:] == '\r':
-				line = line[0:-1]
 			line = line.split(' ', 3)
 			line = [line[1], line[0], line[2], line[3]]
 			res.append(line)
-
-		#self.apply_ctags_fix(res, [ '<unknown>', '<global>' ])
 		return res
 
 class QueryCscope(QueryBase):
@@ -194,16 +198,17 @@ class QueryCscope(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def cs_query(self, cmd_id, req, opt = None):
+	def cs_query(self, cmd_str, req, opt = None):
 		if (not self.conf or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
+		cmd_id = CscopeProjectUi.cmd_str2id[cmd_str]
 		if opt == None or opt == '':
 			opt = []
 		else:
 			opt = opt.split()
 		pargs  = [ 'cscope' ] + self.conf.cs_opt + opt + [ '-L', '-d',  '-' + str(cmd_id), req ]
-		qsig = CsProcess(self.conf.cs_dir).run_query_process(pargs, req)
+		qsig = CsProcess(self.conf.cs_dir, [cmd_str, req]).run_query_process(pargs, req)
 		return qsig
 
 	def cs_rebuild(self):
@@ -211,7 +216,7 @@ class QueryCscope(QueryBase):
 			print "pm_query not is_ready"
 			return None
 		pargs = [ 'cscope' ] + self.conf.cs_opt + [ '-L' ]
-		qsig = CsProcess(self.conf.cs_dir).run_rebuild_process(pargs)
+		qsig = CsProcess(self.conf.cs_dir, None).run_rebuild_process(pargs)
 		return qsig
 
 	def cs_is_open(self):
