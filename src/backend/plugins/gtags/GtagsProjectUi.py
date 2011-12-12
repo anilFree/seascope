@@ -75,7 +75,7 @@ class QueryDialog(QDialog):
 				req = '.*' + req + '.*'
 			opt = None
 			if (self.qd_icase_chkbox.isChecked()):
-				opt = '-C'
+				opt = '-i'
 			res = (cmd_str, req, opt)
 			return res
 		return None
