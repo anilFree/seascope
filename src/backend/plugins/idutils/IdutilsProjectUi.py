@@ -91,25 +91,14 @@ class QueryDialog(QDialog):
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
-def get_idutils_files_list(rootdir):
-	file_list = []
-	if (not os.path.isdir(rootdir)):
-		print "Not a directory:", rootdir
-		return file_list
-	for root, subFolders, files in os.walk(rootdir):
-		for f in files:
-			f = os.path.join(root, f)
-			if (re.search('\.(h|c|H|C|hh|cc|hpp|cpp|hxx|cxx||l|y|s|S|pl|pm|java)$', f) != None):
-				file_list.append(f)
-	return file_list
-
 class QueryUiIdutils(QueryUiBase):
 	def __init__(self, qry):
+		self.menu_cmd_list = menu_cmd_list
 		QueryUiBase.__init__(self)
 		self.query = qry
 		self.ctree_args = ctree_query_args
 
-	def id_query_cb(self, cmd_str):
+	def query_cb(self, cmd_str):
 		if (not self.query.id_is_open()):
 			return
 		if (not self.query.id_is_ready()):
@@ -133,43 +122,11 @@ class QueryUiIdutils(QueryUiBase):
 			self.query_ctree(req, opt)
 		else:
 			self.do_query(cmd_str, req, opt)
-				
-	def cb_rebuild(self):
-		sig_rebuild = self.query.rebuild()
-		if not sig_rebuild:
-			return
-		dlg = QProgressDialog()
-		dlg.setWindowTitle('Seascope rebuild')
-		dlg.setLabelText('Rebuilding idutils database...')
-		dlg.setCancelButton(None)
-		dlg.setMinimum(0)
-		dlg.setMaximum(0)
-		sig_rebuild.connect(dlg.accept)
-		while dlg.exec_() != QDialog.Accepted:
-			pass
-
-	def menu_cb(self, act):
-		if act.cmd_str != None:
-			self.id_query_cb(act.cmd_str)
 
 	def prepare_menu(self):
+		QueryUiBase.prepare_menu(self)
 		menu = PluginHelper.backend_menu
-		menu.triggered.connect(self.menu_cb)
 		menu.setTitle('&Idutils')
-		#menu.setFont(QFont("San Serif", 8))
-		for c in menu_cmd_list:
-			if c[0] == '---':
-				menu.addSeparator()
-				continue
-			if c[2] == None:
-				if c[0] == 'UPD':
-					func = self.cb_rebuild
-					act = menu.addAction(c[1], func)
-				act.cmd_str = None
-			else:
-				act = menu.addAction(c[1])
-				act.setShortcut(c[2])
-				act.cmd_str = c[0]
 
 	@staticmethod
 	def prj_show_settings_ui(proj_args):

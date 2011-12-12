@@ -58,8 +58,26 @@ class QueryUiBase(QObject):
 		QObject.__init__(self)
 		self.prepare_menu()
 
+	def menu_cb(self, act):
+		if act.cmd_str != None:
+			self.query_cb(act.cmd_str)
+
 	def prepare_menu(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		menu = PluginHelper.backend_menu
+		menu.triggered.connect(self.menu_cb)
+		for c in self.menu_cmd_list:
+			if c[0] == '---':
+				menu.addSeparator()
+				continue
+			if c[2] == None:
+				if c[0] == 'UPD':
+					func = self.rebuild_cb
+					act = menu.addAction(c[1], func)
+				act.cmd_str = None
+			else:
+				act = menu.addAction(c[1])
+				act.setShortcut(c[2])
+				act.cmd_str = c[0]
 
 	def query_ctree(self, req, opt):
 		PluginHelper.call_view_page_new(req, self.query.query, self.ctree_args, opt)
@@ -74,7 +92,22 @@ class QueryUiBase(QObject):
 		sig_res = self.query.query(cmd_str, req, opt)
 		PluginHelper.result_page_new(name, sig_res)
 
+	def do_rebuild(self):
+		sig_rebuild = self.query.rebuild()
+		if not sig_rebuild:
+			return
+		dlg = QProgressDialog()
+		dlg.setWindowTitle('Seascope rebuild')
+		dlg.setLabelText('Rebuilding database...')
+		dlg.setCancelButton(None)
+		dlg.setMinimum(0)
+		dlg.setMaximum(0)
+		sig_rebuild.connect(dlg.accept)
+		while dlg.exec_() != QDialog.Accepted:
+			pass
 
+	def rebuild_cb(self):
+		self.do_rebuild()
 
 
 from PyQt4.QtGui import QMessageBox
