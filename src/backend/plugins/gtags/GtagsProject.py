@@ -28,8 +28,6 @@ class ConfigGtags(ConfigBase):
 
 	def proj_open(self, proj_path):
 		self.gt_dir = proj_path
-		print self.gt_dir
-		#self.read_config()
 		self.proj_start()
 
 	def proj_update(self, proj_args):
@@ -38,7 +36,6 @@ class ConfigGtags(ConfigBase):
 	def proj_new(self, proj_args):
 		self.proj_args = proj_args
 		(self.gt_dir, self.gt_opt, self.gt_list) = proj_args
-		#self.write_config()
 		self.proj_start()
 
 	def proj_close(self):

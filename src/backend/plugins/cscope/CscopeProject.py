@@ -166,6 +166,7 @@ class ProjectCscope(ProjectBase):
 		if (proj_args == None):
 			return False
 		self.prj_update_conf(proj_args)
+		PluginHelper.file_view_update(self.conf.get_proj_src_files())
 		return True
 
 from ..PluginBase import PluginProcess

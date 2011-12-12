@@ -35,9 +35,9 @@ cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
 cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != None ]
 
 ctree_query_args = [
-	[cmd_str2id['-->'],	'--> F', 'Calling tree'			],
-	[cmd_str2id['<--'],	'F -->', 'Called tree'			],
-	[cmd_str2id['REF'],	'==> F', 'Advanced calling tree'	],
+	['-->',	'--> F', 'Calling tree'			],
+	['<--',	'F -->', 'Called tree'			],
+	['REF',	'==> F', 'Advanced calling tree'	],
 ]
 		
 class QueryDialog(QDialog):
@@ -101,11 +101,12 @@ def dir_scan_csope_files(rootdir):
 
 class QueryUiCscope(QueryUiBase):
 	def __init__(self, qry):
+		self.menu_cmd_list = menu_cmd_list
 		QueryUiBase.__init__(self)
 		self.query = qry
 		self.ctree_args = ctree_query_args
 
-	def cs_query_cb(self, cmd_str):
+	def query_cb(self, cmd_str):
 		if (not self.query.cs_is_open()):
 			return
 		if (not self.query.cs_is_ready()):
@@ -129,41 +130,11 @@ class QueryUiCscope(QueryUiBase):
 			self.query_ctree(req, opt)
 		else:
 			self.do_query(cmd_str, req, opt)
-				
-	def cb_rebuild(self):
-		sig_rebuild = self.query.rebuild()
-		dlg = QProgressDialog()
-		dlg.setWindowTitle('Seascope rebuild')
-		dlg.setLabelText('Rebuilding cscope database...')
-		dlg.setCancelButton(None)
-		dlg.setMinimum(0)
-		dlg.setMaximum(0)
-		sig_rebuild.connect(dlg.accept)
-		while dlg.exec_() != QDialog.Accepted:
-			pass
-
-	def menu_cb(self, act):
-		if act.cmd_str != None:
-			self.cs_query_cb(act.cmd_str)
 
 	def prepare_menu(self):
+		QueryUiBase.prepare_menu(self)
 		menu = PluginHelper.backend_menu
-		menu.triggered.connect(self.menu_cb)
 		menu.setTitle('&Cscope')
-		#menu.setFont(QFont("San Serif", 8))
-		for c in menu_cmd_list:
-			if c[0] == '---':
-				menu.addSeparator()
-				continue
-			if c[2] == None:
-				if c[0] == 'UPD':
-					func = self.cb_rebuild
-					act = menu.addAction(c[1], func)
-				act.cmd_str = None
-			else:
-				act = menu.addAction(c[1])
-				act.setShortcut(c[2])
-				act.cmd_str = c[0]
 
 	@staticmethod
 	def prj_show_settings_ui(proj_args):
