@@ -164,7 +164,6 @@ class IdProcess(PluginProcess):
 			rq = ['', '']
 		self.cmd_str = rq[0]
 		self.req = rq[1]
-		print rq
 
 
 	def parse_result(self, text, sig):
@@ -232,7 +231,7 @@ class QueryIdutils(QueryBase):
 			return None
 		pargs = [ 'mkid' ]
 		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
-		qsig.sig_rebuild.connect(self.id_file_list_update)
+		qsig.connect(self.id_file_list_update)
 		return qsig
 
 	def id_file_list_update(self):

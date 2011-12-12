@@ -58,7 +58,6 @@ class ProjectGtags(ProjectBase):
 		prj.qry = QueryGtags(prj.conf)
 		prj.qryui = QueryUiGtags(prj.qry)
 
-		PluginHelper.file_view_update(prj.conf.get_proj_src_files())
 		return (prj)
 
 	@staticmethod
@@ -113,9 +112,13 @@ class ProjectGtags(ProjectBase):
 from ..PluginBase import PluginProcess
 
 class GtProcess(PluginProcess):
-	def __init__(self, wdir):
+	def __init__(self, wdir, rq):
 		PluginProcess.__init__(self, wdir)
 		self.name = 'gtags process'
+		if rq == None:
+			rq = ['', '']
+		self.cmd_str = rq[0]
+		self.req = rq[1]
 
 	def parse_result(self, text, sig):
 		text = text.strip().splitlines()
@@ -133,15 +136,25 @@ class QueryGtags(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def query(self, cmd_str, req, opt = None):
+		self.gt_file_list_update()
+
+	def query(self, cmd_str, req, opt):
 		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		cmd_id = GtagsProjectUi.cmd_str2id[cmd_str]
-		pargs = [ 'global', '-a', '--result=cscope', '-x', str(cmd_id), req ]
-		qsig = GtProcess(self.conf.gt_dir).run_query_process(pargs, req)
+		if opt == None or opt == '':
+			opt = []
+		else:
+			opt = opt.split()
+		cmd_opt = GtagsProjectUi.cmd_str2id[cmd_str]
+		pargs = [ 'global', '-a', '--result=cscope', '-x' ] + opt
+		if cmd_opt != '':
+			pargs += [ cmd_opt ]
+		pargs += [ req ]
+		
+		qsig = GtProcess(self.conf.gt_dir, None).run_query_process(pargs, req)
 		return qsig
 
 	def rebuild(self):
@@ -152,8 +165,28 @@ class QueryGtags(QueryBase):
 			pargs = [ 'global', '-u' ]
 		else:
 			pargs = [ 'gtags', '-i' ]
-		qsig = GtProcess(self.conf.gt_dir).run_rebuild_process(pargs)
+		qsig = GtProcess(self.conf.gt_dir, None).run_rebuild_process(pargs)
+		qsig.connect(self.gt_file_list_update)
 		return qsig
+
+	def gt_file_list_update(self):
+		gt_file = os.path.join(self.conf.gt_dir, 'GTAGS')
+		if not os.path.exists(gt_file):
+			return
+		fl = []
+		try:
+			import subprocess
+			pargs = [ 'global', '-P', '-a' ]
+			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=self.conf.gt_dir)
+			(out_data, err_data) = proc.communicate()
+			fl = out_data.strip().splitlines()
+			print '1.flist', len(fl)
+			PluginHelper.file_view_update(fl)
+		except:
+			import sys
+			e = sys.exc_info()[1]
+			print ' '.join(pargs)
+			print e
 
 	def gt_is_open(self):
 		return self.conf != None
