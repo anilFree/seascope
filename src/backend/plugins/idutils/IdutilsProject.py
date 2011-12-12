@@ -109,7 +109,6 @@ from ..PluginBase import PluginProcess
 from .. import PluginHelper
 from ..CtagsCache import CtagsThread
 
-
 class IdCtagsThread(CtagsThread):
 	def __init__(self, sig):
 		CtagsThread.__init__(self, sig)

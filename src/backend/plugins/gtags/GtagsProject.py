@@ -110,6 +110,53 @@ class ProjectGtags(ProjectBase):
 		return False
 
 from ..PluginBase import PluginProcess
+from .. import PluginHelper
+from ..CtagsCache import CtagsThread
+
+class GtCtagsThread(CtagsThread):
+	def __init__(self, sig):
+		CtagsThread.__init__(self, sig)
+
+	def ctags_bsearch(self, ct, n):
+		m = CtagsThread.ctags_bsearch(self, ct, n)
+		return m
+
+	def _filter_res(self, res, sig):
+		print 'filter_res:', self.cmd_str, sig.sym
+		req = sig.sym
+		import re
+		out_res = []
+		if self.cmd_str == 'DEF':
+			for line in res:
+				if not re.match(req, line[0]):
+					continue
+				out_res.append(line)
+			return out_res
+		if self.cmd_str == '-->':
+			call_re = re.compile('\\b%s\\b\s*\(' % req)
+			extern_re = re.compile('^\s*extern\s+')
+			for line in res:
+				if line[0] == req:
+					continue
+				if extern_re.search(line[3]):
+					continue
+				out_res.append(line)
+			return out_res
+		if self.cmd_str == '<--':
+			return res
+		if self.cmd_str == 'INC':
+			print 'INC'
+			inc_re = re.compile('^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % req)
+			for line in res:
+				if not inc_re.search(line[3]):
+					continue
+				out_res.append(line)
+			return out_res
+		return res
+
+	def parse_result(self, res, sig):
+		res = self._filter_res(res, sig)
+		return res
 
 class GtProcess(PluginProcess):
 	def __init__(self, wdir, rq):
@@ -122,14 +169,21 @@ class GtProcess(PluginProcess):
 
 	def parse_result(self, text, sig):
 		text = text.strip().splitlines()
+		if self.cmd_str == 'FIL':
+			res = [ ['',  line.split(' ')[0], '', '' ] for line in text if line != '' ]
+			return res
 		res = []
 		for line in text:
 			if line == '':
 				continue
 			line = line.split(' ', 3)
-			line = [line[1], line[0], line[2], line[3]]
+			print line
+			line = ['<unknown>', line[0], line[2], line[3]]
 			res.append(line)
-		return res
+
+		GtCtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
+
+		return None
 
 class QueryGtags(QueryBase):
 	def __init__(self, conf):
@@ -154,7 +208,7 @@ class QueryGtags(QueryBase):
 			pargs += [ cmd_opt ]
 		pargs += [ req ]
 		
-		qsig = GtProcess(self.conf.gt_dir, None).run_query_process(pargs, req)
+		qsig = GtProcess(self.conf.gt_dir, [cmd_str, req]).run_query_process(pargs, req)
 		return qsig
 
 	def rebuild(self):

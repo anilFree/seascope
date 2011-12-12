@@ -16,13 +16,11 @@ cmd_table = [
 	[	['REF',	'-r'],	['&References',		'Ctrl+0'],	['References to'	]	],
 	[	['DEF',	''],	['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
 	#[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
-	#[	['-->',	'3'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
+	[	['-->',	'-r'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
 	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
 	[	['GRP',	'-g'],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
 	[	['FIL',	'-P'],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
-	#[	['INC',	'8'],	['&Including Files',	'Ctrl+8'],	['Find #including'	]	],
-	#[	['---', None],	[None				]					],
-	#[	['FSYM', '-f'],	['&List objects in file',None],	['Find objects in file'	]	],
+	[	['INC',	'-g'],	['&Including Files',	'Ctrl+8'],	['Find #including'	]	],
 	[	['---', None],	[None				]					],
 	[	['QDEF', ''],	['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
@@ -37,7 +35,7 @@ cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
 cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != None ]
 
 ctree_query_args = [
-	#['-->',	'--> F', 'Calling tree'			],
+	['-->',	'--> F', 'Calling tree'			],
 	#['<--',	'F -->', 'Called tree'			],
 	['REF',	'==> F', 'Advanced calling tree'	],
 ]
