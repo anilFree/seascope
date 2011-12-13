@@ -26,7 +26,8 @@ class FileTree(QTabWidget):
 		lvlay.addWidget(self.le)
 		lvlay.addWidget(self.lview)
 		self.listw.setLayout(lvlay)
-		self.addTab(self.listw, "List")
+		icon = QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)
+		self.addTab(self.listw, icon, '')
 
 		self.le.textChanged.connect(self.le_textChanged)
 		self.le.returnPressed.connect(self.le_returnPressed)
@@ -62,7 +63,8 @@ class FileTree(QTabWidget):
 		tvlay.addLayout(thlay)
 		tvlay.addWidget(self.tview)
 		self.treew.setLayout(tvlay)
-		self.addTab(self.treew, "Tree")
+		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
+		self.addTab(self.treew, icon, '')
 
 		self.tview.activated.connect(self.tview_itemActivated)
 		self.tdbtn.clicked.connect(self.change_btn_cb)
