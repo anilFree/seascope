@@ -20,7 +20,7 @@ cmd_table = [
 	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
 	#[	['GRP',	''],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
 	[	['FIL',	''],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
-	[	['INC',	'8'],	['&Includes/Imports',	'Ctrl+8'],	['Find include/import'	]	],
+	[	['INC',	'8'],	['&Include/Import',	'Ctrl+8'],	['Find include/import'	]	],
 	[	['---', None],	[None				]					],
 	[	['QDEF', ''], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],

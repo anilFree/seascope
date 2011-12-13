@@ -24,7 +24,6 @@ class ConfigIdutils(ConfigBase):
 
 	def proj_open(self, proj_path):
 		self.id_dir = proj_path
-		print self.id_dir
 		self.proj_start()
 
 	def proj_update(self, proj_args):
@@ -58,14 +57,10 @@ class ProjectIdutils(ProjectBase):
 
 	@staticmethod
 	def prj_new():
-		proj_args = QueryUiIdutils.prj_show_settings_ui(None)
-		if (proj_args == None):
-			return None
-
-		conf = ConfigIdutils()
-		conf.proj_new(proj_args)
-		prj = ProjectIdutils._prj_new_or_open(conf)
-		return (prj)
+		from PyQt4.QtGui import QMessageBox
+		msg = "Please use 'Open Project' and choose directory containing ID file"
+		QMessageBox.warning(None, "Seascope: idutils", msg, QMessageBox.Ok)
+		return None
 
 	@staticmethod
 	def prj_open(proj_path):
@@ -118,13 +113,15 @@ class IdCtagsThread(CtagsThread):
 		return m
 
 	def _filter_res(self, res, sig):
-		print 'filter_res:', self.cmd_str, sig.sym
 		req = sig.sym
 		import re
 		out_res = []
 		if self.cmd_str == 'DEF':
+			import_re = re.compile('^\s*import\s+')
 			for line in res:
 				if not re.match(req, line[0]):
+					continue
+				if import_re.search(line[3]) and line[1].endswith('.py'):
 					continue
 				out_res.append(line)
 			return out_res
@@ -166,13 +163,13 @@ class IdProcess(PluginProcess):
 
 
 	def parse_result(self, text, sig):
-		from datetime import datetime
-		t1 = datetime.now()
+		#from datetime import datetime
+		#t1 = datetime.now()
 
 		text = text.strip().splitlines()
 
-		t2 = datetime.now()
-		print 'parse-split', t2 - t1
+		#t2 = datetime.now()
+		#print 'parse-split', t2 - t1
 
 		if self.cmd_str == 'FIL':
 			res = [ ['',  os.path.join(self.wdir, line), '', '' ] for line in text if line != '' ]
@@ -186,8 +183,8 @@ class IdProcess(PluginProcess):
 			line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
 			res.append(line)
 
-		t3 = datetime.now()
-		print 'parse-loop', t3 - t2
+		#t3 = datetime.now()
+		#print 'parse-loop', t3 - t2
 
 		IdCtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
 
@@ -201,7 +198,6 @@ class QueryIdutils(QueryBase):
 		self.id_file_list_update()
 
 	def query(self, cmd_str, req, opt = None):
-		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"

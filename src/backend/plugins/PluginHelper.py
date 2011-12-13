@@ -6,7 +6,7 @@ edit_book = None
 res_book = None
 call_view = None
 file_view = None
-dbg_mgr = None
+dbg_view = None
 
 def editor_current_word():
 	return edit_book.get_current_word()
@@ -18,7 +18,7 @@ def result_page_new(name, sig_res):
 	## add result
 	sig_res[0].connect(page.add_result)
 	#page.add_result(req, res)
-	dbg_mgr.connect_to_cs_sig_res(sig_res[1])
+	dbg_view.connect_to_sig(sig_res[1])
 
 def _quick_def_result(req, res):
 	count = len(res)
@@ -51,7 +51,7 @@ def quick_def_page_new(sig_res):
 	if sig_res == None:
 		return
 	sig_res[0].connect(_quick_def_result)
-	dbg_mgr.connect_to_cs_sig_res(sig_res[1])
+	dbg_view.connect_to_sig(sig_res[1])
 
 def call_view_page_new(req, query_func, ctree_query_args, opt):
 	call_view.create_page(req, query_func, ctree_query_args, opt)

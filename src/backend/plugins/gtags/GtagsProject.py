@@ -62,14 +62,10 @@ class ProjectGtags(ProjectBase):
 
 	@staticmethod
 	def prj_new():
-		proj_args = QueryUiGtags.prj_show_settings_ui(None)
-		if (proj_args == None):
-			return None
-
-		conf = ConfigGtags()
-		conf.proj_new(proj_args)
-		prj = ProjectGtags._prj_new_or_open(conf)
-		return (prj)
+		from PyQt4.QtGui import QMessageBox
+		msg = "Please use 'Open Project' and choose directory containing GTAGS file"
+		QMessageBox.warning(None, "Seascope: gtags", msg, QMessageBox.Ok)
+		return None
 
 	@staticmethod
 	def prj_open(proj_path):
@@ -122,13 +118,15 @@ class GtCtagsThread(CtagsThread):
 		return m
 
 	def _filter_res(self, res, sig):
-		print 'filter_res:', self.cmd_str, sig.sym
 		req = sig.sym
 		import re
 		out_res = []
 		if self.cmd_str == 'DEF':
+			import_re = re.compile('^\s*import\s+')
 			for line in res:
 				if not re.match(req, line[0]):
+					continue
+				if import_re.search(line[3]) and line[1].endswith('.py'):
 					continue
 				out_res.append(line)
 			return out_res
@@ -177,7 +175,6 @@ class GtProcess(PluginProcess):
 			if line == '':
 				continue
 			line = line.split(' ', 3)
-			print line
 			line = ['<unknown>', line[0], line[2], line[3]]
 			res.append(line)
 
@@ -193,7 +190,6 @@ class QueryGtags(QueryBase):
 		self.gt_file_list_update()
 
 	def query(self, cmd_str, req, opt):
-		print cmd_str, req, opt
 		if (not self.conf):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
@@ -234,7 +230,6 @@ class QueryGtags(QueryBase):
 			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=self.conf.gt_dir)
 			(out_data, err_data) = proc.communicate()
 			fl = out_data.strip().splitlines()
-			print '1.flist', len(fl)
 			PluginHelper.file_view_update(fl)
 		except:
 			import sys

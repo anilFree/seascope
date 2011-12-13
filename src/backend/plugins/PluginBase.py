@@ -161,7 +161,7 @@ class PluginProcess(QObject):
 		self.err_str = str(self.proc.readAllStandardError())
 		
 		#print 'output', res
-		print 'cmd:', self.p_cmd
+		#print 'cmd:', self.p_cmd
 		if self.is_rebuild:
 			self.sig.sig_rebuild.emit()
 		else:
@@ -175,7 +175,7 @@ class PluginProcess(QObject):
 	def run_query_process(self, pargs, sym):
 		self.sig.sym = sym
 		self.p_cmd = ' '.join(pargs)
-		print 'pp:cmd:', pargs[0], pargs[1:]
+		#print 'pp:cmd:', pargs[0], pargs[1:]
 		self.proc.start(pargs[0], pargs[1:])
 		if self.proc.waitForStarted() == False:
 			return None
@@ -188,7 +188,7 @@ class PluginProcess(QObject):
 		self.proc.start(pargs[0], pargs[1:])
 		if self.proc.waitForStarted() == False:
 			return None
-		print 'cmd:', pargs
+		#print 'cmd:', pargs
 		return self.sig.sig_rebuild
 
 	def parse_result(self, text, sig):
@@ -215,8 +215,8 @@ if __name__ == '__main__':
 
 	app = QCoreApplication(sys.argv)
 
-	#qsig = PluginProcess('.').run_query_process(['ls'], 'ls')
-	qsig = PluginProcess('/home/anil/prj/ss/lin').run_query_process(['cscope', '-q', '-k', '-L', '-d', '-0', 'vdso'], 'ls')
+	qsig = PluginProcess('.').run_query_process(['ls'], 'ls')
+	#qsig = PluginProcess('/home/anil/prj/ss/lin').run_query_process(['cscope', '-q', '-k', '-L', '-d', '-0', 'vdso'], 'ls')
 	if qsig == None:
 		sys.exit(-1)
 	qsig[0].connect(slot_result)

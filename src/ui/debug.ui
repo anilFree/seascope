@@ -20,6 +20,9 @@
       <property name="tabShape">
        <enum>QTabWidget::Rounded</enum>
       </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
       <widget class="QWidget" name="dbg_info_tab">
        <attribute name="title">
         <string>Info</string>
@@ -35,8 +38,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>482</width>
-             <height>345</height>
+             <width>472</width>
+             <height>323</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout"/>
@@ -49,7 +52,15 @@
        <attribute name="title">
         <string>Version</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_4"/>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Not implemented yet</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>

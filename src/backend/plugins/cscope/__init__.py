@@ -10,3 +10,12 @@ def is_your_prj(path):
 def project_class():
 	from CscopeProject import ProjectCscope
 	return ProjectCscope
+
+def description():
+	d = 'Cscope supports C, lex, yacc files.\n'
+	d += 'Support for C++ and Java is limited.'
+	return d
+
+priority = 500
+
+

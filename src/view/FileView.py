@@ -146,7 +146,6 @@ class FileTree(QTabWidget):
 	def add_files(self, flist):
 		self.lview.clear()
                 self.dir_prefix = os.path.dirname(os.path.commonprefix(flist))
-                print 'dir_prefix', self.dir_prefix, len(flist)
 		if len(self.dir_prefix) > 16:
 			self.is_rel_path = True
 		for f in flist:
