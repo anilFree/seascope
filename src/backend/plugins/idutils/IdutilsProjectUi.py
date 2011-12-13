@@ -29,9 +29,18 @@ cmd_table = [
 ]
 
 menu_cmd_list = [ [c[0][0]] + c[1] for c in cmd_table ]
-cmd_str2id = { c[0][0]:c[0][1] for c in cmd_table if c[0][1] != None }
-cmd_str2qstr = { c[0][0]:c[2][0] for c in cmd_table if c[0][1] != None }
-cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
+cmd_str2id = {}
+cmd_str2qstr = {}
+cmd_qstr2str = {}
+for c in cmd_table:
+	if c[0][1] != None:
+		cmd_str2id[c[0][0]] = c[0][1]
+		cmd_str2qstr[c[0][0]] = c[2][0]
+		cmd_qstr2str[c[2][0]] = c[0][0]
+# python 2.7
+#cmd_str2id = { c[0][0]:c[0][1] for c in cmd_table if c[0][1] != None }
+#cmd_str2qstr = { c[0][0]:c[2][0] for c in cmd_table if c[0][1] != None }
+#cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
 cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != None ]
 
 ctree_query_args = [
