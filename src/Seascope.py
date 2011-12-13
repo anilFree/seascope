@@ -13,11 +13,10 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, ResView, FileView, CallView
+	from view import EdView, ResView, FileView, CallView, DebugView
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
-	import DebugManager
 except ImportError:
 	print "Error: failed to import supporting packages.\nError: program aborted."
 	sys.exit(-1)
@@ -72,7 +71,7 @@ class SeascopeApp(QMainWindow):
 		self.edit_book.open_in_external_editor(self.edit_ext_cmd)
 
 	def show_dbg_dialog(self):
-		DebugManager.show_dbg_dialog(self)
+		DebugView.show_dbg_dialog(self)
 
 	def create_mbar(self):
 		menubar = self.menuBar()
@@ -262,7 +261,7 @@ class SeascopeApp(QMainWindow):
 		PluginHelper.res_book = self.res_book
 		PluginHelper.call_view = CallView
 		PluginHelper.file_view = self.file_view
-		PluginHelper.dbg_mgr = DebugManager
+		PluginHelper.dbg_view = DebugView
 		
 
 		self.edit_book.sig_history_update.connect(self.res_book.history_update)
@@ -292,8 +291,8 @@ class SeascopeApp(QMainWindow):
 		self.edit_book.m_show_line_num.setChecked(self.edit_book.is_show_line)
 		if len(self.recent_projects):
 			self.proj_open(self.recent_projects[0])
-		else:
-			self.proj_open_cb()
+		#else:
+			#self.proj_open_cb()
 		if (self.app_style):
 			QApplication.setStyle(self.app_style)
 		if (self.app_font):

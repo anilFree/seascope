@@ -22,14 +22,14 @@ class DebugInfoEntry(QFrame):
 		self.cmd_lbl.setText(cmd)
 		self.vlay.addWidget(self.cmd_lbl)
 
-		if err != None and err != '':
-			self.err_lbl = QLabel()
-			self.err_lbl.setText('Error: ' + err)
-			self.vlay.addWidget(self.err_lbl)
+		#if err != None and err != '':
+			#self.err_lbl = QLabel()
+			#self.err_lbl.setText('Error: ' + err)
+			#self.vlay.addWidget(self.err_lbl)
 
-		self.res_lbl = QLabel()
-		self.res_lbl.setText(out)
-		self.vlay.addWidget(self.res_lbl)
+		#self.res_lbl = QLabel()
+		#self.res_lbl.setText(out)
+		#self.vlay.addWidget(self.res_lbl)
 		#self.res_lbl.hide()
 
 class DebugWindow(QMainWindow):
@@ -59,7 +59,7 @@ def show_dbg_dialog(parent):
 	DebugWindow.dlg.run_dialog()
 
 
-def connect_to_cs_sig_res(sig_res):
+def connect_to_sig(sig_res):
 	if (DebugWindow.dlg == None):
 		return
 	entry = DebugInfoEntry()

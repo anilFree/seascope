@@ -11,22 +11,29 @@ import DialogManager
 from plugins import PluginHelper
 
 backend_plugins = []
+backend_dict = {}
 
 def _load_plugins(module, directory):
 	pluginImports = __import__(module, globals(), locals())
 	print 'Scanning for plugins...'
 	plist = []
+	pdict = {}
 	for i in sorted(os.listdir(directory)):
 		path = os.path.join( directory, i, '__init__.py' )
 		if os.path.isfile( path ):
 			p = __import__( '%s.%s' % (module, i), globals(), locals(), ['*'] )
 			plist.append(p)
-			print '\t', p.name()
-	return plist
+			pdict[p.name()] = p
+			if not hasattr(p, 'priority'):
+				p.priority = 0 
+	plist = sorted(plist, key=lambda p: p.priority, reverse=True)
+	for p in plist:
+		print '\t', p.name()
+	return (plist, pdict)
 
 def load_plugins():
-	global backend_plugins
-	backend_plugins = _load_plugins('backend.plugins', 'backend/plugins')
+	global backend_plugins, backend_dict
+	(backend_plugins, backend_dict) = _load_plugins('backend.plugins', 'backend/plugins')
 
 
 from plugins.PluginBase import ProjectBase, ConfigBase, QueryBase, QueryUiBase
@@ -38,15 +45,42 @@ def _proj_new_open():
 	for act in prj_actions:
 		act.setEnabled(True)
 
-def proj_new():
-	b = None
-	for p in backend_plugins:
-		if p.name() == 'cscope':
-			b = p
-			break
-	if not b:
-		print 'No backends'
+class ProjectNewDialog(QDialog):
+	def __init__(self):
+		QDialog.__init__(self)
+		self.ui = uic.loadUi('ui/proj_new.ui', self)
+		self.backend_lw.currentRowChanged.connect(self.currentRowChanged_cb)
+
+	def currentRowChanged_cb(self, row):
+		if row == -1:
+			return
+		bname = str(self.backend_lw.currentItem().text())
+		b = backend_dict[bname]
+		try:
+			self.descr_te.setText(b.description())
+		except:
+			self.descr_te.setText('')
+
+	def run_dialog(self):
+		bi = [ b.name() for b in backend_plugins]
+		self.backend_lw.addItems(bi)
+		self.backend_lw.setCurrentRow(0)
+		if self.exec_() == QDialog.Accepted:
+			bname = str(self.backend_lw.currentItem().text())
+			return (backend_dict[bname])
 		return None
+
+def msg_box(msg):
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+
+def proj_new():
+	if len(backend_plugins) == 0:
+		msg_box('No backends are available/usable')
+	dlg = ProjectNewDialog()
+	b = dlg.run_dialog()
+	if b == None:
+		return
+
 	global prj
 	assert not prj
 	prj = b.project_class().prj_new()
@@ -66,7 +100,7 @@ def proj_open(proj_path):
 	if len(b) > 1:
 		print "Project '%s': Many backends interested" % proj_path
 		return
-	print "Project '%s': Using %s backend" % (proj_path, b[0].name())
+	print "Project '%s': using '%s' backend" % (proj_path, b[0].name())
 
 	global prj
 	prj = b[0].project_class().prj_open(proj_path)

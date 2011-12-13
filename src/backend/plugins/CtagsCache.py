@@ -40,7 +40,7 @@ class CtagsThread(QThread):
 		CtagsThread.thread_list.append(self)
 	
 	def _finished_cb(self):
-		print 'CtagsThread.finished', len(self.ct_dict)
+		#print 'CtagsThread.finished', len(self.ct_dict)
 		CtagsThread.thread_list.remove(self)
 		for k in self.ct_dict:
 			ct_cache[k] = self.ct_dict[k]
@@ -89,7 +89,6 @@ class CtagsThread(QThread):
 				while m > 0 and (ct[m][2] in ['namespace']):
 					m = m - 1
 				if m == - 1:
-					print 'ret -1'
 					return
 		if ct[m][1] == n:
 			if self.cmd_str == 'DEF':
@@ -122,7 +121,7 @@ class CtagsThread(QThread):
 			self.ct_dict[f].append(line)
 
 	def prepare_file_list(self):
-		t1 = datetime.now()
+		#t1 = datetime.now()
 		flist = set()
 		for line in self.res:
 			if line[0] in self.cond_list:
@@ -133,8 +132,8 @@ class CtagsThread(QThread):
 		for f in flist:
 			self.ct_dict[f] = []
 
-		t2 = datetime.now()
-		print '  ', len(flist), 'flist', t2 - t1
+		#t2 = datetime.now()
+		#print '  ', len(flist), 'flist', t2 - t1
 
 		self.file_list = flist
 
@@ -147,21 +146,21 @@ class CtagsThread(QThread):
 		self.start()
 
 	def run(self):
-		t2 = datetime.now()
+		#t2 = datetime.now()
 
 		self._run_ctags()
 		
-		t3 = datetime.now()
-		print '  ct', t3 - t2
+		#t3 = datetime.now()
+		#print '  ct', t3 - t2
 
 		for line in self.res:
 			if line[0] not in self.cond_list:
 				continue
 			self._ctags_fix(line)
 
-		t4 = datetime.now()
-		print '  fix', t4 - t3
-		print '  total', t4 - t2
+		#t4 = datetime.now()
+		#print '  fix', t4 - t3
+		#print '  total', t4 - t2
 
 
 ct_cache = {}
