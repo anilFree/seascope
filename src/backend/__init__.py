@@ -90,20 +90,26 @@ def proj_new():
 	return prj != None
 
 def proj_open(proj_path):
-	b = []
+	be = []
 	for p in backend_plugins:
 		if p.is_your_prj(proj_path):
-			b.append(p)
-	if len(b) == 0:
-		print "Project '%s': No backend is interested" % proj_path
+			be.append(p)
+	if len(be) == 0:
+		msg = "Project '%s': No backend is interested" % proj_path
+		msg_box(msg)
 		return
-	if len(b) > 1:
-		print "Project '%s': Many backends interested" % proj_path
-		return
-	print "Project '%s': using '%s' backend" % (proj_path, b[0].name())
+	if len(be) > 1:
+		msg = "Project '%s': Many backends interested" % proj_path
+		for b in be:
+			msg += '\n\t' + b.name()
+		msg += '\n\nGoing ahead with: ' + be[0].name()
+		msg_box(msg)
+
+	b = be[0]
+	print "Project '%s': using '%s' backend" % (proj_path, b.name())
 
 	global prj
-	prj = b[0].project_class().prj_open(proj_path)
+	prj = b.project_class().prj_open(proj_path)
 
 	if prj:
 		_proj_new_open()
