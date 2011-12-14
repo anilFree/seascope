@@ -239,7 +239,9 @@ class EditorBook(QTabWidget):
 		if (inx == -1):
 			fname = ''
 		else:
-			fname = self.currentWidget().get_filename()
+			page = self.currentWidget()
+			page.ev.setFocus()
+			fname = page.get_filename()
 		self.sig_tab_changed.emit(fname)
 			
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os, string
+import os, string, re
 from PyQt4.QtCore import *
 
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
@@ -166,7 +166,7 @@ class GtProcess(PluginProcess):
 		self.req = rq[1]
 
 	def parse_result(self, text, sig):
-		text = text.strip().splitlines()
+		text = re.split('\r?\n', text)
 		if self.cmd_str == 'FIL':
 			res = [ ['',  line.split(' ')[0], '', '' ] for line in text if line != '' ]
 			return res
@@ -229,7 +229,7 @@ class QueryGtags(QueryBase):
 			pargs = [ 'global', '-P', '-a' ]
 			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=self.conf.gt_dir)
 			(out_data, err_data) = proc.communicate()
-			fl = out_data.strip().splitlines()
+			fl = re.split('\r?\n', out_data.strip())
 			PluginHelper.file_view_update(fl)
 		except:
 			import sys

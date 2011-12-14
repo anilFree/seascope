@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import os, string
+import os, string, re
 from PyQt4.QtCore import *
 
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
@@ -181,7 +181,7 @@ class CsProcess(PluginProcess):
 		self.req = rq[1]
 
 	def parse_result(self, text, sig):
-		text = text.strip().splitlines()
+		text = re.split('\r?\n', text)
 		if self.cmd_str == 'FIL':
 			res = [ ['', line[0], '', ''] for line in text if line != '' ]
 			return res

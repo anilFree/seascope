@@ -142,7 +142,11 @@ class PluginProcess(QObject):
 	def _cleanup(self):
 		PluginProcess.proc_list.remove(self)
 		if self.err_str != '':
-			QMessageBox.warning(None, "Seascope", str(self.err_str), QMessageBox.Ok)
+			s = '<b>' + self.p_cmd + '</b><p>' + self.err_str
+			QMessageBox.warning(None, "Seascope", s, QMessageBox.Ok)
+		if self.res != '':
+			s = '<b>' + self.p_cmd + '</b><p>Summary<p>' + self.res
+			QMessageBox.information(None, "Seascope", s, QMessageBox.Ok)
 
 	def _error_cb(self, err):
 		err_dict = { 
@@ -163,10 +167,15 @@ class PluginProcess(QObject):
 		#print 'output', res
 		#print 'cmd:', self.p_cmd
 		if self.is_rebuild:
+			self.res = res
 			self.sig.sig_rebuild.emit()
 		else:
+			self.res = ''
 			self.sig.sig_result_dbg.emit(self.p_cmd, res, self.err_str)
-			res = self.parse_result(res, self.sig)
+			try:
+				res = self.parse_result(res, self.sig)
+			except:
+				res = [['', '', '', 'error while parsing output of: ' + self.p_cmd]]
 			if res != None:
 				self.sig.sig_result.emit(self.sig.sym, res)
 
