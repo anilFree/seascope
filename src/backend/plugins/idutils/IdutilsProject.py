@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, os, string
+import sys, os, string, re
 from PyQt4.QtCore import *
 
 from ..PluginBase import ProjectBase, ConfigBase, QueryBase
@@ -114,7 +114,6 @@ class IdCtagsThread(CtagsThread):
 
 	def _filter_res(self, res, sig):
 		req = sig.sym
-		import re
 		out_res = []
 		if self.cmd_str == 'DEF':
 			import_re = re.compile('^\s*import\s+')
@@ -166,7 +165,7 @@ class IdProcess(PluginProcess):
 		#from datetime import datetime
 		#t1 = datetime.now()
 
-		text = text.strip().splitlines()
+		text = re.split('\r?\n', text)
 
 		#t2 = datetime.now()
 		#print 'parse-split', t2 - t1
@@ -224,7 +223,7 @@ class QueryIdutils(QueryBase):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = [ 'mkid' ]
+		pargs = [ 'mkid', '-s' ]
 		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
 		qsig.connect(self.id_file_list_update)
 		return qsig
@@ -239,7 +238,7 @@ class QueryIdutils(QueryBase):
 			pargs = [ 'fnid', '-S', 'newline', '-f', id_file ]
 			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			(out_data, err_data) = proc.communicate()
-			fl = out_data.strip().splitlines()
+			fl = re.split('\r?\n', out_data.strip())
 			PluginHelper.file_view_update(fl)
 		except:
 			import sys

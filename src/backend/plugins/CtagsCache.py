@@ -13,7 +13,8 @@ import re
 		#import subprocess
 		#proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		#(out_data, err_data) = proc.communicate()
-		#res = out_data.strip().splitlines()
+		#res = re.split('\r?\n', out_data)
+		# res = out_data
 		#res = [ line.split(None, 1) for line in res if line != '' ]
 		#d = {}
 		#for line in res:
@@ -110,7 +111,8 @@ class CtagsThread(QThread):
 		import subprocess
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(self.file_list))
-		out_data = out_data.strip().splitlines()
+		out_data = re.split('\r?\n', out_data)
+
 		for line in out_data:
 			if line == '':
 				continue
