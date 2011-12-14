@@ -14,7 +14,7 @@ class ConfigCscope(ConfigBase):
 		ConfigBase.__init__(self)
 
 		self.cs_dir = ''
-		self.cs_opt = ''
+		self.cs_opt = []
 		self.cs_list = []
 
 	def get_proj_name(self):
