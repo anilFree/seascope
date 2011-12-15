@@ -198,6 +198,7 @@ class PluginProcess(QObject):
 		if self.proc.waitForStarted() == False:
 			return None
 		#print 'cmd:', pargs
+		import CtagsCache
 		self.sig.sig_rebuild.connect(CtagsCache.flush)
 		return self.sig.sig_rebuild
 
@@ -208,9 +209,6 @@ class PluginProcess(QObject):
 		else:
 			text = text.strip().split('\n')
 		return text
-
-	def apply_ctags_fix(self, res, cond_list):
-		CtagsCache.apply_ctags_fix(res, cond_list)
 
 if __name__ == '__main__':
 	import sys
