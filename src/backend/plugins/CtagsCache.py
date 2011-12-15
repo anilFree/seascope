@@ -168,5 +168,7 @@ class CtagsThread(QThread):
 ct_cache = {}
 
 def flush():
+	#print 'flushing ctags cache...'
+	global ct_cache
 	ct_cache = {}
 

@@ -198,6 +198,7 @@ class PluginProcess(QObject):
 		if self.proc.waitForStarted() == False:
 			return None
 		#print 'cmd:', pargs
+		self.sig.sig_rebuild.connect(CtagsCache.flush)
 		return self.sig.sig_rebuild
 
 	def parse_result(self, text, sig):

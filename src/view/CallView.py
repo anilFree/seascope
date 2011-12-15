@@ -100,6 +100,10 @@ class CallTreeWidget(QTreeWidget):
 		if (self.is_busy):
 			return
 		self.is_busy = True
+		self.pbar = QProgressBar(self)
+		self.pbar.setMinimum(0)
+		self.pbar.setMaximum(0)
+		self.pbar.show()
 		
 		## add result
 		sig_res = self.cmd_func(self.cmd_id, tag, opt)
@@ -109,6 +113,10 @@ class CallTreeWidget(QTreeWidget):
 	def ctree_add_result(self, req, res):
 		self.query_item.add_result(res)
 		self.is_busy = False
+		if self.pbar:
+			self.pbar.setParent(None)
+			self.pbar = None
+
 
 class CallTreeWindow(QMainWindow):
 	sig_show_file_line = pyqtSignal(str, int)
