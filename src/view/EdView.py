@@ -88,7 +88,7 @@ class EditorView(QsciScintilla):
 
 		## Choose a lexer
 		if not self.lexer:
-			if (re.search('\.(py)$', filename) != None):
+			if (re.search('\.(py|pyx|pxd|pxi|scons)$', filename) != None):
 				self.lexer = QsciLexerPython()
 			else:
 				self.lexer = QsciLexerCPP()
