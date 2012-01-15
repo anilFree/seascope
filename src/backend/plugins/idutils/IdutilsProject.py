@@ -112,41 +112,6 @@ class IdCtagsThread(CtagsThread):
 		m = CtagsThread.ctags_bsearch(self, ct, n)
 		return m
 
-	def _filter_res(self, res, sig):
-		req = sig.sym
-		out_res = []
-		if self.cmd_str == 'DEF':
-			import_re = re.compile('^\s*import\s+')
-			for line in res:
-				if not re.match(req, line[0]):
-					continue
-				if import_re.search(line[3]) and line[1].endswith('.py'):
-					continue
-				out_res.append(line)
-			return out_res
-		if self.cmd_str == '-->':
-			call_re = re.compile('\\b%s\\b\s*\(' % req)
-			extern_re = re.compile('^\s*extern\s+')
-			for line in res:
-				if line[0] == req:
-					continue
-				if not call_re.search(line[3]):
-					continue
-				if extern_re.search(line[3]):
-					continue
-				out_res.append(line)
-			return out_res
-		if self.cmd_str == '<--':
-			return res
-		if self.cmd_str == 'INC':
-			inc_re = re.compile('^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % req)
-			for line in res:
-				if not inc_re.search(line[3]):
-					continue
-				out_res.append(line)
-			return out_res
-		return res
-
 	def parse_result(self, res, sig):
 		res = self._filter_res(res, sig)
 		return res
