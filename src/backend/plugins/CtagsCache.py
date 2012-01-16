@@ -179,18 +179,28 @@ class CtagsThread(QThread):
 		if self.cmd_str == '-->':
 			call_re = re.compile('\\b%s\\b\s*\(' % req)
 			extern_re = re.compile('^\s*extern\s+')
-			call_ptr = re.compile('(\.|->)(\w+)\s*=\s*%s\\b' % req)
+			comment_re = re.compile('^\s*(\*\s|/\*|\*/|//\s|# )')
+			func_ptr_re = re.compile('\\b(\w+)\s*=\s*%s\s*[,;:)]' % req)
+			func_as_arg_re = re.compile('(^\s*|[(,]\s*)(\w+(\.|->))*%s\s*[,)]' % req);
 			for line in res:
 				if line[0] == req:
-					continue
-				grp = call_ptr.search(line[3])
-				if grp:
-					line[0] = grp.group(2)
-				else:
-					if not call_re.search(line[3]):
+					if not re.search('(\.|->)%s\\b' % req, line[3]):
 						continue
+				elif call_re.search(line[3]):
 					if extern_re.search(line[3]):
 						continue
+				else:
+					grp = func_ptr_re.search(line[3])
+					if grp:
+						line[0] = grp.group(1)
+					else:
+						if not func_as_arg_re.search(line[3]):
+							continue
+
+				if line[0] == '<unknown>':
+					continue
+				if comment_re.search(line[3]):
+					continue
 				out_res.append(line)
 			return out_res
 		if self.cmd_str == '<--':

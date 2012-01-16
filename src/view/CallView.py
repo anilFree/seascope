@@ -111,6 +111,59 @@ class CallTreeWidget(QTreeWidget):
 		sig_res[0].connect(self.ctree_add_result)
 
 	def ctree_add_result(self, req, res):
+		def __relevancy_sort(pfile, res):
+			import os, re
+			pt = []
+			pd = {}
+			p = pfile
+			(pre, ext) = os.path.splitext(pfile)
+			c = None
+			while p != c:
+				e = [p, [], []]
+				pt += [e]
+				pd[p] = e
+				c = p
+				p = os.path.dirname(p)
+			for line in res:
+				f = line[1]
+				d = os.path.dirname(f)
+				p = f
+				while p not in pd:
+					p = os.path.dirname(p)
+				e = pd[p]
+				if p in [f, d]:
+					e[1].append(line)
+				else:
+					e[2].append(line)
+			for e in pt:
+				e[1] = sorted(e[1], key=lambda li: li[1])
+				e[2] = sorted(e[2], key=lambda li: li[1])
+			pre = pre + '.*'
+			e0 = []
+			e1 = []
+			for e in pt[1][1]:
+				if re.match(pre, e[1]):
+					e0 += [e]
+				else:
+					e1 += [e]
+			pt[0][1] += e0
+			pt[1][1] = e1
+
+			res1 = []
+			res2 = []
+			for e in pt:
+				res1 += e[1]
+				res2 += e[2]
+			res = res1 + res2
+			return res
+		def relevancy_sort(item, res):
+			pfile = str(item.data(1, Qt.DisplayRole).toString())
+			if pfile == '':
+				return res
+			if len(res) > 10000:
+				return res
+			return __relevancy_sort(pfile, res)
+		res = relevancy_sort(self.query_item, res)
 		self.query_item.add_result(res)
 		self.is_busy = False
 		if self.pbar:
