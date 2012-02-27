@@ -13,7 +13,7 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, ResView, FileView, CallView, DebugView
+	from view import EdView, EdViewRW, ResView, FileView, CallView, DebugView
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
@@ -26,8 +26,8 @@ class SeascopeApp(QMainWindow):
 	def file_preferences_cb(self):
 		ev_font = QFont()
 		ev_font.fromString(self.edit_book.ev_font)
-		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font, self.exit_dont_ask)
-		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask) = res
+		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing)
+		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing) = res
 		if self.edit_ext_cmd != None:
 			self.edit_ext_cmd = str(self.edit_ext_cmd).strip()
 		if (self.edit_ext_cmd == None or self.edit_ext_cmd == ''):
@@ -45,6 +45,11 @@ class SeascopeApp(QMainWindow):
 				return
 			if ret == 2:
 				self.exit_dont_ask = True
+
+		# extra proc for editing enabled
+		if(self.inner_editing):
+			self.edit_book.close_all_cb()
+
 		self.app_write_config()
 		ev.accept()
 
@@ -80,10 +85,23 @@ class SeascopeApp(QMainWindow):
 		m_file.addAction('&Preferences', self.file_preferences_cb)
 		m_file.addAction('&Debug', self.show_dbg_dialog, 'Ctrl+D')
 		m_file.addSeparator()
+		if (self.inner_editing):
+			m_file.addAction('&Save', self.edit_book.save_current_page, 'Ctrl+S')
 		m_file.addAction('&Close', self.file_close_cb, QKeySequence.Close)
 		m_file.addAction('&Quit', self.close, QKeySequence.Quit)
 
 		m_edit = menubar.addMenu('&Edit')
+		
+		# if need editing support
+		if (self.inner_editing):
+			m_edit.addAction('Undo', self.edit_book.undo_edit_cb, 'Ctrl+Z')
+			m_edit.addAction('Rebo', self.edit_book.redo_edit_cb, 'Ctrl+Y')
+			m_edit.addSeparator()
+			m_edit.addAction('Copy', self.edit_book.copy_edit_cb, 'Ctrl+C')
+			m_edit.addAction('Paste', self.edit_book.paste_edit_cb, 'Ctrl+V')
+			m_edit.addAction('Cut', self.edit_book.cut_edit_cb, 'Ctrl+X')
+			m_edit.addSeparator()	
+
 		m_edit.addAction('&Find...', self.edit_book.find_cb, 'Ctrl+F')
 		m_edit.addAction('Find &Next', self.edit_book.find_next_cb, 'F3')
 		m_edit.addAction('Find &Previous', self.edit_book.find_prev_cb, 'Shift+F3')
@@ -125,6 +143,15 @@ class SeascopeApp(QMainWindow):
 		m_help.addAction('About Seascope', self.help_about_cb)
 		m_help.addAction('About Qt', QApplication.aboutQt)
 
+	def add_editing_menu_item(self):
+		m_edit.addAction('Undo', self.edit_book.undo_edit_cb, 'Ctrl+Z')
+		m_edit.addAction('Rebo', self.edit_book.redo_edit_cb, 'Ctrl+Y')
+		m_edit.addSeparator()
+		m_edit.addAction('Copy', self.edit_book.copy_edit_cb, 'Ctrl+C')
+		m_edit.addAction('Paste', self.edit_book.paste_edit_cb, 'Ctrl+V')
+		m_edit.addAction('Cut', self.edit_book.cut_edit_cb, 'Ctrl+X')
+		m_edit.addSeparator()	
+		
 	# app config
 	def app_get_config_file(self):
 		config_file = '~/.seascoperc'
@@ -135,6 +162,7 @@ class SeascopeApp(QMainWindow):
 		self.app_style = None
 		self.app_font = None
 		self.exit_dont_ask = False
+		self.inner_editing = False
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
 
 		path = self.app_get_config_file()
@@ -154,15 +182,20 @@ class SeascopeApp(QMainWindow):
 			if (key == 'app_font'):
 				self.app_font = line[1].split('\n')[0]
 			if (key == 'edit_font'):
-				self.edit_book.ev_font = line[1].split('\n')[0]
+				self.ev_font = line[1].split('\n')[0]
 			if (key == 'edit_show_line_num'):
 				if ('true' == line[1].split('\n')[0]):
-					self.edit_book.is_show_line = True
+					self.eb_is_show_line = True
 			if (key == 'edit_ext_cmd'):
 				self.edit_ext_cmd = line[1]
 			if (key == 'exit_dont_ask'):
 				if ('true' == line[1].split('\n')[0]):
 					self.exit_dont_ask = True
+			if (key == 'inner_editing'):
+				if ('true' == line[1].split('\n')[0]):
+					self.inner_editing = True
+				else:
+					self.inner_editing = False
 		cf.close()
 
 	def app_write_config(self):
@@ -172,9 +205,15 @@ class SeascopeApp(QMainWindow):
 			cf.write('app_style' + '=' + self.app_style + '\n')
 		if (self.app_font):
 			cf.write('app_font' + '=' + self.app_font + '\n')
-		if (self.edit_book.ev_font):
-			cf.write('edit_font' + '=' + self.edit_book.ev_font + '\n')
-		if (self.edit_book.is_show_line):
+		#if (self.edit_book.ev_font):
+		#	cf.write('edit_font' + '=' + self.edit_book.ev_font + '\n')
+		if (self.ev_font):
+			cf.write('edit_font' + '=' + self.ev_font + '\n')
+		if (self.inner_editing):
+			cf.write('inner_editing' + '=' + 'true' + '\n')
+		else:
+			cf.write('inner_editing' + '=' + 'false' + '\n')
+		if (self.eb_is_show_line):
 			cf.write('edit_show_line_num' + '=' + 'true' + '\n')
 		if (self.exit_dont_ask):
 			cf.write('exit_dont_ask' + '=' + 'true' + '\n')
@@ -225,7 +264,12 @@ class SeascopeApp(QMainWindow):
 
 		backend.proj_close()
 		
-		self.edit_book.clear()
+		# whether editing enabled
+		if(not self.inner_editing):
+			self.edit_book.clear()
+		else:
+			self.edit_book.close_all_cb()
+
 		self.res_book.clear()
 		self.file_view.clear()
 
@@ -246,7 +290,13 @@ class SeascopeApp(QMainWindow):
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self)
 
-		self.edit_book = EdView.EditorBook()
+		self.app_read_config()
+
+		if (self.inner_editing):
+			self.edit_book = EdViewRW.EditorBookRW()
+		else:
+			self.edit_book = EdView.EditorBook()
+
 		self.res_book = ResView.ResultManager()
 		self.file_view = FileView.FileTree()
 
@@ -287,8 +337,11 @@ class SeascopeApp(QMainWindow):
 
 		QApplication.setWindowIcon(QIcon('icons/seascope.svg'))
 
-		self.app_read_config()
+		# update checked menu item
+		self.edit_book.is_show_line = self.eb_is_show_line
 		self.edit_book.m_show_line_num.setChecked(self.edit_book.is_show_line)
+		self.edit_book.ev_font = self.ev_font	
+
 		if len(self.recent_projects):
 			self.proj_open(self.recent_projects[0])
 		#else:
@@ -299,6 +352,7 @@ class SeascopeApp(QMainWindow):
 			font = QFont()
 			font.fromString(self.app_font)
 			QApplication.setFont(font)
+
 
 if __name__ == "__main__":
 

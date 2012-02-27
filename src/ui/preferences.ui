@@ -26,7 +26,7 @@
       <enum>QTabWidget::Rounded</enum>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="prd_style_tab">
       <attribute name="title">
@@ -103,15 +103,15 @@
       <attribute name="title">
        <string>Option</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0">
         <widget class="QCheckBox" name="prd_opt_ask_chkb">
          <property name="text">
           <string>Ask before exit if there is open project</string>
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="0">
         <layout class="QGridLayout" name="prd_opt_glay">
          <item row="2" column="1">
           <widget class="QLabel" name="prd_edit_ext_lbl2">
@@ -136,7 +136,14 @@
          </item>
         </layout>
        </item>
-       <item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="prd_opt_inner_ed">
+         <property name="text">
+          <string>Enable internal editor editting support</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
         <spacer name="prd_opt_vspacer">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
