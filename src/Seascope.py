@@ -142,15 +142,7 @@ class SeascopeApp(QMainWindow):
 		m_help = menubar.addMenu('&Help')
 		m_help.addAction('About Seascope', self.help_about_cb)
 		m_help.addAction('About Qt', QApplication.aboutQt)
-
-	def add_editing_menu_item(self):
-		m_edit.addAction('Undo', self.edit_book.undo_edit_cb, 'Ctrl+Z')
-		m_edit.addAction('Rebo', self.edit_book.redo_edit_cb, 'Ctrl+Y')
-		m_edit.addSeparator()
-		m_edit.addAction('Copy', self.edit_book.copy_edit_cb, 'Ctrl+C')
-		m_edit.addAction('Paste', self.edit_book.paste_edit_cb, 'Ctrl+V')
-		m_edit.addAction('Cut', self.edit_book.cut_edit_cb, 'Ctrl+X')
-		m_edit.addSeparator()	
+	
 		
 	# app config
 	def app_get_config_file(self):
@@ -205,8 +197,6 @@ class SeascopeApp(QMainWindow):
 			cf.write('app_style' + '=' + self.app_style + '\n')
 		if (self.app_font):
 			cf.write('app_font' + '=' + self.app_font + '\n')
-		#if (self.edit_book.ev_font):
-		#	cf.write('edit_font' + '=' + self.edit_book.ev_font + '\n')
 		if (self.ev_font):
 			cf.write('edit_font' + '=' + self.ev_font + '\n')
 		if (self.inner_editing):
@@ -303,7 +293,11 @@ class SeascopeApp(QMainWindow):
 		self.sbar = self.statusBar()
 		self.create_mbar()
 
-		EdView.EditorView.ev_popup = self.backend_menu
+		if(self.inner_editing):
+			EdView.EditorView.ev_popup = self.backend_menu
+		else:
+			EdViewRW.EditorViewRW.ev_popup = self.backend_menu
+
 		CallView.CallTreeWindow.parent = self
 
 		PluginHelper.backend_menu = self.backend_menu

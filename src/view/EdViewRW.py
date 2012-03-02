@@ -14,17 +14,41 @@ class EditorViewRW(EditorView):
 	sig_file_modified = pyqtSignal(bool)
 	def __init__(self, parent=None):
 		EditorView.__init__(self, parent)
-		print 'edv-rw init'
 		# use default settings.
 		EditorView.ed_settings_1(self)
 
 	def open_file(self, filename):
-		EditorView.open_file(self, filename)
-		# modified signal		
+
+		self.filename = filename
+
+		## Choose a lexer
+		if not self.lexer:
+			if (re.search('\.(py|pyx|pxd|pxi|scons)$', filename) != None):
+				self.lexer = QsciLexerPython()
+			else:
+				self.lexer = QsciLexerCPP()
+
+		## Braces matching
+		self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+
+		## Render on screen
+		self.show()
+
+		## Show this file in the editor
+		self.setText(open(filename).read())
+
+		## process for modifiled.
 		self.setModified(False)
 		self.modificationChanged.connect(self.modifiedChanged)
-		# we want editing
+		
+		## support edit 
 		self.setReadOnly(False)
+		self.show()
+
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+		self.setFocus()
+
+		
 
 	def modifiedChanged(self):
 		self.sig_file_modified.emit(self.isModified())
@@ -41,10 +65,9 @@ class EditorViewRW(EditorView):
 
 class EditorPageRW(EditorPage):
 	def __init__(self, parent=None):
-		print 'edp-rw init'
 		QSplitter.__init__(self)
 		self.cv = CtagsView(self)
-		EditorPage.ev = EditorViewRW(self)
+		self.ev = EditorViewRW(self)
 		self.addWidget(self.cv)
 		self.addWidget(self.ev)
 		self.setSizes([1, 300])
@@ -54,12 +77,10 @@ class EditorPageRW(EditorPage):
 		
 
 class EditorBookRW(EditorBook):
+
 	
 	def addFile(self, filename):
 		ed = EditorPageRW()
-		print 'edb-addfile'
-		# use rw editor
-		ed.ev = EditorViewRW()
 		ed.open_file(filename)
 		ed.ev.show_line_number_cb(self.is_show_line)
 		ed.ev.set_font(self.ev_font)
@@ -112,6 +133,7 @@ class EditorBookRW(EditorBook):
 		else:
 			if DialogManager.show_yes_no("Close all files ?"):
 				self.clear()
+
 
 	def show_file_line(self, filename, line):
 		if (line != None):
