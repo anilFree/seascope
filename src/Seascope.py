@@ -156,6 +156,7 @@ class SeascopeApp(QMainWindow):
 		self.exit_dont_ask = False
 		self.inner_editing = False
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
+		self.eb_is_show_line = False
 
 		path = self.app_get_config_file()
 		if (not os.path.exists(path)):
