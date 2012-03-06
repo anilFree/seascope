@@ -200,6 +200,7 @@ class SeascopeApp(QMainWindow):
 		self.recent_projects = []
 		self.app_style = None
 		self.app_font = None
+		self.ev_font = None
 		self.exit_dont_ask = False
 		self.inner_editing = False
 		self.is_show_toolbar = False
@@ -363,9 +364,9 @@ class SeascopeApp(QMainWindow):
 			self.create_toolbar()
 
 		if(self.inner_editing):
-			EdView.EditorView.ev_popup = self.backend_menu
+			EdViewRW.EditorView.ev_popup = self.backend_menu
 		else:
-			EdViewRW.EditorViewRW.ev_popup = self.backend_menu
+			EdView.EditorView.ev_popup = self.backend_menu
 
 		CallView.CallTreeWindow.parent = self
 
@@ -403,7 +404,8 @@ class SeascopeApp(QMainWindow):
 		# update checked menu item
 		self.edit_book.is_show_line = self.eb_is_show_line
 		self.edit_book.m_show_line_num.setChecked(self.edit_book.is_show_line)
-		self.edit_book.ev_font = self.ev_font	
+		if (self.ev_font):
+			self.edit_book.ev_font = self.ev_font	
 		self.show_toolbar.setChecked(self.is_show_toolbar)
 
 		if len(self.recent_projects):
