@@ -108,6 +108,8 @@ class SeascopeApp(QMainWindow):
 		m_edit.addSeparator()
 		self.edit_book.m_show_line_num = m_edit.addAction('Show line number', self.edit_book.show_line_number_cb, 'F11')
 		self.edit_book.m_show_line_num.setCheckable(True)
+		self.show_toolbar = m_edit.addAction('Show toolbar', self.show_toolbar_cb, 'F4')
+		self.show_toolbar.setCheckable(True)
 
 		m_edit.addSeparator()
 		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
@@ -142,6 +144,51 @@ class SeascopeApp(QMainWindow):
 		m_help = menubar.addMenu('&Help')
 		m_help.addAction('About Seascope', self.help_about_cb)
 		m_help.addAction('About Qt', QApplication.aboutQt)
+
+	def create_toolbar(self):
+        	self.toolbar = self.addToolBar('Toolbar')
+		self.toolbar.setIconSize(QSize(16,16))
+		self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
+
+		# exit
+		self.toolbar.addAction(QIcon('icons/exit.png'), 'Quit', self.close)
+
+		# edit related
+		# if need editing support
+		if (self.inner_editing):
+			self.toolbar.addSeparator()
+			self.toolbar.addAction(QIcon('icons/save.png'), 'Save', self.edit_book.save_current_page)
+			self.toolbar.addSeparator()
+			self.toolbar.addAction(QIcon('icons/undo.png'), 'Undo', self.edit_book.undo_edit_cb)
+			self.toolbar.addAction(QIcon('icons/redo.png'), 'Redo', self.edit_book.redo_edit_cb)
+			self.toolbar.addSeparator()
+			self.toolbar.addAction(QIcon('icons/cut.png'), 'Cut', self.edit_book.cut_edit_cb)
+			self.toolbar.addAction(QIcon('icons/copy.png'), 'Copy', self.edit_book.copy_edit_cb)
+			self.toolbar.addAction(QIcon('icons/paste.png'), 'Paste', self.edit_book.paste_edit_cb)
+			self.toolbar.addSeparator()
+			self.toolbar.addAction(QIcon('icons/find-replace.png'), 'Find & Replace', self.edit_book.find_cb)
+
+		# find 
+		self.toolbar.addSeparator()
+		self.toolbar.addAction(QIcon('icons/find.png'), 'Find', self.edit_book.find_cb)
+		self.toolbar.addAction(QIcon('icons/find-next.png'), 'Find Next', self.edit_book.find_next_cb)
+		self.toolbar.addAction(QIcon('icons/find-prev.png'), 'Find Previous', self.edit_book.find_prev_cb)
+		self.toolbar.addSeparator()
+		# goto
+		self.toolbar.addAction(QIcon('icons/go-jump.png'), 'Go to line', self.edit_book.goto_line_cb)
+		self.toolbar.addSeparator()
+
+		# code view
+		self.toolbar.addAction(QIcon('icons/searchlist.png'), 'Search file list', self.go_search_file_list_cb)
+		self.toolbar.addAction(QIcon('icons/taglist.png'), 'Search ctags', self.go_search_ctags_cb)
+		self.toolbar.addSeparator()
+		self.toolbar.addAction(QIcon('icons/go-back.png'), 'Previous Result', self.go_prev_res_cb)
+		self.toolbar.addAction(QIcon('icons/go-next.png'), 'Next Result', self.go_next_res_cb)
+		self.toolbar.addSeparator()
+		self.toolbar.addAction(QIcon('icons/pre-position.png'), 'Previous Position', self.go_prev_pos_cb)
+		self.toolbar.addAction(QIcon('icons/next-position.png'), 'Next Position', self.go_next_pos_cb)
+		self.toolbar.addSeparator()
+		self.toolbar.addAction(QIcon('icons/codeview.png'), 'Code Quick View', self.is_code_quick_view)
 	
 		
 	# app config
@@ -155,8 +202,8 @@ class SeascopeApp(QMainWindow):
 		self.app_font = None
 		self.exit_dont_ask = False
 		self.inner_editing = False
+		self.is_show_toolbar = False
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
-		self.eb_is_show_line = False
 
 		path = self.app_get_config_file()
 		if (not os.path.exists(path)):
@@ -179,6 +226,11 @@ class SeascopeApp(QMainWindow):
 			if (key == 'edit_show_line_num'):
 				if ('true' == line[1].split('\n')[0]):
 					self.eb_is_show_line = True
+			if (key == 'show_toolbar'):
+				if ('true' == line[1].split('\n')[0]):
+					self.is_show_toolbar = True
+				else:
+					self.is_show_toolbar = False
 			if (key == 'edit_ext_cmd'):
 				self.edit_ext_cmd = line[1]
 			if (key == 'exit_dont_ask'):
@@ -206,6 +258,8 @@ class SeascopeApp(QMainWindow):
 			cf.write('inner_editing' + '=' + 'false' + '\n')
 		if (self.eb_is_show_line):
 			cf.write('edit_show_line_num' + '=' + 'true' + '\n')
+		if (self.is_show_toolbar):
+			cf.write('show_toolbar' + '=' + 'true' + '\n')
 		if (self.exit_dont_ask):
 			cf.write('exit_dont_ask' + '=' + 'true' + '\n')
 		if (self.edit_ext_cmd):
@@ -278,6 +332,16 @@ class SeascopeApp(QMainWindow):
 	def show_file_line(self, filename, line):
 		self.edit_book.show_file_line(filename, line)
 
+	def show_toolbar_cb(self):
+		self.is_show_toolbar = self.show_toolbar.isChecked()
+		if (self.is_show_toolbar):
+			self.create_toolbar()
+		else:
+			self.removeToolBar(self.toolbar)
+
+	def is_code_quick_view(self):
+		QMessageBox.information(None, "Seascope", 'Not implemented yet!', QMessageBox.Ok)
+
 	def __init__(self, parent=None):
 		QMainWindow.__init__(self)
 
@@ -293,6 +357,9 @@ class SeascopeApp(QMainWindow):
 
 		self.sbar = self.statusBar()
 		self.create_mbar()
+		
+		if (self.is_show_toolbar):
+			self.create_toolbar()
 
 		if(self.inner_editing):
 			EdView.EditorView.ev_popup = self.backend_menu
@@ -336,6 +403,7 @@ class SeascopeApp(QMainWindow):
 		self.edit_book.is_show_line = self.eb_is_show_line
 		self.edit_book.m_show_line_num.setChecked(self.edit_book.is_show_line)
 		self.edit_book.ev_font = self.ev_font	
+		self.show_toolbar.setChecked(self.is_show_toolbar)
 
 		if len(self.recent_projects):
 			self.proj_open(self.recent_projects[0])
