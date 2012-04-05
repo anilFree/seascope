@@ -180,7 +180,7 @@ class CtagsThread(QThread):
 			call_re = re.compile('\\b%s\\b\s*\(' % req)
 			extern_re = re.compile('^\s*extern\s+')
 			comment_re = re.compile('^\s*(\*\s|/\*|\*/|//\s|# )')
-			func_ptr_re = re.compile('\\b(\w+)\s*=\s*%s\s*[,;:)]' % req)
+			func_ptr_re = re.compile('\\b(\w+)\s*(=|:)\s*%s\s*[,;:)]' % req)
 			func_as_arg_re = re.compile('(^\s*|[(,]\s*)(\w+(\.|->))*%s\s*[,)]' % req);
 			for line in res:
 				if line[0] == req:
