@@ -8,6 +8,11 @@ import CtagsManager
 class CtagsTreeItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
+		if li[2] in [ 'type', 'struct', 'class' ]:
+			f = self.font(0)
+			f.setBold(True)
+			self.setFont(0, f)
+			
 	def column_val(self, col):
 		return str(self.data(col, Qt.DisplayRole).toString())
 	def line_val(self):
