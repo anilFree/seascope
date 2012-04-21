@@ -5,36 +5,13 @@ import os
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-class FileTree(QTabWidget):
+class DirTab(QWidget):
 	sig_show_file = pyqtSignal(str)
 	
 	def __init__(self, parent=None):
 		QWidget.__init__(self)
 
-		# List view
-		self.listw = QWidget()
-		self.le = QLineEdit()
-
-		self.lview = QTreeWidget(self)
-		self.lview.setColumnCount(2)
-		self.lview.setHeaderLabels(['File', 'Path'])
-		self.lview.setFont(QFont("San Serif", 8))
-		self.lview.setIndentation(-2)
-		self.lview.setAllColumnsShowFocus(True)
-
-		lvlay = QVBoxLayout()
-		lvlay.addWidget(self.le)
-		lvlay.addWidget(self.lview)
-		self.listw.setLayout(lvlay)
-		icon = QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)
-		self.addTab(self.listw, icon, '')
-
-		self.le.textChanged.connect(self.le_textChanged)
-		self.le.returnPressed.connect(self.le_returnPressed)
-		self.lview.itemActivated.connect(self.lview_itemActivated)
-
 		# Tree view
-		self.treew = QWidget()
 		self.tmodel = QFileSystemModel()
 		self.tmodel.setRootPath(QDir.rootPath())
 		self.tview = QTreeView()
@@ -62,40 +39,22 @@ class FileTree(QTabWidget):
 		tvlay = QVBoxLayout()
 		tvlay.addLayout(thlay)
 		tvlay.addWidget(self.tview)
-		self.treew.setLayout(tvlay)
-		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
-		self.addTab(self.treew, icon, '')
+		
+		self.setLayout(tvlay)
 
 		self.tview.activated.connect(self.tview_itemActivated)
 		self.tdbtn.clicked.connect(self.change_btn_cb)
 		self.ted.editingFinished.connect(self.ted_editingFinished)
 		self.trbtn.clicked.connect(self.reset_btn_cb)
 
-                self.clear()
+		self.hide_view_columns(self.tview)
 
-	def resizeEvent(self, event):
-		self.tdbtn.setMaximumHeight(self.ted.height())
-		self.trbtn.setMaximumHeight(self.ted.height())
-		QTabWidget.resizeEvent(self, event)
+	def hide_view_columns(self, view):
+		header = view.header()
+		for col in range(header.count()):
+			if col > 0:
+				view.setColumnHidden(col, True)
 
-	def le_textChanged(self, text):
-		if (text == ''):
-			return
-		self.lview.keyboardSearch('')
-		self.lview.keyboardSearch(text)
-
-	def le_returnPressed(self):
-		self.le.clear()
-		items = self.lview.selectedItems()
-		if len(items) == 0:
-			return
-		self.lview.itemActivated.emit(items[0], 0)
-
-	def lview_itemActivated(self, item):
-		filename = str(item.data(1, Qt.DisplayRole).toString())
-		if self.is_rel_path:
-			filename = filename.replace("...", self.dir_prefix)
-		self.sig_show_file.emit(filename)
 
 	def tview_itemActivated(self):
 		list = self.tview.selectionModel().selectedIndexes()
@@ -103,6 +62,27 @@ class FileTree(QTabWidget):
 			if self.tmodel.fileInfo(item).isFile():
 				self.sig_show_file.emit(self.tmodel.fileInfo(item).absoluteFilePath())
 	
+	def set_tab_name(self, dirstr):
+		# Set tab name
+		inx = self.parent.indexOf(self)
+		try:
+			if dirstr != self.dir_prefix:
+				name = os.path.split(dirstr)[1]
+			else:
+				name = ''
+			self.parent.setTabText(inx, name)
+		except:
+			pass
+
+	def dir_reset(self, dirstr):
+		self.set_tab_name(dirstr)
+		self.tview.setRootIndex(self.tmodel.index(dirstr))
+		self.ted.setText(dirstr)
+		
+	def dir_view_reset(self, dirstr):
+		self.dir_prefix = dirstr
+		self.dir_reset(self.dir_prefix)
+
 	def ted_editingFinished(self):
 		path = str(self.ted.text())
 		if not os.path.isdir(path):
@@ -123,10 +103,54 @@ class FileTree(QTabWidget):
 
 	def reset_btn_cb(self):
 		self.dir_reset(self.dir_prefix)
-		
-	def dir_reset(self, dirstr):
-		self.tview.setRootIndex(self.tmodel.index(dirstr))
-		self.ted.setText(dirstr)
+
+	def resizeEvent(self, event):
+		self.tdbtn.setMaximumHeight(self.ted.height())
+		self.trbtn.setMaximumHeight(self.ted.height())
+
+class FileTab(QWidget):
+	sig_show_file = pyqtSignal(str)
+	
+	def __init__(self, parent=None):
+		QWidget.__init__(self)
+
+		# List view
+		self.le = QLineEdit()
+
+		self.lview = QTreeWidget(self)
+		self.lview.setColumnCount(2)
+		self.lview.setHeaderLabels(['File', 'Path'])
+		self.lview.setFont(QFont("San Serif", 8))
+		self.lview.setIndentation(-2)
+		self.lview.setAllColumnsShowFocus(True)
+
+		lvlay = QVBoxLayout()
+		lvlay.addWidget(self.le)
+		lvlay.addWidget(self.lview)
+		self.setLayout(lvlay)
+
+		self.le.textChanged.connect(self.le_textChanged)
+		self.le.returnPressed.connect(self.le_returnPressed)
+		self.lview.itemActivated.connect(self.lview_itemActivated)
+
+	def le_textChanged(self, text):
+		if (text == ''):
+			return
+		self.lview.keyboardSearch('')
+		self.lview.keyboardSearch(text)
+
+	def le_returnPressed(self):
+		self.le.clear()
+		items = self.lview.selectedItems()
+		if len(items) == 0:
+			return
+		self.lview.itemActivated.emit(items[0], 0)
+
+	def lview_itemActivated(self, item):
+		filename = str(item.data(1, Qt.DisplayRole).toString())
+		if self.is_rel_path:
+			filename = filename.replace("...", self.dir_prefix)
+		self.sig_show_file.emit(filename)
 
 	def keyPressEvent(self, ev):
 		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
@@ -136,17 +160,15 @@ class FileTree(QTabWidget):
 	def search_file_cb(self):
 		self.le.setFocus()
 		self.le.selectAll()
-		self.setCurrentIndex(0)
 
 	def clear(self):
-		self.is_rel_path = False
 		self.dir_prefix = QDir.rootPath() 
+		self.is_rel_path = False
 		self.le.clear()
 		self.lview.clear()
-                self.dir_reset(self.dir_prefix)
 
 	def add_files(self, flist):
-		self.lview.clear()
+		self.clear()
                 self.dir_prefix = os.path.dirname(os.path.commonprefix(flist))
 		if len(self.dir_prefix) > 16:
 			self.is_rel_path = True
@@ -159,12 +181,69 @@ class FileTree(QTabWidget):
 				#self.lview.resizeColumnToContents(0)
 				#self.lview.resizeColumnToContents(1)
 		self.lview.sortByColumn(0, Qt.AscendingOrder)
+		return self.dir_prefix
 
-		self.hide_view_columns(self.tview)
-		self.dir_reset(self.dir_prefix)
+class FileTree(QTabWidget):
+	sig_show_file = pyqtSignal(str)
+	
+	def __init__(self, parent=None):
+		QTabWidget.__init__(self)
 
-	def hide_view_columns(self, view):
-		header = view.header()
-		for col in range(header.count()):
-			if col > 0:
-				view.setColumnHidden(col, True)
+		self.dprefix = QDir.rootPath()
+
+		t = FileTab()
+		icon = QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)
+		self.addTab(t, icon, '')
+		self.ft = t
+
+		self.dlist = []
+
+		self.new_dir_tab_cb()
+
+                self.clear()
+
+		# setup popup menu
+		self.pmenu = QMenu()
+		self.pmenu.addAction("&New Dir View", self.new_dir_tab_cb)
+		self.pmenu.addAction("&Close All Dir View", self.close_all_dir_tab_cb)
+	
+	def new_dir_tab_cb(self):
+		t = DirTab()
+		t.parent = self
+		self.dlist.append(t)
+		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
+		self.addTab(t, icon, '')
+		t.dir_view_reset(self.dprefix)
+
+	def close_all_dir_tab_cb(self):
+		for t in self.dlist:
+			inx = self.indexOf(t)
+			self.removeTab(inx)
+		self.dlist = []
+		# Always have atleast one dir view
+		self.new_dir_tab_cb()
+
+	def addTab(self, t, icon, x):
+		t.sig_show_file.connect(self.sig_show_file)
+		QTabWidget.addTab(self, t, icon, x)
+
+	def mousePressEvent(self, m_ev):
+		QTabWidget.mousePressEvent(self, m_ev)
+		if (m_ev.button() == Qt.RightButton):
+			self.pmenu.exec_(QCursor.pos())
+
+	def search_file_cb(self):
+		self.ft.search_file_cb()
+		self.setCurrentIndex(0)
+
+	def dir_view_reset(self, dprefix):
+		for t in self.dlist:
+			t.dir_view_reset(dprefix)
+
+	def clear(self):
+		self.ft.clear()
+                self.dir_view_reset(QDir.rootPath())
+
+	def add_files(self, flist):
+		self.dprefix = self.ft.add_files(flist)
+                self.dir_view_reset(self.dprefix)
