@@ -5,6 +5,8 @@ import os
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
+dir_prefix = None
+
 class DirTab(QWidget):
 	sig_show_file = pyqtSignal(str)
 	
@@ -66,7 +68,7 @@ class DirTab(QWidget):
 		# Set tab name
 		inx = self.parent.indexOf(self)
 		try:
-			if dirstr != self.dir_prefix:
+			if dirstr != dir_prefix:
 				name = os.path.split(dirstr)[1]
 			else:
 				name = ''
@@ -79,10 +81,6 @@ class DirTab(QWidget):
 		self.tview.setRootIndex(self.tmodel.index(dirstr))
 		self.ted.setText(dirstr)
 		
-	def dir_view_reset(self, dirstr):
-		self.dir_prefix = dirstr
-		self.dir_reset(self.dir_prefix)
-
 	def ted_editingFinished(self):
 		path = str(self.ted.text())
 		if not os.path.isdir(path):
@@ -90,7 +88,7 @@ class DirTab(QWidget):
 		if os.path.isdir(path):
 			self.dir_reset(path)
 		else:
-			self.dir_reset(self.dir_prefix)
+			self.dir_reset(dir_prefix)
 
 	def change_btn_cb(self):
 		fdlg = QFileDialog(None, "Choose directory to browse")
@@ -102,7 +100,7 @@ class DirTab(QWidget):
 			self.dir_reset(str(browse_dir))
 
 	def reset_btn_cb(self):
-		self.dir_reset(self.dir_prefix)
+		self.dir_reset(dir_prefix)
 
 	def resizeEvent(self, event):
 		self.tdbtn.setMaximumHeight(self.ted.height())
@@ -133,6 +131,9 @@ class FileTab(QWidget):
 		self.le.returnPressed.connect(self.le_returnPressed)
 		self.lview.itemActivated.connect(self.lview_itemActivated)
 
+		global dir_prefix
+		dir_prefix = QDir.rootPath() 
+
 	def le_textChanged(self, text):
 		if (text == ''):
 			return
@@ -149,7 +150,7 @@ class FileTab(QWidget):
 	def lview_itemActivated(self, item):
 		filename = str(item.data(1, Qt.DisplayRole).toString())
 		if self.is_rel_path:
-			filename = filename.replace("...", self.dir_prefix)
+			filename = filename.replace("...", dir_prefix)
 		self.sig_show_file.emit(filename)
 
 	def keyPressEvent(self, ev):
@@ -162,34 +163,33 @@ class FileTab(QWidget):
 		self.le.selectAll()
 
 	def clear(self):
-		self.dir_prefix = QDir.rootPath() 
+		global dir_prefix
+		dir_prefix = QDir.rootPath() 
 		self.is_rel_path = False
 		self.le.clear()
 		self.lview.clear()
 
 	def add_files(self, flist):
+		global dir_prefix
 		self.clear()
-                self.dir_prefix = os.path.dirname(os.path.commonprefix(flist))
-		if len(self.dir_prefix) > 16:
+                dir_prefix = os.path.dirname(os.path.commonprefix(flist))
+		if len(dir_prefix) > 16:
 			self.is_rel_path = True
 		for f in flist:
 			if self.is_rel_path:
-				f =  f.replace(self.dir_prefix, "...")
+				f =  f.replace(dir_prefix, "...")
 			item = QTreeWidgetItem([os.path.basename(f), f])
 			self.lview.addTopLevelItem(item)
 			#if (self.lview.topLevelItemCount() > 0):
 				#self.lview.resizeColumnToContents(0)
 				#self.lview.resizeColumnToContents(1)
 		self.lview.sortByColumn(0, Qt.AscendingOrder)
-		return self.dir_prefix
 
 class FileTree(QTabWidget):
 	sig_show_file = pyqtSignal(str)
 	
 	def __init__(self, parent=None):
 		QTabWidget.__init__(self)
-
-		self.dprefix = QDir.rootPath()
 
 		t = FileTab()
 		icon = QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)
@@ -213,7 +213,7 @@ class FileTree(QTabWidget):
 		self.dlist.append(t)
 		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
 		self.addTab(t, icon, '')
-		t.dir_view_reset(self.dprefix)
+		t.reset_btn_cb()
 
 	def close_all_dir_tab_cb(self):
 		for t in self.dlist:
@@ -226,6 +226,11 @@ class FileTree(QTabWidget):
 	def addTab(self, t, icon, x):
 		t.sig_show_file.connect(self.sig_show_file)
 		QTabWidget.addTab(self, t, icon, x)
+		if self.count() > 2:
+			inx = self.indexOf(t)
+			self.setCurrentIndex(inx)
+		else:
+			self.setCurrentIndex(0)
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)
@@ -236,14 +241,11 @@ class FileTree(QTabWidget):
 		self.ft.search_file_cb()
 		self.setCurrentIndex(0)
 
-	def dir_view_reset(self, dprefix):
-		for t in self.dlist:
-			t.dir_view_reset(dprefix)
-
 	def clear(self):
 		self.ft.clear()
-                self.dir_view_reset(QDir.rootPath())
+                self.close_all_dir_tab_cb()
 
 	def add_files(self, flist):
-		self.dprefix = self.ft.add_files(flist)
-                self.dir_view_reset(self.dprefix)
+		self.ft.add_files(flist)
+		for t in self.dlist:
+			t.reset_btn_cb()
