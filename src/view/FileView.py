@@ -13,6 +13,8 @@ class DirTab(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self)
 
+		self.is_ft = False
+
 		# Tree view
 		self.tmodel = QFileSystemModel()
 		self.tmodel.setRootPath(QDir.rootPath())
@@ -112,6 +114,8 @@ class FileTab(QWidget):
 	def __init__(self, parent=None):
 		QWidget.__init__(self)
 
+		self.is_ft = True
+
 		# List view
 		self.le = QLineEdit()
 
@@ -190,6 +194,8 @@ class FileTree(QTabWidget):
 	
 	def __init__(self, parent=None):
 		QTabWidget.__init__(self)
+		
+		self.setMovable(True)
 
 		t = FileTab()
 		icon = QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)
@@ -205,6 +211,7 @@ class FileTree(QTabWidget):
 		# setup popup menu
 		self.pmenu = QMenu()
 		self.pmenu.addAction("&New Dir View", self.new_dir_tab_cb)
+		self.pmenu.addAction("&Close Active Dir View", self.close_active_dir_tab_cb)
 		self.pmenu.addAction("&Close All Dir View", self.close_all_dir_tab_cb)
 	
 	def new_dir_tab_cb(self):
@@ -223,14 +230,27 @@ class FileTree(QTabWidget):
 		# Always have atleast one dir view
 		self.new_dir_tab_cb()
 
+	def close_active_dir_tab_cb(self):
+		inx = self.currentIndex()
+		if inx < 0:
+			return
+		t = self.widget(inx)
+		if t.is_ft:
+			return
+		if self.count() <= 2:
+			self.close_all_dir_tab_cb()
+			return
+		self.dlist.remove(t)
+		self.removeTab(inx)
+
 	def addTab(self, t, icon, x):
 		t.sig_show_file.connect(self.sig_show_file)
 		QTabWidget.addTab(self, t, icon, x)
 		if self.count() > 2:
 			inx = self.indexOf(t)
-			self.setCurrentIndex(inx)
 		else:
-			self.setCurrentIndex(0)
+			inx = 0
+		self.setCurrentIndex(inx)
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)

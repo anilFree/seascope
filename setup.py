@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='Seascope',
-	version='0.4a',
+	version='0.5',
 	description='A PyQt GUI front-end for cscope',
 	long_description='A pyQt GUI front-end for cscope. Written in python using pyQt, QScintilla libraries.',
 	url='http://seascope.googlecode.com',

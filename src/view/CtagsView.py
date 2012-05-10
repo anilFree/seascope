@@ -8,7 +8,7 @@ import CtagsManager
 class CtagsTreeItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
-		if li[2] in [ 'type', 'struct', 'class' ]:
+		if li[2] in [ 'type', 'struct', 'class', 'enum' ]:
 			f = self.font(0)
 			f.setBold(True)
 			self.setFont(0, f)
