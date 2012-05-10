@@ -1,7 +1,6 @@
 Seascope is a GUI frontend for cscope, idutils.
 
 * Running the application
-
 	cd src
 	python Seascope.py
 
