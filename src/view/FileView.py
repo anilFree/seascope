@@ -154,7 +154,7 @@ class FileTab(QWidget):
 	def lview_itemActivated(self, item):
 		filename = str(item.data(1, Qt.DisplayRole).toString())
 		if self.is_rel_path:
-			filename = filename.replace("...", dir_prefix)
+			filename = filename.replace("...", dir_prefix, 1)
 		self.sig_show_file.emit(filename)
 
 	def keyPressEvent(self, ev):
@@ -181,7 +181,7 @@ class FileTab(QWidget):
 			self.is_rel_path = True
 		for f in flist:
 			if self.is_rel_path:
-				f =  f.replace(dir_prefix, "...")
+				f =  f.replace(dir_prefix, "...", 1)
 			item = QTreeWidgetItem([os.path.basename(f), f])
 			self.lview.addTopLevelItem(item)
 			#if (self.lview.topLevelItemCount() > 0):

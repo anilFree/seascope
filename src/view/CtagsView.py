@@ -5,7 +5,7 @@ from PyQt4.QtCore import *
 
 import CtagsManager
 
-class CtagsTreeItem(QTreeWidgetItem):
+class CtagsListItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
 		if li[2] in [ 'type', 'struct', 'class', 'enum' ]:
@@ -18,8 +18,8 @@ class CtagsTreeItem(QTreeWidgetItem):
 	def line_val(self):
 		return (int(self.column_val(1)))
 
-class CtagsTree(QTreeWidget):
-	def __init__(self, parent=None):
+class CtagsList(QTreeWidget):
+	def __init__(self, parent=None, isTree=False):
 		QTreeWidget.__init__(self)
 		
 		self.setColumnCount(3)
@@ -30,14 +30,44 @@ class CtagsTree(QTreeWidget):
 
 		self.setFont(QFont("San Serif", 8))
 		
-		self.setIndentation(-2)
+		if not isTree:
+			self.setIndentation(-2)
+
 		self.setAllColumnsShowFocus(True)
 
 	def add_ct_result(self, filename):
 		res = CtagsManager.ct_query(filename)
 		for line in res:
-			item = CtagsTreeItem(line)
+			item = CtagsListItem(line)
 			self.addTopLevelItem(item)
+		#self.sortItems(1, Qt.AscendingOrder)
+		#self.resizeColumnsToContents(1)
+		self.resizeColumnToContents(0)
+		self.resizeColumnToContents(1)
+		self.resizeColumnToContents(2)
+
+	def recurseTreeAdd(self, t, p):
+		for k, v in t.items():
+			if k == '*':
+				for line in v:
+					item = CtagsListItem(line)
+					p.addChild(item)
+				continue
+			if k == '+':
+				continue
+			if '+' in v:
+				item = CtagsListItem(v['+'])
+			else:
+				item = CtagsListItem([k, '', '', ''])
+			p.addChild(item)
+			self.recurseTreeAdd(v, item)
+		self.setItemExpanded(p, True)
+
+	def add_ctree_result(self, filename):
+		res = CtagsManager.ct_tree_query(filename)
+		p = self.invisibleRootItem()
+		self.recurseTreeAdd(res, p)
+
 		#self.sortItems(1, Qt.AscendingOrder)
 		#self.resizeColumnsToContents(1)
 		self.resizeColumnToContents(0)
@@ -72,13 +102,13 @@ class CtagsTree(QTreeWidget):
 		self.setCurrentItem(item)
 
 
-class CtagsView(QWidget):
+class CtagsListPage(QWidget):
 	sig_goto_line = pyqtSignal(int)
 
 	def __init__(self, parent=None):
 		QWidget.__init__(self)
 		self.le = QLineEdit()
-		self.ct = CtagsTree(self)
+		self.ct = CtagsList(self)
 		vlay = QVBoxLayout()
 		vlay.addWidget(self.le)
 		vlay.addWidget(self.ct)
@@ -112,3 +142,47 @@ class CtagsView(QWidget):
 		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
 			self.ct.keyPressEvent(ev)
 			return
+
+class CtagsTreePage(QWidget):
+	sig_goto_line = pyqtSignal(int)
+
+	def __init__(self, parent=None):
+		QWidget.__init__(self)
+		self.ct = CtagsList(self, isTree=True)
+		vlay = QVBoxLayout()
+		vlay.addWidget(self.ct)
+		self.setLayout(vlay)
+
+		self.ct.itemActivated.connect(self.ct_itemActivated)
+
+	def ct_itemActivated(self, item):
+		try:
+			line = int(str(item.data(1, Qt.DisplayRole).toString()))
+		except:
+			return
+		self.sig_goto_line.emit(line)
+
+
+class CtagsView(QTabWidget):
+	sig_goto_line = pyqtSignal(int)
+
+	def __init__(self, parent=None):
+		QTabWidget.__init__(self)
+
+		self.setTabPosition(QTabWidget.South)
+
+		self.ctlp = CtagsListPage(self)
+		self.addTab(self.ctlp, 'C')
+		self.ctlp.sig_goto_line.connect(self.sig_goto_line)
+
+		self.ctt = CtagsTreePage(self)
+		self.addTab(self.ctt, 'T')
+		self.ctt.sig_goto_line.connect(self.sig_goto_line)
+
+	
+	def ed_cursor_changed(self, line, pos):
+		self.ctlp.ct.ed_cursor_changed(line, pos)
+
+	def add_ct_result(self, filename):
+		self.ctlp.ct.add_ct_result(filename)
+		self.ctt.ct.add_ctree_result(filename)
