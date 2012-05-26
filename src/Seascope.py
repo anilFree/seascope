@@ -284,7 +284,7 @@ class SeascopeApp(QMainWindow):
 
 	# project menu functions
 	def proj_new_or_open(self):
-		self.editor_tab_changed_cb('Seascope')
+		self.editor_tab_changed_cb(None)
 		self.update_recent_projects(backend.proj_dir())
 
 	def proj_new_cb(self):
@@ -327,10 +327,25 @@ class SeascopeApp(QMainWindow):
 		backend.proj_settings_trigger()
 
 	def editor_tab_changed_cb(self, fname):
-		title = backend.proj_name()
-		if not title:
+		#title = backend.proj_name()
+		prj_dir = backend.proj_dir()
+		if prj_dir:
+			parent = prj_dir
+			home_dir = os.path.expanduser('~')
+			for i in range(2):
+				parent = os.path.dirname(parent)
+				if parent == home_dir:
+					break
+			title = os.path.relpath(prj_dir, parent)
+		if not prj_dir:
 			title = 'Seascope'
-		if (fname and fname != ''):
+		if fname and fname != '':
+			fname = str(fname)
+			#if fname.startswith(prj_dir):
+				#fname = os.path.relpath(fname, prj_dir)
+			title = title + ' - ' + fname
+		else:
+			fname = 'Seascope'
 			title = title + ' - ' + fname
 		self.setWindowTitle(title)
 
