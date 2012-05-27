@@ -228,7 +228,7 @@ class EditorBook(QTabWidget):
 	def focus_search_ctags(self):
 		ed = self.currentWidget()
 		if ed:
-			ed.cv.le.setFocus()
+			ed.cv.focus_search_ctags()
 		
 	def close_cb(self, inx):
 		self.removeTab(inx)

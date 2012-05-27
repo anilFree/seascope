@@ -36,13 +36,22 @@ def ct_query(filename):
 
 import subprocess
 import re
-from collections import OrderedDict as xdict
-#from collections import dict as xdict
+is_OrderedDict_available = False
+try:
+	# OrderedDict available only in python >= 2.7
+	from collections import OrderedDict
+	is_OrderedDict_available = True
+except:
+	pass
+
+def emptyOrderedDict():
+	if is_OrderedDict_available:
+		return OrderedDict({})
+	return {}
 
 class CtagsTreeBuilder:
 	def __init__(self):
-		#self.symTree = {}
-		self.symTree = xdict({})
+		self.symTree = emptyOrderedDict()
 
 	def runCtags(self, f):
 		#cmd = 'ctags -n -u --fields=+K -f - --extra=+q'
@@ -69,8 +78,7 @@ class CtagsTreeBuilder:
 		if sc and sc != '':
 			for s in re.split('::|\.', sc):
 				if s not in t:
-					t[s] = xdict({})
-					#t[s] = {}
+					t[s] = emptyOrderedDict()
 				t = t[s]
 
 	def addToSymTree(self, sc, line):
@@ -110,6 +118,9 @@ class CtagsTreeBuilder:
 				print line
 			#assert count == 1
 		
+		if len(self.symTree) == 0:
+			return (data, False)
+		
 		for line in data:
 			if len(line) == 4:
 				self.addToSymTree(None, line)
@@ -126,7 +137,7 @@ class CtagsTreeBuilder:
 				print line
 			#assert count == 1
 
-		return self.symTree
+		return (self.symTree, True)
 
 	def doQuery(self, filename):
 		output = self.runCtags(filename)
@@ -140,4 +151,38 @@ def ct_tree_query(filename):
 	output = ct.doQuery(filename)
 	return output
 
+if __name__ == '__main__':
+	import optparse
+	import sys
+	depth = 0
+	def recursePrint(t):
+		global depth
+		for k, v in t.items():
+			if k == '*':
+				for line in v:
+					print '%s%s' % (' ' * depth, line)
+				continue
+			if k == '+':
+				continue
+
+			if '+' in v:
+				k = v['+']
+			print '%s%s' % (' ' * depth, k)
+				
+			depth = depth + 4
+			recursePrint(v)
+			depth = depth - 4
+
+	op = optparse.OptionParser()
+	(options, args) = op.parse_args()
+	if len(args) != 1:
+		print 'Please specify a file'
+		sys.exit(-1)
+
+	(output, isTree) = ct_tree_query(args[0])
+	if isTree:
+		recursePrint(output)
+	else:
+		for line in output:
+			print line
 
