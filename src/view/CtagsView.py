@@ -8,11 +8,13 @@ import CtagsManager
 class CtagsListItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
-		if li[2] in [ 'type', 'struct', 'class', 'enum' ]:
-			f = self.font(0)
-			f.setBold(True)
-			self.setFont(0, f)
-			
+		if li[2] in [ 'class', 'struct', 'type', 'enum', '' ]:
+			self.set_bold()
+
+	def set_bold(self):
+		f = self.font(0)
+		f.setBold(True)
+		self.setFont(0, f)
 	def column_val(self, col):
 		return str(self.data(col, Qt.DisplayRole).toString())
 	def line_val(self):
@@ -30,7 +32,11 @@ class CtagsList(QTreeWidget):
 
 		self.setFont(QFont("San Serif", 8))
 		
-		if not isTree:
+		if isTree:
+			self.setIndentation(12)
+			self.setExpandsOnDoubleClick(False)
+			#self.setAnimated(True)
+		else:
 			self.setIndentation(-2)
 
 		self.setAllColumnsShowFocus(True)
@@ -48,12 +54,12 @@ class CtagsList(QTreeWidget):
 
 	def recurseTreeAdd(self, t, p):
 		for k, v in t.items():
+			if k == '+':
+				continue
 			if k == '*':
 				for line in v:
 					item = CtagsListItem(line)
 					p.addChild(item)
-				continue
-			if k == '+':
 				continue
 			if '+' in v:
 				item = CtagsListItem(v['+'])
@@ -63,8 +69,7 @@ class CtagsList(QTreeWidget):
 			self.recurseTreeAdd(v, item)
 		self.setItemExpanded(p, True)
 
-	def add_ctree_result(self, filename):
-		res = CtagsManager.ct_tree_query(filename)
+	def add_ctree_result(self, res):
 		p = self.invisibleRootItem()
 		self.recurseTreeAdd(res, p)
 
@@ -170,19 +175,30 @@ class CtagsView(QTabWidget):
 		QTabWidget.__init__(self)
 
 		self.setTabPosition(QTabWidget.South)
+		
+		self.create_ct_list_tab()
 
+	def create_ct_list_tab(self):
 		self.ctlp = CtagsListPage(self)
 		self.addTab(self.ctlp, 'C')
 		self.ctlp.sig_goto_line.connect(self.sig_goto_line)
 
+	def create_ct_tree_tab(self):
 		self.ctt = CtagsTreePage(self)
 		self.addTab(self.ctt, 'T')
 		self.ctt.sig_goto_line.connect(self.sig_goto_line)
 
-	
 	def ed_cursor_changed(self, line, pos):
 		self.ctlp.ct.ed_cursor_changed(line, pos)
 
 	def add_ct_result(self, filename):
 		self.ctlp.ct.add_ct_result(filename)
-		self.ctt.ct.add_ctree_result(filename)
+		(res, isTree) = CtagsManager.ct_tree_query(filename)
+		if isTree:
+			self.create_ct_tree_tab()
+			self.ctt.ct.add_ctree_result(res)
+			self.setCurrentWidget(self.ctt)
+
+	def focus_search_ctags(self):
+		self.setCurrentWidget(self.ctlp)
+		self.ctlp.le.setFocus()
