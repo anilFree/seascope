@@ -25,6 +25,8 @@ cmd_table = [
 	[	['QDEF', ''], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
 	[	['---', None],	[None				],					],
+	[	['CLGRAPH', '13'], ['Class &Graph',	''],	['Class hierarchy graph'	]	],
+	[	['---', None],	[None				],					],
 	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
 ]
 
@@ -47,6 +49,11 @@ ctree_query_args = [
 	['-->',	'--> F', 'Calling tree'			],
 	#['<--',	'F -->', 'Called tree'			],
 	['REF',	'==> F', 'Advanced calling tree'	],
+]
+		
+clgraph_query_args = [
+	['CLGRAPH',	'D', 'Derived classes'			],
+	#['CLGRAPH',	'B', 'Derived classes'			],
 ]
 		
 class QueryDialog(QDialog):
@@ -106,6 +113,7 @@ class QueryUiIdutils(QueryUiBase):
 		QueryUiBase.__init__(self)
 		self.query = qry
 		self.ctree_args = ctree_query_args
+		self.clgraph_args = clgraph_query_args
 
 	def query_cb(self, cmd_str):
 		if (not self.query.id_is_open()):
@@ -117,7 +125,7 @@ class QueryUiIdutils(QueryUiBase):
 		if (req != None):
 			req = str(req).strip()
 		opt = None
-		if (cmd_str != 'QDEF'):
+		if cmd_str not in [ 'QDEF' ]:
 			val = QueryDialog.show_dlg(cmd_str, req)
 			if (val == None):
 				return
@@ -129,6 +137,8 @@ class QueryUiIdutils(QueryUiBase):
 			self.query_qdef(req, opt)
 		elif cmd_str == 'CTREE':
 			self.query_ctree(req, opt)
+		elif cmd_str == 'CLGRAPH':
+			self.query_class_graph(req, opt)
 		else:
 			self.do_query(cmd_str, req, opt)
 

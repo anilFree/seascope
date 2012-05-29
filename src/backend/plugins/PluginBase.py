@@ -83,6 +83,9 @@ class QueryUiBase(QObject):
 	def query_ctree(self, req, opt):
 		PluginHelper.call_view_page_new(req, self.query.query, self.ctree_args, opt)
 
+	def query_class_graph(self, req, opt):
+		PluginHelper.class_graph_view_page_new(req, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
+
 	def query_qdef(self, req, opt):
 		sig_res = self.query.query('DEF', req, opt)
 		PluginHelper.quick_def_page_new(sig_res)
