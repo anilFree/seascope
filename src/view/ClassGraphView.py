@@ -3,6 +3,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSvg import *
+import os
 
 from backend.plugins.PluginBase import PluginProcess
 
@@ -32,7 +33,8 @@ class ClassGraphWidget(QWidget):
 		if self.is_done:
 			return
 
-		pargs = ['python', 'tools/ClassGraph.py', '-p', proj_dir, req]
+		tool_path = os.path.join('tools', 'ClassGraph.py')
+		pargs = ['python', tool_path, '-p', proj_dir, req]
 		sig_res = CallGraphProcess('.', None).run_query_process(pargs, req)
 		sig_res[0].connect(self.clgraph_add_result)
 		self.is_busy = True
