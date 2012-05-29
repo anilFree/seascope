@@ -160,10 +160,7 @@ class ResultPage(QTreeWidget):
 				self.res = res[count:]
 				QTimer.singleShot(100, self.add_result_continue)
 				return
-		
-		if (self.pbar):
-			self.pbar.setParent(None)
-			self.pbar = None
+		self.remove_progress_bar()
 		if (self.topLevelItemCount() < 5000):
 			self.resizeColumnToContents(0)
 			self.resizeColumnToContents(1)
@@ -188,6 +185,10 @@ class ResultPage(QTreeWidget):
 		self.pbar.setMaximum(0)
 		self.pbar.show()
 
+	def remove_progress_bar(self):
+		if (self.pbar):
+			self.pbar.setParent(None)
+			self.pbar = None
 
 class ResultManager(QTabWidget):
 	book = None

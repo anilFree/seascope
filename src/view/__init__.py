@@ -1,1 +1,1 @@
-__all__ = ["CallView", "EdView", "FileView", "ResView"]
+__all__ = ["CallView", "ClassGraphView", "EdView", "FileView", "ResView"]
