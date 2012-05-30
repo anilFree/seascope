@@ -25,8 +25,8 @@ class ClassGraphGenerator:
 			output = subprocess.check_output(args, cwd=self.wdir)
 			output = re.split('\r?\n', output)
 		except Exception as e:
-			print >> sys.stderr, e
-			print >> sys.stderr, 'Run this script from a directory where lid can find ID file'
+			print >> sys.stderr, e, '\n'
+			print >> sys.stderr, 'Run this script from a directory where lid can find ID file\n'
 			sys.exit(-1)
 		res = set()
 		for line in output:
@@ -74,16 +74,16 @@ class ClassGraphGenerator:
 			dclasses = self.derivedClasses(sym)
 			if len(dclasses):
 				if len(dclasses) > self.width_limit:
-					print >> sys.stderr, 'num subclasses(%s) = %d, truncating to %d.' % (sym, len(dclasses), self.width_limit)
+					print >> sys.stderr, 'num subclasses(%s) = %d, truncating to %d.\n' % (sym, len(dclasses), self.width_limit)
 					dclasses = dclasses[0:self.width_limit]
-					self.addGraphRule(sym, '"...(%s)"' % sym)
+					self.addGraphRule(sym, '...(%s)' % sym)
 				for d in dclasses:
 					self.addGraphRule(sym, d)
 					self.derivedClassesRecursive(dclasses)
 
 	def prepareDotInput(self, sym):
 		if len(self.graphRules) == 0:
-			print >> sys.stderr, 'No classes seem to inherit', sym
+			print >> sys.stderr, 'No classes seem to inherit', sym, '\n'
 			sys.exit(-1)
 		dotInput = 'digraph "%s" {\n' % sym
 		for r in self.graphRules:
@@ -102,20 +102,20 @@ class ClassGraphGenerator:
 		f.write(svg_data)
 		f.close()
 
-		print >> sys.stderr, 'saved', dot_svg
+		print >> sys.stderr, 'saved', dot_svg, '\n'
 
 	def generateGraph(self, sym):
 		self.derivedClassesRecursive([sym])
 		dotInput = self.prepareDotInput(sym)
-		# saveDotFile(sym, dotInput)
+		#self.saveDotFile(sym, dotInput)
 
 		args = ['dot', '-Tsvg']
 		p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(svg_data, err_data) = p.communicate(dotInput)
 		if err_data and err_data != '':
-			print >> sys.stderr, err_data
+			print >> sys.stderr, err_data, '\n'
 
-		#saveImgFile(sym, svg_data)
+		#self.saveImgFile(sym, svg_data)
 		return svg_data
 
 

@@ -5,6 +5,14 @@ from PyQt4.QtCore import *
 from PyQt4.QtSvg import *
 import os
 
+if __name__ == '__main__':
+	import sys
+	import os
+	app_dir = os.path.dirname(os.path.realpath(__file__))
+	os.chdir(app_dir)
+	sys.path.insert(0, os.path.abspath('..'))
+	os.chdir(os.path.abspath('..'))
+
 from backend.plugins.PluginBase import PluginProcess
 
 class CallGraphProcess(PluginProcess):
@@ -40,23 +48,70 @@ class ClassGraphWidget(QWidget):
 		self.is_busy = True
 		self.show_progress_bar()
 
+	def set_current(self, btn):
+		inx = self.bgrp.id(btn)
+		#self.btn[inx].setChecked(True)
+		print 'inx clicked', inx
+		if inx == 0:
+			print self.svgw.renderer().defaultSize()
+			self.svgw.setMinimumSize(0, 0)
+			self.svgw.setMinimumSize(self.svgw.sizeHint())
+			#self.svgw.setMaximumSize(self.svgw.sizeHint())
+			print self.scrolla.sizeHint()
+		if inx == 1:
+			print self.svgw.renderer().defaultSize()
+			self.svgw.setMinimumSize(0, 0)
+			#self.svgw.setMaximumSize(self.svgw.sizeHint())
+			print self.scrolla.sizeHint()
+		if inx == 2:
+			print self.svgw.renderer().defaultSize()
+			self.svgw.setMinimumSize(0, 0)
+			self.svgw.resize(self.scrolla.size())
+			#self.svgw.setMaximumSize(self.svgw.sizeHint())
+			print self.scrolla.sizeHint()
+
+	def add_buttons(self, hlay):
+		self.bgrp = QButtonGroup()
+		self.bgrp.buttonClicked.connect(self.set_current)
+		self.bgrp.setExclusive(True)
+		for inx in range(3):
+			btn = QToolButton()
+			btn.setText(str(inx))
+			btn.setToolTip(str(inx))
+			#btn.setFlat(True)
+			btn.setCheckable(True)
+			self.bgrp.addButton(btn, inx)
+			hlay.addWidget(btn)
+
 	def clgraph_add_result(self, req, res):
 		self.is_busy = False
 		self.is_done = True
 		self.remove_progress_bar()
 
 		self.vlay1 = QVBoxLayout()
+		#self.hlay1 = QHBoxLayout()
+		#self.add_buttons(self.hlay1)
+		#self.vlay1.addLayout(self.hlay1)
 		self.vlay2 = QVBoxLayout()
-		
 		self.scrolla = QScrollArea()
+		self.scrolla.setLayout(self.vlay2)
 		self.setLayout(self.vlay1)
+
 		self.vlay1.addWidget(QLabel(req))
 		self.vlay1.addWidget(self.scrolla)
 		
 		self.svgw = QSvgWidget()
-		self.scrolla.setLayout(self.vlay2)
-		self.vlay2.addWidget(self.svgw)
+		self.scrolla.setWidget(self.svgw)
 		self.svgw.load(QByteArray(res[0]))
+		
+		#print self.svgw.renderer().defaultSize()
+		sz = self.svgw.sizeHint()
+		scale = 1
+		if sz.width() > 1024:
+			scale = 0.8
+		self.svgw.setMinimumSize(sz.width() * scale, sz.height() * scale)
+		#self.svgw.setMaximumSize(self.svgw.sizeHint())
+		#print self.scrolla.sizeHint()
 
 	def show_progress_bar(self):
 		self.pbar = QProgressBar(self)
@@ -131,5 +186,35 @@ class ClassGraphWindow(QMainWindow):
 
 def create_page(req, proj_dir, cmd_func, cmd_args, cmd_opt):
 	w = ClassGraphWindow(req, proj_dir, cmd_func, cmd_args, cmd_opt)
-	w.resize(500, 300)
+	w.resize(900, 600)
 	w.show()
+	return w
+
+if __name__ == '__main__':
+	import sys
+	import optparse
+	usage = "usage: %prog [options] symbol"
+	op = optparse.OptionParser(usage=usage)
+	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
+	(options, args) = op.parse_args()
+	# id utils project dir
+	if not options.id_path:
+		print >> sys.stderr, 'idutils project path required'
+		sys.exit(-1)
+	id_path = os.path.normpath(options.id_path)
+	if not os.path.exists(os.path.join(id_path, 'ID')):
+		print >> sys.stderr, 'idutils project path does not exist'
+		sys.exit(-2)
+	# symbol
+	if len(args) != 1:
+		print >> sys.stderr, 'Please specify a symbol'
+		sys.exit(-3)
+
+	sym = args[0]
+	#print options.id_path, args
+
+	app = QApplication(sys.argv)
+
+	w = create_page(sym, id_path, None, [['CLGRAPH', 'D', 'Derived classes']], None)
+
+	sys.exit(app.exec_())
