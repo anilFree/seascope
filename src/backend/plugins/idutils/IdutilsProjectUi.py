@@ -53,7 +53,7 @@ ctree_query_args = [
 		
 clgraph_query_args = [
 	['CLGRAPH',	'D', 'Derived classes'			],
-	#['CLGRAPH',	'B', 'Derived classes'			],
+	['CLGRAPH',	'B', 'Base classes'			],
 ]
 		
 class QueryDialog(QDialog):

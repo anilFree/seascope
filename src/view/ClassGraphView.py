@@ -37,12 +37,15 @@ class ClassGraphWidget(QWidget):
 		self.cmd_id = cmd_id
 		self.cmd_opt = cmd_opt
 
-	def startQuery(self, req, proj_dir):
+	def startQuery(self, req, proj_dir, inx):
 		if self.is_done:
 			return
 
 		tool_path = os.path.join('tools', 'ClassGraph.py')
-		pargs = ['python', tool_path, '-p', proj_dir, req]
+		pargs = ['python', tool_path]
+		if inx == 1:
+			pargs += ['-b']
+		pargs += ['-p', proj_dir, req]
 		sig_res = CallGraphProcess('.', None).run_query_process(pargs, req)
 		sig_res[0].connect(self.clgraph_add_result)
 		self.is_busy = True
@@ -180,7 +183,7 @@ class ClassGraphWindow(QMainWindow):
 		ct = self.ctree[inx]
 		ct.setFocus()
 		
-		ct.startQuery(self.req, self.proj_dir)
+		ct.startQuery(self.req, self.proj_dir, inx)
 
 
 
@@ -215,6 +218,10 @@ if __name__ == '__main__':
 
 	app = QApplication(sys.argv)
 
-	w = create_page(sym, id_path, None, [['CLGRAPH', 'D', 'Derived classes']], None)
+	cmd_args = [
+		['CLGRAPH', 'D', 'Derived classes'],
+		['CLGRAPH', 'B', 'Base classes']
+	]
+	w = create_page(sym, id_path, None, cmd_args, None)
 
 	sys.exit(app.exec_())
