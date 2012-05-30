@@ -12,6 +12,8 @@ class ClassGraphGenerator:
 		self.graphRules = []
 		self.visitedRules = {}
 		self.visitedSym = {}
+		if is_rev:
+			self.visitedSym = {'object' : 1}
 		self.is_rev = is_rev
 
 	def addGraphRule(self, sym, d):
@@ -94,6 +96,7 @@ class ClassGraphGenerator:
 			print >> sys.stderr, 'No classes seem to inherit', sym, '\n'
 			sys.exit(-1)
 		dotInput = 'digraph "%s" {\n' % sym
+		dotInput += '\t"%s" [style=bold];\n' % sym
 		for r in self.graphRules:
 			if not self.is_rev:
 				dotInput += '\t"%s" -> "%s";\n' % (r[0], r[1])
