@@ -6,12 +6,13 @@ import os
 import re
 
 class ClassGraphGenerator:
-	def __init__(self, d, wlimit=100):
+	def __init__(self, d, wlimit=100, is_rev=False):
 		self.wdir = d;
 		self.width_limit = wlimit;
 		self.graphRules = []
 		self.visitedRules = {}
 		self.visitedSym = {}
+		self.is_rev = is_rev
 
 	def addGraphRule(self, sym, d):
 		if (sym, d) in self.visitedRules:
@@ -59,10 +60,17 @@ class ClassGraphGenerator:
 			sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
 			if 'inherits' not in sd:
 				continue
-			sd = sd['inherits'].split(',')
+			sd = sd['inherits']
+			if sd == '':
+				continue
+			sd = sd.split(',')
 			dd = [ re.split('::|\.', x.strip())[-1] for x in sd ]
-			if sym in dd:
-				res.append(line[0])
+			if not self.is_rev:
+				if sym in dd:
+					res.append(line[0])
+			else:
+				if sym == line[0]:
+					res += dd
 		return res
 
 	def derivedClassesRecursive(self, symList):
@@ -87,7 +95,10 @@ class ClassGraphGenerator:
 			sys.exit(-1)
 		dotInput = 'digraph "%s" {\n' % sym
 		for r in self.graphRules:
-			dotInput += '\t"%s" -> "%s";\n' % (r[0], r[1])
+			if not self.is_rev:
+				dotInput += '\t"%s" -> "%s";\n' % (r[0], r[1])
+			else:
+				dotInput += '\t"%s" -> "%s";\n' % (r[1], r[0])
 		dotInput += '}\n'
 		return dotInput
 
@@ -124,6 +135,7 @@ if __name__ == '__main__':
 	usage = "usage: %prog [options] symbol"
 	op = optparse.OptionParser(usage=usage)
 	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
+	op.add_option("-b", action="store_true", dest="is_base", help="Show base classes")
 	op.add_option("-o", "--output", dest="output_path", help="Save image path", metavar="OUTPUT")
 	(options, args) = op.parse_args()
 	# id utils project dir
@@ -134,6 +146,9 @@ if __name__ == '__main__':
 	if not os.path.exists(os.path.join(id_path, 'ID')):
 		print >> sys.stderr, 'idutils project path does not exist'
 		sys.exit(-2)
+	is_rev = False
+	if options.is_base:
+		is_rev = True
 	# symbol
 	if len(args) != 1:
 		print >> sys.stderr, 'Please specify a symbol'
@@ -142,7 +157,6 @@ if __name__ == '__main__':
 	sym = args[0]
 	#print options.id_path, args
 
-	cgg = ClassGraphGenerator(id_path)
+	cgg = ClassGraphGenerator(id_path, is_rev=is_rev)
 	svg_data = cgg.generateGraph(sym)
 	print svg_data
-
