@@ -1,4 +1,6 @@
+print 'importing subprocess'
 import subprocess
+import re
 
 def _eintr_retry_call(func, *args):
 	while True:
@@ -34,8 +36,6 @@ def ct_query(filename):
 		res.append(line)
 	return res
 
-import subprocess
-import re
 is_OrderedDict_available = False
 try:
 	# OrderedDict available only in python >= 2.7
@@ -54,13 +54,17 @@ class CtagsTreeBuilder:
 		self.symTree = emptyOrderedDict()
 
 	def runCtags(self, f):
-		#cmd = 'ctags -n -u --fields=+K -f - --extra=+q'
-		#cmd = 'ctags -n -u --fields=+Ki -f -'
-		cmd = 'ctags -n -u --fields=+K-f-t -f -'
-		cmd = cmd.split()
-		cmd.append(f)
-		output = subprocess.check_output(cmd)
-		return output
+		#args = 'ctags -n -u --fields=+K -f - --extra=+q'
+		#args = 'ctags -n -u --fields=+Ki -f -'
+		args = 'ctags -n -u --fields=+K-f-t -f -'
+		args = args.split()
+		args.append(f)
+		# In python >= 2.7 can use subprocess.check_output
+		# output = subprocess.check_output(args)
+		# return output
+		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+		(out_data, err_data) = proc.communicate()
+		return out_data
 
 	def parseCtagsOutput(self, data):
 		data = re.split('\r?\n', data)
@@ -108,7 +112,7 @@ class CtagsTreeBuilder:
 			sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
 			line[4] = sd
 			count = 0
-			for t in [ 'namespace', 'class', 'struct', 'enum', 'function' ]:
+			for t in [ 'namespace', 'class', 'struct', 'union', 'enum', 'function' ]:
 				if t in sd:
 					self.addToSymLayout(sd[t])
 					count = count + 1
@@ -127,7 +131,7 @@ class CtagsTreeBuilder:
 				continue
 			sd = line[4]
 			count = 0
-			for t in [ 'namespace', 'class', 'struct', 'enum', 'function' ]:
+			for t in [ 'namespace', 'class', 'struct', 'union', 'enum', 'function' ]:
 				if t in sd:
 					self.addToSymTree(sd[t], line)
 					count = count + 1
