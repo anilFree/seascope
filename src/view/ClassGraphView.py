@@ -38,9 +38,24 @@ class ClassGraphWidget(QWidget):
 		self.cmd_id = cmd_id
 		self.cmd_opt = cmd_opt
 
+		self.vlay1 = QVBoxLayout()
+		self.setLayout(self.vlay1)
+		#self.hlay1 = QHBoxLayout()
+		#self.vlay1.addLayout(self.hlay1)
+		#self.add_buttons(self.hlay1)
+		self.lbl = QLabel()
+		self.vlay1.addWidget(self.lbl)
+
+		self.vlay2 = QVBoxLayout()
+		self.scrolla = QScrollArea()
+		self.scrolla.setLayout(self.vlay2)
+		self.vlay1.addWidget(self.scrolla)
+
 	def startQuery(self, req, proj_dir, inx):
 		if self.is_done:
 			return
+
+		self.lbl.setText(['derived', 'base'][inx] + '(' + req + ')')
 
 		tool_path = os.path.join('tools', 'ClassGraph.py')
 		pargs = [sys.executable, tool_path]
@@ -91,18 +106,6 @@ class ClassGraphWidget(QWidget):
 		self.is_busy = False
 		self.is_done = True
 		self.remove_progress_bar()
-
-		self.vlay1 = QVBoxLayout()
-		#self.hlay1 = QHBoxLayout()
-		#self.add_buttons(self.hlay1)
-		#self.vlay1.addLayout(self.hlay1)
-		self.vlay2 = QVBoxLayout()
-		self.scrolla = QScrollArea()
-		self.scrolla.setLayout(self.vlay2)
-		self.setLayout(self.vlay1)
-
-		self.vlay1.addWidget(QLabel(req))
-		self.vlay1.addWidget(self.scrolla)
 		
 		self.svgw = QSvgWidget()
 		self.scrolla.setWidget(self.svgw)
@@ -118,13 +121,14 @@ class ClassGraphWidget(QWidget):
 		#print self.scrolla.sizeHint()
 
 	def show_progress_bar(self):
-		self.pbar = QProgressBar(self)
+		self.pbar = QProgressBar(self.scrolla)
 		self.pbar.setMinimum(0)
 		self.pbar.setMaximum(0)
 		self.pbar.show()
 
 	def remove_progress_bar(self):
-		if (self.pbar):
+		if self.pbar:
+			self.pbar.hide()
 			self.pbar.setParent(None)
 			self.pbar = None
 

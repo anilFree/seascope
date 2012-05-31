@@ -145,7 +145,7 @@ class PluginProcess(QObject):
 	def _cleanup(self):
 		PluginProcess.proc_list.remove(self)
 		if self.err_str != '':
-			s = '<b>' + self.p_cmd + '</b><p>' + self.err_str
+			s = '<b>' + self.p_cmd + '</b><p>' + '<p>'.join(self.err_str.splitlines())
 			QMessageBox.warning(None, "Seascope", s, QMessageBox.Ok)
 		if self.res != '':
 			s = '<b>' + self.p_cmd + '</b><p>Summary<p>' + self.res
