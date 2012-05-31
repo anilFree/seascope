@@ -4,6 +4,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSvg import *
 import os
+import sys
 
 if __name__ == '__main__':
 	import sys
@@ -42,7 +43,7 @@ class ClassGraphWidget(QWidget):
 			return
 
 		tool_path = os.path.join('tools', 'ClassGraph.py')
-		pargs = ['python', tool_path]
+		pargs = [sys.executable, tool_path]
 		if inx == 1:
 			pargs += ['-b']
 		pargs += ['-p', proj_dir, req]
@@ -194,7 +195,6 @@ def create_page(req, proj_dir, cmd_func, cmd_args, cmd_opt):
 	return w
 
 if __name__ == '__main__':
-	import sys
 	import optparse
 	usage = "usage: %prog [options] symbol"
 	op = optparse.OptionParser(usage=usage)

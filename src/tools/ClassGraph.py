@@ -25,7 +25,10 @@ class ClassGraphGenerator:
 	def refFiles(self, sym):
 		args = ['lid', '-R', 'grep', sym]
 		try:
-			output = subprocess.check_output(args, cwd=self.wdir)
+        		# In python >= 2.7 can use subprocess.check_output
+			# output = subprocess.check_output(args, cwd=self.wdir)
+        		proc = subprocess.Popen(args, cwd=self.wdir, stdout=subprocess.PIPE)
+                	(output, err_data) = proc.communicate()
 			output = re.split('\r?\n', output)
 		except Exception as e:
 			print >> sys.stderr, e, '\n'
@@ -56,7 +59,7 @@ class ClassGraphGenerator:
 		for line in data:
 			if line == '':
 				continue
-			line = line.split('\t')
+			line = line.split('\t', 4)
 			if len(line) == 4:
 				continue
 			sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
@@ -94,7 +97,7 @@ class ClassGraphGenerator:
 	def prepareDotInput(self, sym):
 		if len(self.graphRules) == 0:
 			print >> sys.stderr, 'No classes seem to inherit', sym, '\n'
-			sys.exit(-1)
+			sys.exit(0)
 		dotInput = 'digraph "%s" {\n' % sym
 		dotInput += '\t"%s" [style=bold];\n' % sym
 		for r in self.graphRules:
