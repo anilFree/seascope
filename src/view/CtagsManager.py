@@ -105,6 +105,7 @@ class CtagsTreeBuilder:
 		#print '...', t, line
 
 	def buildTree(self, data):
+		type_list = [ 'namespace', 'class', 'interface', 'struct', 'union', 'enum', 'function' ]
 		# build layout using 5th field
 		for line in data:
 			if len(line) == 4:
@@ -112,7 +113,7 @@ class CtagsTreeBuilder:
 			sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
 			line[4] = sd
 			count = 0
-			for t in [ 'namespace', 'class', 'struct', 'union', 'enum', 'function' ]:
+			for t in type_list:
 				if t in sd:
 					self.addToSymLayout(sd[t])
 					count = count + 1
@@ -131,7 +132,7 @@ class CtagsTreeBuilder:
 				continue
 			sd = line[4]
 			count = 0
-			for t in [ 'namespace', 'class', 'struct', 'union', 'enum', 'function' ]:
+			for t in type_list:
 				if t in sd:
 					self.addToSymTree(sd[t], line)
 					count = count + 1

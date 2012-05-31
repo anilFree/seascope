@@ -8,7 +8,7 @@ import CtagsManager
 class CtagsListItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
-		if li[2] in [ 'class', 'struct', 'type', 'enum', '' ]:
+		if li[2] in [ 'class', 'interface', 'struct', 'type', 'enum', '' ]:
 			self.set_bold()
 
 	def set_bold(self):
@@ -202,3 +202,4 @@ class CtagsView(QTabWidget):
 	def focus_search_ctags(self):
 		self.setCurrentWidget(self.ctlp)
 		self.ctlp.le.setFocus()
+
