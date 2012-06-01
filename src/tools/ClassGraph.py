@@ -6,7 +6,7 @@ import os
 import re
 
 class ClassGraphGenerator:
-	def __init__(self, d, wlimit=100, is_base=False):
+	def __init__(self, d, wlimit=5000, is_base=False):
 		self.wdir = d;
 		self.width_limit = wlimit;
 		self.graphRules = []
@@ -96,7 +96,7 @@ class ClassGraphGenerator:
 					self.addGraphRule(sym, '...(%s)' % sym)
 				for d in dclasses:
 					self.addGraphRule(sym, d)
-					self.classHierarchyRecursive(dclasses)
+				self.classHierarchyRecursive(dclasses)
 
 	def prepareDotInput(self, sym):
 		if len(self.graphRules) == 0:
