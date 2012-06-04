@@ -25,7 +25,7 @@ cmd_table = [
 	[	['QDEF', ''], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
 	[	['---', None],	[None				],					],
-	[	['CLGRAPH', '13'], ['Class &Graph',	''],	['Class hierarchy graph'	]	],
+	[	['CLGRAPH', '13'], ['Class &Graph',	'Ctrl+:'],	['Class graph'		]	],
 	[	['---', None],	[None				],					],
 	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
 ]
