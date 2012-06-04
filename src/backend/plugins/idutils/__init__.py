@@ -12,10 +12,18 @@ def project_class():
 	return ProjectIdutils
 
 def description():
-	d = 'GNU idutils supports various languages.\n'
-	d += 'Seascope uses ctags to enhance the results.\n'
-	d += '\nSupports ctags supported languages like C, C++, Python, Java etc\n'
-	d += '\nJust make sure that idutils indexes the required files\n'
+	d = 'Preferred backend of seascope.\n'
+	d += 'Some advanced features of seascope are available only with this backend\n'
+	d += '\n'
+	d += 'It\'s really "idutils + ctags" backend.\n'
+	d += '    - idutils provides the indexing facility\n'
+	d += '    - ctags provides the language intelligence\n'
+	d += 'This backend combines both of these intelligently to provide superior source code browsing facility\n'
+	d += '\n'
+	d += 'A wide variety of languages are supported (ctags --list-languages)\n'
+	d += 'For example C, C++, Java, Python etc\n'
+	d += '\n'
+	d += 'If your source files are not being indexed by idutils then configure it using /usr/share/id-lang.map\n'
 	return d
 
-priority = 300
+priority = 800

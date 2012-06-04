@@ -62,9 +62,21 @@ class ProjectGtags(ProjectBase):
 
 	@staticmethod
 	def prj_new():
-		from PyQt4.QtGui import QMessageBox
-		msg = "Please use 'Open Project' and choose directory containing GTAGS file"
-		QMessageBox.warning(None, "Seascope: gtags", msg, QMessageBox.Ok)
+		from PyQt4.QtGui import QFileDialog
+                fdlg = QFileDialog(None, "Choose source code directory")
+		fdlg.setFileMode(QFileDialog.Directory);
+		#fdlg.setDirectory(self.pd_path_inp.text())
+		if fdlg.exec_():
+			d = fdlg.selectedFiles()[0];
+			d = str(d)
+			if not d:
+				return None
+			d = os.path.normpath(d)
+			if d == '' or not os.path.isabs(d):
+				return None
+			prj = ProjectGtags.prj_open(d)
+			prj.qryui.do_rebuild()
+			return prj
 		return None
 
 	@staticmethod
