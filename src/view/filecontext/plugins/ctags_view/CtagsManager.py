@@ -1,4 +1,3 @@
-print 'importing subprocess'
 import subprocess
 import re
 

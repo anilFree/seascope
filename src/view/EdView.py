@@ -14,7 +14,7 @@ except ImportError:
 	raise ImportError
 
 import DialogManager
-from CtagsView import *
+from FileContextView import *
 
 class EditorView(QsciScintilla):
 	ev_popup = None
@@ -126,18 +126,18 @@ class EditorView(QsciScintilla):
 class EditorPage(QSplitter):
 	def __init__(self, parent=None):
 		QSplitter.__init__(self)
-		self.cv = CtagsView(self)
+		self.fcv = FileContextView(self)
 		self.ev = EditorView(self)
-		self.addWidget(self.cv)
+		self.addWidget(self.fcv)
 		self.addWidget(self.ev)
 		self.setSizes([1, 300])
 
-		self.ev.cursorPositionChanged.connect(self.cv.ed_cursor_changed)
-		self.cv.sig_goto_line.connect(self.ev.goto_line)
+		self.ev.cursorPositionChanged.connect(self.fcv.sig_ed_cursor_changed)
+		self.fcv.sig_goto_line.connect(self.ev.goto_line)
 
 	def open_file(self, filename):
 		self.ev.open_file(filename);
-		self.cv.add_ct_result(filename);
+		self.fcv.run(filename);
 
 	def get_filename(self):
 		return self.ev.get_filename()
@@ -228,7 +228,7 @@ class EditorBook(QTabWidget):
 	def focus_search_ctags(self):
 		ed = self.currentWidget()
 		if ed:
-			ed.cv.focus_search_ctags()
+			ed.fcv.focus_search_ctags()
 		
 	def close_cb(self, inx):
 		self.removeTab(inx)

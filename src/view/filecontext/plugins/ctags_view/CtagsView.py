@@ -41,8 +41,7 @@ class CtagsList(QTreeWidget):
 
 		self.setAllColumnsShowFocus(True)
 
-	def add_ct_result(self, filename):
-		res = CtagsManager.ct_query(filename)
+	def add_ct_result(self, res):
 		for line in res:
 			item = CtagsListItem(line)
 			self.addTopLevelItem(item)
@@ -148,6 +147,14 @@ class CtagsListPage(QWidget):
 			self.ct.keyPressEvent(ev)
 			return
 
+	@staticmethod
+	def do_ct_query(filename, parent):
+		page = CtagsListPage(parent)
+		res = CtagsManager.ct_query(filename)
+		page.ct.add_ct_result(res)
+		parent.add_page(page, 'C')
+		parent.sig_ed_cursor_changed.connect(page.ct.ed_cursor_changed)
+
 class CtagsTreePage(QWidget):
 	sig_goto_line = pyqtSignal(int)
 
@@ -167,39 +174,15 @@ class CtagsTreePage(QWidget):
 			return
 		self.sig_goto_line.emit(line)
 
-
-class CtagsView(QTabWidget):
-	sig_goto_line = pyqtSignal(int)
-
-	def __init__(self, parent=None):
-		QTabWidget.__init__(self)
-
-		self.setTabPosition(QTabWidget.South)
-		
-		self.create_ct_list_tab()
-
-	def create_ct_list_tab(self):
-		self.ctlp = CtagsListPage(self)
-		self.addTab(self.ctlp, 'C')
-		self.ctlp.sig_goto_line.connect(self.sig_goto_line)
-
-	def create_ct_tree_tab(self):
-		self.ctt = CtagsTreePage(self)
-		self.addTab(self.ctt, 'T')
-		self.ctt.sig_goto_line.connect(self.sig_goto_line)
-
-	def ed_cursor_changed(self, line, pos):
-		self.ctlp.ct.ed_cursor_changed(line, pos)
-
-	def add_ct_result(self, filename):
-		self.ctlp.ct.add_ct_result(filename)
+	@staticmethod
+	def do_ct_query(filename, parent):
 		(res, isTree) = CtagsManager.ct_tree_query(filename)
-		if isTree:
-			self.create_ct_tree_tab()
-			self.ctt.ct.add_ctree_result(res)
-			self.setCurrentWidget(self.ctt)
+		if not isTree:
+			return
+		page = CtagsTreePage(parent)
+		page.ct.add_ctree_result(res)
+		parent.add_page(page, 'T')
 
-	def focus_search_ctags(self):
-		self.setCurrentWidget(self.ctlp)
-		self.ctlp.le.setFocus()
-
+def run(filename, parent):
+	CtagsListPage.do_ct_query(filename, parent)
+	CtagsTreePage.do_ct_query(filename, parent)

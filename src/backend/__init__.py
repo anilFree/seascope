@@ -15,7 +15,7 @@ backend_dict = {}
 
 def _load_plugins(module, directory):
 	pluginImports = __import__(module, globals(), locals())
-	print 'Scanning for plugins...'
+	print 'Scanning for backend plugins...'
 	plist = []
 	pdict = {}
 	for i in sorted(os.listdir(directory)):

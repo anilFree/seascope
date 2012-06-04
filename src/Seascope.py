@@ -17,6 +17,7 @@ try:
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
+	import view
 except ImportError:
 	print "Error: failed to import supporting packages.\nError: program aborted."
 	sys.exit(-1)
@@ -453,6 +454,7 @@ if __name__ == "__main__":
 	os.chdir(app_dir)
 	
 	backend.load_plugins()
+	view.load_plugins()
 
 	app = QApplication(sys.argv)
 	ma = SeascopeApp()
