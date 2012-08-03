@@ -1,3 +1,8 @@
+# Copyright (c) 2010 Anil Kumar
+# All rights reserved.
+#
+# License: BSD 
+
 from PyQt4.QtCore import *
 from datetime import datetime
 import re
