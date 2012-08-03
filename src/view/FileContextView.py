@@ -1,5 +1,10 @@
 #!/usr/bin/python
 
+# Copyright (c) 2010 Anil Kumar
+# All rights reserved.
+#
+# License: BSD 
+
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 

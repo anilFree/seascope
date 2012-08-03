@@ -1,3 +1,8 @@
+# Copyright (c) 2010 Anil Kumar
+# All rights reserved.
+#
+# License: BSD 
+
 import re, os
 
 from PyQt4 import QtGui, QtCore, uic

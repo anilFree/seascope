@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+# Copyright (c) 2010 Anil Kumar
+# All rights reserved.
+#
+# License: BSD 
+
 import os
 import re
 

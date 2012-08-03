@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 
+# Copyright (c) 2010 Anil Kumar
+# All rights reserved.
+#
+# License: BSD 
+
 from distutils.core import setup
 
 setup(name='Seascope',
-	version='0.5',
+	version='0.6.1',
 	description='A PyQt GUI front-end for cscope',
 	long_description='A pyQt GUI front-end for cscope. Written in python using pyQt, QScintilla libraries.',
 	url='http://seascope.googlecode.com',
