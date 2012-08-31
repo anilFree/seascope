@@ -68,7 +68,7 @@ class ProjectGtags(ProjectBase):
 	@staticmethod
 	def prj_new():
 		from PyQt4.QtGui import QFileDialog
-                fdlg = QFileDialog(None, "Choose source code directory")
+		fdlg = QFileDialog(None, "Choose source code directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		#fdlg.setDirectory(self.pd_path_inp.text())
 		if fdlg.exec_():

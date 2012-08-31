@@ -152,7 +152,7 @@ class SeascopeApp(QMainWindow):
 		m_help.addAction('About Qt', QApplication.aboutQt)
 
 	def create_toolbar(self):
-        	self.toolbar = self.addToolBar('Toolbar')
+		self.toolbar = self.addToolBar('Toolbar')
 		self.toolbar.setIconSize(QSize(16,16))
 		self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
 

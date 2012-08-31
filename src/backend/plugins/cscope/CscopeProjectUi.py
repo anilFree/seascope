@@ -170,7 +170,7 @@ class ProjectSettingsCscopeDialog(QDialog):
 		QObject.connect(self, SIGNAL("accepted()"), self.ok_btn_cb)
 
 	def path_open_cb(self):
-                fdlg = QFileDialog(None, "Choose directory")
+		fdlg = QFileDialog(None, "Choose directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		fdlg.setDirectory(self.pd_path_inp.text())
 		if (fdlg.exec_()):
@@ -178,7 +178,7 @@ class ProjectSettingsCscopeDialog(QDialog):
 			self.pd_path_inp.setText(str(path_dir))
 
 	def src_add_cb(self):
-                fdlg = QFileDialog(None, "Choose directory")
+		fdlg = QFileDialog(None, "Choose directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		fdlg.setDirectory(self.pd_path_inp.text())
 		if (fdlg.exec_()):

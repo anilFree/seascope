@@ -30,10 +30,10 @@ class ClassGraphGenerator:
 	def refFiles(self, sym):
 		args = ['lid', '-R', 'grep', sym]
 		try:
-        		# In python >= 2.7 can use subprocess.check_output
+			# In python >= 2.7 can use subprocess.check_output
 			# output = subprocess.check_output(args, cwd=self.wdir)
-        		proc = subprocess.Popen(args, cwd=self.wdir, stdout=subprocess.PIPE)
-                	(output, err_data) = proc.communicate()
+			proc = subprocess.Popen(args, cwd=self.wdir, stdout=subprocess.PIPE)
+			(output, err_data) = proc.communicate()
 			output = re.split('\r?\n', output)
 		except Exception as e:
 			print >> sys.stderr, e, '\n'
