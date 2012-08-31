@@ -59,15 +59,19 @@ class EditorView(QsciScintilla):
 		self.setCaretLineBackgroundColor(QtGui.QColor("#CDA869"))
 
 		## Folding visual : we will use boxes
-		self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
+		self.setFolding(QsciScintilla.CircledTreeFoldStyle)
 
 	def show_line_number_cb(self, val):
 		if (val):
 			width = self.fm.width( "00000" ) + 5
 		else:
 			width = 0
+
 		self.setMarginWidth(0, width)
 		self.setMarginLineNumbers(0, val)
+
+		self.setMarginsForegroundColor( QtGui.QColor("#404040") )
+		self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
 
 	def set_font(self, font):
 		if not font:
@@ -159,7 +163,7 @@ class EditorBook(QTabWidget):
 		self.tabCloseRequested.connect(self.close_cb)
 		self.currentChanged.connect(self.tab_change_cb)
 		
-		self.is_show_line = False
+		self.is_show_line = True
 		self.f_text = None
 		self.ev_font = "Monospace,10,-1,5,50,0,0,0,0,0"
 

@@ -39,7 +39,7 @@ class DirTab(QWidget):
 		self.trbtn.setToolTip("Reset to common top-level folder of file in list")
 
 		self.completer.setModel(self.tmodel)
-                self.tview.setModel(self.tmodel)
+		self.tview.setModel(self.tmodel)
 
 		thlay = QHBoxLayout()
 		thlay.addWidget(self.ted)
@@ -181,7 +181,7 @@ class FileTab(QWidget):
 	def add_files(self, flist):
 		global dir_prefix
 		self.clear()
-                dir_prefix = os.path.dirname(os.path.commonprefix(flist))
+		dir_prefix = os.path.dirname(os.path.commonprefix(flist))
 		if len(dir_prefix) > 16:
 			self.is_rel_path = True
 		for f in flist:
@@ -211,7 +211,7 @@ class FileTree(QTabWidget):
 
 		self.new_dir_tab_cb()
 
-                self.clear()
+		self.clear()
 
 		# setup popup menu
 		self.pmenu = QMenu()
@@ -268,7 +268,7 @@ class FileTree(QTabWidget):
 
 	def clear(self):
 		self.ft.clear()
-                self.close_all_dir_tab_cb()
+		self.close_all_dir_tab_cb()
 
 	def add_files(self, flist):
 		self.ft.add_files(flist)
