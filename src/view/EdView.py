@@ -47,7 +47,7 @@ class EditorView(QsciScintilla):
 		self.setMarginsForegroundColor(QtGui.QColor("#CCCCCC"))
 
 		# folding margin colors (foreground,background)
-		self.setFoldMarginColors(QtGui.QColor("#99CC66"),QtGui.QColor("#333300"))
+		self.setFoldMarginColors(QtGui.QColor("#888888"),QtGui.QColor("#eeeeee"))
 		
 		## Edge Mode shows a red vetical bar at 80 chars
 		self.setEdgeMode(QsciScintilla.EdgeLine)
@@ -57,9 +57,6 @@ class EditorView(QsciScintilla):
 		## Editing line color
 		self.setCaretLineVisible(True)
 		self.setCaretLineBackgroundColor(QtGui.QColor("#CDA869"))
-
-		## Folding visual : we will use boxes
-		self.setFolding(QsciScintilla.CircledTreeFoldStyle)
 
 	def show_line_number_cb(self, val):
 		if (val):
@@ -73,6 +70,12 @@ class EditorView(QsciScintilla):
 		self.setMarginsForegroundColor( QtGui.QColor("#404040") )
 		self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
 
+		## Folding visual : we will use circled tree fold
+		self.setFolding(QsciScintilla.CircledTreeFoldStyle)
+
+	def toggle_all_folds_cb(self):
+		self.foldAll()
+		
 	def set_font(self, font):
 		if not font:
 			return
@@ -291,6 +294,12 @@ class EditorBook(QTabWidget):
 			self.sig_history_update.emit(filename, line)
 		page.ev.setFocus()
 
+	def toggle_all_folds(self):
+		ed = self.currentWidget()
+		if not ed:
+			return
+		ed.ev.toggle_all_folds_cb()
+
 	def show_file(self, filename):
 		self.show_file_line(filename, None)
 
@@ -342,7 +351,7 @@ class EditorBook(QTabWidget):
 		self.find_text(True, False)
 
 	def change_ev_font(self, font):
-		if font == self.ev_font:
+		if font == self.ev_font:	
 			return
 		self.ev_font=font
 		for inx in range(self.count()):
