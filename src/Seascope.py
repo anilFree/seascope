@@ -112,8 +112,11 @@ class SeascopeApp(QMainWindow):
 		m_edit.addAction('Find &Next', self.edit_book.find_next_cb, 'F3')
 		m_edit.addAction('Find &Previous', self.edit_book.find_prev_cb, 'Shift+F3')
 		m_edit.addSeparator()
+		self.toggle_all_folds = m_edit.addAction('Toggle all folds', self.toggle_all_folds_cb)
+		m_edit.addSeparator()
 		self.edit_book.m_show_line_num = m_edit.addAction('Show line number', self.edit_book.show_line_number_cb, 'F11')
 		self.edit_book.m_show_line_num.setCheckable(True)
+		self.edit_book.m_show_line_num.setChecked(True)
 		self.show_toolbar = m_edit.addAction('Show toolbar', self.show_toolbar_cb, 'F4')
 		self.show_toolbar.setCheckable(True)
 
@@ -357,6 +360,9 @@ class SeascopeApp(QMainWindow):
 
 	def show_file_line(self, filename, line):
 		self.edit_book.show_file_line(filename, line)
+
+	def toggle_all_folds_cb(self):
+		self.edit_book.toggle_all_folds()
 
 	def show_toolbar_cb(self):
 		self.is_show_toolbar = self.show_toolbar.isChecked()
