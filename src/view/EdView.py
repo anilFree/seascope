@@ -166,7 +166,7 @@ class EditorBook(QTabWidget):
 		self.tabCloseRequested.connect(self.close_cb)
 		self.currentChanged.connect(self.tab_change_cb)
 		
-		self.is_show_line = True
+		self.is_show_line = False
 		self.f_text = None
 		self.ev_font = "Monospace,10,-1,5,50,0,0,0,0,0"
 
