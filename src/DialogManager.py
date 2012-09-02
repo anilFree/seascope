@@ -85,7 +85,7 @@ def show_project_open_dialog(path_list):
 	return d.run_dialog(path_list)
 
 class FilePreferencesDialog(QObject):
-	def __init__(self, app_style, edit_ext_cmd, ev_font, dontask, innered):
+	def __init__(self, app_style, edit_ext_cmd, ev_font, dontask, innered, ln_nr):
 		QObject.__init__(self)
 
 		self.dlg = uic.loadUi('ui/preferences.ui')
@@ -100,6 +100,7 @@ class FilePreferencesDialog(QObject):
 		self.edit_ext_cmd = edit_ext_cmd
 		self.exit_dontask = dontask
 		self.inner_editing = innered
+		self.show_ln_nr = ln_nr
 		if self.exit_dontask:
 			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Unchecked)
 		else:
@@ -108,6 +109,10 @@ class FilePreferencesDialog(QObject):
 			self.dlg.prd_opt_inner_ed.setCheckState(Qt.Checked)
 		else:
 			self.dlg.prd_opt_inner_ed.setCheckState(Qt.Unchecked)
+		if self.show_ln_nr:
+			self.dlg.prd_opt_show_ln_nr.setCheckState(Qt.Checked)
+		else:
+			self.dlg.prd_opt_show_ln_nr.setCheckState(Qt.Unchecked)
 		if (self.edit_ext_cmd):
 			self.dlg.prd_edit_ext_inp.setText(self.edit_ext_cmd)
 
@@ -139,11 +144,12 @@ class FilePreferencesDialog(QObject):
 			self.edit_ext_cmd = self.dlg.prd_edit_ext_inp.text()
 			self.exit_dontask = self.dlg.prd_opt_ask_chkb.checkState() == Qt.Unchecked
 			self.inner_editing = self.dlg.prd_opt_inner_ed.checkState() == Qt.Checked
+			self.show_ln_nr = self.dlg.prd_opt_show_ln_nr.checkState() == Qt.Checked
 		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, 
-			self.ev_font, self.exit_dontask, self.inner_editing)
+			self.ev_font, self.exit_dontask, self.inner_editing, self.show_ln_nr)
 
-def show_preferences_dialog(app_style, edit_ext_cmd, ev_font, dontask, innered):
-	d = FilePreferencesDialog(app_style, edit_ext_cmd, ev_font, dontask, innered)
+def show_preferences_dialog(app_style, edit_ext_cmd, ev_font, dontask, innered, ln_nr):
+	d = FilePreferencesDialog(app_style, edit_ext_cmd, ev_font, dontask, innered, ln_nr)
 	return d.run_dialog()
 
 def show_about_dialog():
