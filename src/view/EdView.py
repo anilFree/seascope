@@ -365,6 +365,12 @@ class EditorBook(QTabWidget):
 			ed = self.widget(inx)
 			ed.ev.show_line_number_cb(val)
 
+	def show_line_number_pref(self, val):
+		if val == self.m_show_line_num.isChecked():
+			return
+		self.m_show_line_num.setChecked(val)
+		self.show_line_number_cb()
+
 	def open_in_external_editor(self, cmd):
 		if not cmd:
 			DialogManager.show_msg_dialog('Please configure external editor')

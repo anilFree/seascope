@@ -32,13 +32,14 @@ class SeascopeApp(QMainWindow):
 	def file_preferences_cb(self):
 		ev_font = QFont()
 		ev_font.fromString(self.edit_book.ev_font)
-		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing)
-		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing) = res
+		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing, self.eb_is_show_line)
+		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing, self.eb_is_show_line) = res
 		if self.edit_ext_cmd != None:
 			self.edit_ext_cmd = str(self.edit_ext_cmd).strip()
 		if (self.edit_ext_cmd == None or self.edit_ext_cmd == ''):
 			self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
 		self.edit_book.change_ev_font(ev_font.toString())
+		self.edit_book.show_line_number_pref(self.eb_is_show_line)
 		self.app_write_config()
 
 	def file_close_cb(self):
