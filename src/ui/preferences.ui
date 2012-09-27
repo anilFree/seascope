@@ -146,7 +146,7 @@
        <item row="3" column="0">
         <widget class="QCheckBox" name="prd_opt_show_ln_nr">
          <property name="text">
-          <string>Show line number in editor</string>
+          <string>Show line number in editor by default</string>
          </property>
         </widget>
        </item>
