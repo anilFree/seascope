@@ -40,7 +40,7 @@ class EditorViewRW(EditorView):
 		self.show()
 
 		## Show this file in the editor
-		self.setText(open(filename).read())
+		self.setText(open(filename).read().decode("UTF-8"))
 
 		## process for modifiled.
 		self.setModified(False)
@@ -63,7 +63,7 @@ class EditorViewRW(EditorView):
 		if(self.isModified()):
 			fobj = open(filename, 'w')
 			if (not fobj.closed):
-				fobj.write(str(self.text()))
+				fobj.write(str(self.text().toUtf8()))
 				fobj.flush()
 				fobj.close()
 				self.setModified(False)
@@ -82,7 +82,6 @@ class EditorPageRW(EditorPage):
 		
 
 class EditorBookRW(EditorBook):
-
 	
 	def addFile(self, filename):
 		ed = EditorPageRW()
