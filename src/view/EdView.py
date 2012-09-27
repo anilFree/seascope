@@ -48,7 +48,7 @@ class EditorView(QsciScintilla):
 
 		# folding margin colors (foreground,background)
 		self.setFoldMarginColors(QtGui.QColor("#888888"),QtGui.QColor("#eeeeee"))
-		
+
 		## Edge Mode shows a red vetical bar at 80 chars
 		self.setEdgeMode(QsciScintilla.EdgeLine)
 		self.setEdgeColumn(80)
@@ -67,13 +67,18 @@ class EditorView(QsciScintilla):
 		self.setMarginWidth(0, width)
 		self.setMarginLineNumbers(0, val)
 
-		self.setMarginsForegroundColor( QtGui.QColor("#404040") )
-		self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
+	def show_folds_cb(self, val):
+		if val:
+			#self.setMarginsForegroundColor( QtGui.QColor("#404040") )
+			#self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
 
-		## Folding visual : we will use circled tree fold
-		self.setFolding(QsciScintilla.CircledTreeFoldStyle)
+			## Folding visual : we will use circled tree fold
+			self.setFolding(QsciScintilla.CircledTreeFoldStyle)
+		else:
+			self.setFolding(QsciScintilla.NoFoldStyle)
+			self.clearFolds()
 
-	def toggle_all_folds_cb(self):
+	def toggle_folds_cb(self):
 		self.foldAll()
 		
 	def set_font(self, font):
@@ -167,6 +172,7 @@ class EditorBook(QTabWidget):
 		self.currentChanged.connect(self.tab_change_cb)
 		
 		self.is_show_line = False
+		self.is_show_folds = False
 		self.f_text = None
 		self.ev_font = "Monospace,10,-1,5,50,0,0,0,0,0"
 
@@ -294,11 +300,12 @@ class EditorBook(QTabWidget):
 			self.sig_history_update.emit(filename, line)
 		page.ev.setFocus()
 
-	def toggle_all_folds(self):
+	def toggle_folds_cb(self):
 		ed = self.currentWidget()
 		if not ed:
 			return
-		ed.ev.toggle_all_folds_cb()
+		if self.is_show_folds:
+			ed.ev.toggle_folds_cb()
 
 	def show_file(self, filename):
 		self.show_file_line(filename, None)
@@ -370,6 +377,13 @@ class EditorBook(QTabWidget):
 			return
 		self.m_show_line_num.setChecked(val)
 		self.show_line_number_cb()
+
+        def show_folds_cb(self):
+		val = self.m_show_folds.isChecked()
+		self.is_show_folds = val
+		for inx in range(self.count()):
+			ed = self.widget(inx)
+			ed.ev.show_folds_cb(val)
 
 	def open_in_external_editor(self, cmd):
 		if not cmd:
