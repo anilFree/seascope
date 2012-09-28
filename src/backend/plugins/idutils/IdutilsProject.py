@@ -178,11 +178,14 @@ class QueryIdutils(QueryBase):
 
 		self.id_file_list_update()
 
-	def query(self, cmd_str, req, opt = None):
+	def query(self, rquery):
 		if (not self.conf):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
+		cmd_str = rquery['cmd']
+		req     = rquery['req']
+		opt     = rquery['opt']
 		if opt == None:
 			opt = []
 		
@@ -198,7 +201,7 @@ class QueryIdutils(QueryBase):
 		elif cmd_str in ['-->', '<--']:
 			pargs += ['-l']
 		pargs += [ req ]
-		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req)
+		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
 	def rebuild(self):

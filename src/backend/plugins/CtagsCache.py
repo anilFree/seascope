@@ -53,7 +53,7 @@ class CtagsThread(QThread):
 
 		self.res = self.parse_result(self.res, self.sig)
 		if self.res != None:
-			self.sig.sig_result.emit(self.sig.sym, self.res)
+			self.sig.emit_result(self.res)
 	
 	def ctags_bsearch(self, ct, n):
 		x = -1

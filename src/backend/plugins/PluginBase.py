@@ -6,6 +6,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+import os, re
+
 def msg_box(msg):
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
@@ -50,7 +52,7 @@ class QueryBase(QObject):
 	def prepare_menu(menubar):
 		pass
 
-	def query(self, cmd_str, req, opt):
+	def query(self, rquery):
 		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 		
 	def rebuild():
@@ -91,14 +93,26 @@ class QueryUiBase(QObject):
 	def query_class_graph(self, req, opt):
 		PluginHelper.class_graph_view_page_new(req, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
 
+	def _prepare_rquery(self, cmd_str, req, opt):
+		rquery = {}
+		rquery['cmd'] = cmd_str
+		rquery['req'] = req
+		rquery['opt'] = opt
+		# add current file info
+		rquery['hint_file'] = PluginHelper.editor_current_file()
+		return rquery
+
 	def query_qdef(self, req, opt):
-		sig_res = self.query.query('DEF', req, opt)
+		rquery = {}
+		rquery = self._prepare_rquery('DEF', req, opt)
+		sig_res = self.query.query(rquery)
 		PluginHelper.quick_def_page_new(sig_res)
 
 	def do_query(self, cmd_str, req, opt):
 		## create page
 		name = cmd_str + ' ' + req
-		sig_res = self.query.query(cmd_str, req, opt)
+		rquery = self._prepare_rquery(cmd_str, req, opt)
+		sig_res = self.query.query(rquery)
 		PluginHelper.result_page_new(name, sig_res)
 
 	def do_rebuild(self):
@@ -128,6 +142,69 @@ class QuerySignal(QObject):
 
 	def __init__(self):
 		QObject.__init__(self)
+
+	def _relevancy_sort(self, hfile, res):
+		pt = []
+		pd = {}
+		p = hfile
+		(pre, ext) = os.path.splitext(hfile)
+		c = None
+		while p != c:
+			e = [p, [], []]
+			pt += [e]
+			pd[p] = e
+			c = p
+			p = os.path.dirname(p)
+		for line in res:
+			f = line[1]
+			d = os.path.dirname(f)
+			p = f
+			while p not in pd:
+				p = os.path.dirname(p)
+			e = pd[p]
+			if p in [f, d]:
+				e[1].append(line)
+			else:
+				e[2].append(line)
+		for e in pt:
+			e[1] = sorted(e[1], key=lambda li: li[1])
+			e[2] = sorted(e[2], key=lambda li: li[1])
+		pre = pre + '.*'
+		e0 = []
+		e1 = []
+		for e in pt[1][1]:
+			if re.match(pre, e[1]):
+				e0 += [e]
+			else:
+				e1 += [e]
+		pt[0][1] += e0
+		pt[1][1] = e1
+
+		res1 = []
+		res2 = []
+		for e in pt:
+			res1 += e[1]
+			res2 += e[2]
+		res = res1 + res2
+		return res
+
+	def relevancy_sort(self, res):
+		if os.getenv('RELEVANCY_SORT', 1) == 0:
+			return res
+		hint_file = None
+		try:
+			hint_file = self.rquery['hint_file']
+		except:
+			pass
+		if not hint_file:
+			return res
+		if len(res) > 10000:
+			return res
+		return self._relevancy_sort(hint_file, res)
+
+	def emit_result(self, res):
+		res = self.relevancy_sort(res)
+		self.sig_result.emit(self.sym, res)
 
 class PluginProcess(QObject):
 	proc_list = []
@@ -185,12 +262,13 @@ class PluginProcess(QObject):
 			except:
 				res = [['', '', '', 'error while parsing output of: ' + self.p_cmd]]
 			if res != None:
-				self.sig.sig_result.emit(self.sig.sym, res)
+				self.sig.emit_result(res)
 
 		self._cleanup()
 
-	def run_query_process(self, pargs, sym):
+	def run_query_process(self, pargs, sym, rquery=None):
 		self.sig.sym = sym
+		self.sig.rquery = rquery
 		self.p_cmd = ' '.join(pargs)
 		#print 'pp:cmd:', pargs[0], pargs[1:]
 		self.proc.start(pargs[0], pargs[1:])

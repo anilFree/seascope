@@ -416,6 +416,7 @@ class SeascopeApp(QMainWindow):
 		self.edit_book.sig_tab_changed.connect(self.editor_tab_changed_cb)
 		self.res_book.sig_show_file_line.connect(self.edit_book.show_file_line)
 		self.file_view.sig_show_file.connect(self.edit_book.show_file)
+		self.edit_book.sig_open_dir_view.connect(self.file_view.open_dir_view)
 
 		self.hsp = QSplitter();
 		self.hsp.addWidget(self.edit_book)

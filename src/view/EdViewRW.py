@@ -40,7 +40,12 @@ class EditorViewRW(EditorView):
 		self.show()
 
 		## Show this file in the editor
-		self.setText(open(filename).read().decode("UTF-8"))
+		data = open(filename).read()
+		try:
+			data = data.decode("UTF-8")
+		except:
+			pass
+		self.setText(data)
 
 		## process for modifiled.
 		self.setModified(False)

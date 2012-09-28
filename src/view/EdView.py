@@ -162,6 +162,7 @@ class EditorPage(QSplitter):
 class EditorBook(QTabWidget):
 	sig_history_update = pyqtSignal(str, int)
 	sig_tab_changed = pyqtSignal(str)
+	sig_open_dir_view = pyqtSignal(str)
 
 	def __init__(self, *args):
 		apply(QTabWidget.__init__,(self, ) + args)
@@ -262,6 +263,12 @@ class EditorBook(QTabWidget):
 			fname = page.get_filename()
 		self.sig_tab_changed.emit(fname)
 			
+	def open_dir_cb(self):
+		page = self.currentWidget()
+		if page:
+			fname = page.get_filename()
+			self.sig_open_dir_view.emit(fname)
+			
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)
@@ -269,6 +276,7 @@ class EditorBook(QTabWidget):
 			# setup popup menu
 			self.pmenu = QMenu()
 			self.pmenu.addAction("Close &All", self.close_all_cb)
+			self.pmenu.addAction("Open dir", self.open_dir_cb)
 			self.pmenu.exec_(QCursor.pos())
 
 	def search_already_opened_files(self, filename):
