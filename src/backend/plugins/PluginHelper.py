@@ -14,6 +14,10 @@ class_graph_view = None
 file_view = None
 dbg_view = None
 
+def editor_current_file():
+	(f, l) = edit_book.get_current_file_line()
+	return f
+
 def editor_current_word():
 	return edit_book.get_current_word()
 
@@ -60,7 +64,8 @@ def quick_def_page_new(sig_res):
 	dbg_view.connect_to_sig(sig_res[1])
 
 def call_view_page_new(req, query_func, ctree_query_args, opt):
-	call_view.create_page(req, query_func, ctree_query_args, opt)
+	hint_file = editor_current_file()
+	call_view.create_page(req, query_func, ctree_query_args, opt, hint_file)
 
 def class_graph_view_page_new(req, proj_dir, query_func, clgraph_query_args, opt):
 	class_graph_view.create_page(req, proj_dir, query_func, clgraph_query_args, opt)

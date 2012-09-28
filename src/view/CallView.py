@@ -49,12 +49,13 @@ class CallTreeWidgetItem(QTreeWidgetItem):
 class CallTreeWidget(QTreeWidget):
 	sig_show_file_line = pyqtSignal(str, int)
 
-	def __init__(self, parent, cmd_func, cmd_id, cmd_opt):
+	def __init__(self, parent, cmd_func, cmd_id, cmd_opt, hint_file):
 		QTreeWidget.__init__(self, parent)
 		self.is_busy = False
 		self.cmd_func = cmd_func
 		self.cmd_id = cmd_id
 		self.cmd_opt = cmd_opt
+		self.hint_file = hint_file
 		
 		self.itemExpanded.connect(self.ctree_itemExpanded)
 		self.itemActivated.connect(self.ctree_itemActivated)
@@ -111,64 +112,19 @@ class CallTreeWidget(QTreeWidget):
 		self.pbar.show()
 		
 		## add result
-		sig_res = self.cmd_func(self.cmd_id, tag, opt)
+		rquery = {}
+		rquery['cmd'] = self.cmd_id
+		rquery['req'] = tag
+		rquery['opt'] = opt
+		hfile = str(item.data(1, Qt.DisplayRole).toString())
+		if hfile == '':
+			hfile = self.hint_file
+		rquery['hint_file'] = hfile
+		sig_res = self.cmd_func(rquery)
 		self.query_item = item
 		sig_res[0].connect(self.ctree_add_result)
 
 	def ctree_add_result(self, req, res):
-		def __relevancy_sort(pfile, res):
-			import os, re
-			pt = []
-			pd = {}
-			p = pfile
-			(pre, ext) = os.path.splitext(pfile)
-			c = None
-			while p != c:
-				e = [p, [], []]
-				pt += [e]
-				pd[p] = e
-				c = p
-				p = os.path.dirname(p)
-			for line in res:
-				f = line[1]
-				d = os.path.dirname(f)
-				p = f
-				while p not in pd:
-					p = os.path.dirname(p)
-				e = pd[p]
-				if p in [f, d]:
-					e[1].append(line)
-				else:
-					e[2].append(line)
-			for e in pt:
-				e[1] = sorted(e[1], key=lambda li: li[1])
-				e[2] = sorted(e[2], key=lambda li: li[1])
-			pre = pre + '.*'
-			e0 = []
-			e1 = []
-			for e in pt[1][1]:
-				if re.match(pre, e[1]):
-					e0 += [e]
-				else:
-					e1 += [e]
-			pt[0][1] += e0
-			pt[1][1] = e1
-
-			res1 = []
-			res2 = []
-			for e in pt:
-				res1 += e[1]
-				res2 += e[2]
-			res = res1 + res2
-			return res
-		def relevancy_sort(item, res):
-			pfile = str(item.data(1, Qt.DisplayRole).toString())
-			if pfile == '':
-				return res
-			if len(res) > 10000:
-				return res
-			return __relevancy_sort(pfile, res)
-		res = relevancy_sort(self.query_item, res)
 		self.query_item.add_result(res)
 		self.is_busy = False
 		if self.pbar:
@@ -180,7 +136,7 @@ class CallTreeWindow(QMainWindow):
 	sig_show_file_line = pyqtSignal(str, int)
 	parent = None
 
-	def __init__(self, req, cmd_func, cmd_args, cmd_opt):
+	def __init__(self, req, cmd_func, cmd_args, cmd_opt, hint_file):
 		QMainWindow.__init__(self, CallTreeWindow.parent)
 		self.req = req
 
@@ -217,7 +173,7 @@ class CallTreeWindow(QMainWindow):
 			self.bgrp.addButton(btn, inx)
 			self.hlay.addWidget(btn)
 
-			ct = CallTreeWidget(self, cmd_func, cmd[0], cmd_opt)
+			ct = CallTreeWidget(self, cmd_func, cmd[0], cmd_opt, hint_file)
 			ct.sig_show_file_line.connect(self.sig_show_file_line)
 			self.sw.addWidget(ct)
 
@@ -241,7 +197,7 @@ def ctree_show_file_line(filename, line):
 	parent.activateWindow()
 	parent.show_file_line(filename, line)
 
-def create_page(req, cmd_func, cmd_args, cmd_opt):
-	w = CallTreeWindow(req, cmd_func, cmd_args, cmd_opt)
+def create_page(req, cmd_func, cmd_args, cmd_opt, hint_file):
+	w = CallTreeWindow(req, cmd_func, cmd_args, cmd_opt, hint_file)
 	w.sig_show_file_line.connect(ctree_show_file_line)
 	w.show()

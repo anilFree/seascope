@@ -219,13 +219,16 @@ class FileTree(QTabWidget):
 		self.pmenu.addAction("&Close Active Dir View", self.close_active_dir_tab_cb)
 		self.pmenu.addAction("&Close All Dir View", self.close_all_dir_tab_cb)
 	
-	def new_dir_tab_cb(self):
+	def new_dir_tab_cb(self, d=None):
 		t = DirTab()
 		t.parent = self
 		self.dlist.append(t)
 		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
 		self.addTab(t, icon, '')
-		t.reset_btn_cb()
+		if d:
+			t.dir_reset(d)
+		else:
+			t.reset_btn_cb()
 
 	def close_all_dir_tab_cb(self):
 		for t in self.dlist:
@@ -234,6 +237,10 @@ class FileTree(QTabWidget):
 		self.dlist = []
 		# Always have atleast one dir view
 		self.new_dir_tab_cb()
+
+	def open_dir_view(self, filename):
+		d = os.path.dirname(str(filename))
+		self.new_dir_tab_cb(d)
 
 	def close_active_dir_tab_cb(self):
 		inx = self.currentIndex()

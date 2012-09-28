@@ -204,17 +204,20 @@ class QueryCscope(QueryBase):
 		QueryBase.__init__(self)
 		self.conf = conf
 
-	def query(self, cmd_str, req, opt = None):
+	def query(self, rquery):
 		if (not self.conf or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
+		cmd_str = rquery['cmd']
+		req     = rquery['req']
+		opt     = rquery['opt']
 		cmd_id = CscopeProjectUi.cmd_str2id[cmd_str]
 		if opt == None or opt == '':
 			opt = []
 		else:
 			opt = opt.split()
 		pargs  = [ 'cscope' ] + self.conf.cs_opt + opt + [ '-L', '-d',  '-' + str(cmd_id), req ]
-		qsig = CsProcess(self.conf.cs_dir, [cmd_str, req]).run_query_process(pargs, req)
+		qsig = CsProcess(self.conf.cs_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
 	def rebuild(self):
