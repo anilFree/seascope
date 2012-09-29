@@ -172,29 +172,24 @@ class EditorBookRW(EditorBook):
 	# redo editing callback
 	def redo_edit_cb(self):
 		ed = self.currentWidget()
-		if (ed):
+		if ed:
 			ed.ev.redo()
 
 	# undo editing callback
 	def undo_edit_cb(self):
 		ed = self.currentWidget()
-		if (ed):
+		if ed:
 			ed.ev.undo()
 
 	# edting callbacks
-	def copy_edit_cb(self):
-		ed = self.currentWidget()
-		if (ed):
-			ed.ev.copy()
-
 	def cut_edit_cb(self):
 		ed = self.currentWidget()
-		if (ed):
+		if ed:
 			ed.ev.cut()
 
 	def paste_edit_cb(self):
 		ed = self.currentWidget()
-		if (ed):
+		if ed:
 			ed.ev.paste()
 
 	
