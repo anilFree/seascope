@@ -249,6 +249,11 @@ class EditorBook(QTabWidget):
 		if ed:
 			ed.fcv.focus_search_ctags()
 		
+	def copy_edit_cb(self):
+		ed = self.currentWidget()
+		if ed:
+			ed.ev.copy()
+
 	def close_cb(self, inx):
 		self.removeTab(inx)
 	def close_all_cb(self):

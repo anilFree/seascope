@@ -59,6 +59,11 @@ class SeascopeApp(QMainWindow):
 
 		self.app_write_config()
 		ev.accept()
+	def file_restart_cb(self):
+		if not DialogManager.show_yes_no('Restart ?'):
+			return
+		QApplication.quit()
+		QProcess.startDetached(sys.executable, QApplication.arguments());
 
 	def go_prev_res_cb(self):
 		self.res_book.go_next_res(-1)
@@ -74,7 +79,6 @@ class SeascopeApp(QMainWindow):
 		self.file_view.search_file_cb()
 	def go_search_ctags_cb(self):
 		self.edit_book.focus_search_ctags()
-
 
 	def help_about_cb(self):
 		DialogManager.show_about_dialog()
@@ -95,19 +99,21 @@ class SeascopeApp(QMainWindow):
 		if (self.inner_editing):
 			m_file.addAction('&Save', self.edit_book.save_current_page, 'Ctrl+S')
 		m_file.addAction('&Close', self.file_close_cb, QKeySequence.Close)
+		m_file.addSeparator()
+		m_file.addAction('&Restart', self.file_restart_cb, QKeySequence.Quit)
 		m_file.addAction('&Quit', self.close, QKeySequence.Quit)
 
 		m_edit = menubar.addMenu('&Edit')
 		
-		# if need editing support
-		if (self.inner_editing):
+		if self.inner_editing:
 			m_edit.addAction('Undo', self.edit_book.undo_edit_cb, 'Ctrl+Z')
 			m_edit.addAction('Rebo', self.edit_book.redo_edit_cb, 'Ctrl+Y')
 			m_edit.addSeparator()
-			m_edit.addAction('Copy', self.edit_book.copy_edit_cb, 'Ctrl+C')
+		m_edit.addAction('Copy', self.edit_book.copy_edit_cb, 'Ctrl+C')
+		if self.inner_editing:
 			m_edit.addAction('Paste', self.edit_book.paste_edit_cb, 'Ctrl+V')
 			m_edit.addAction('Cut', self.edit_book.cut_edit_cb, 'Ctrl+X')
-			m_edit.addSeparator()	
+		m_edit.addSeparator()	
 
 		m_edit.addAction('&Find...', self.edit_book.find_cb, 'Ctrl+F')
 		m_edit.addAction('Find &Next', self.edit_book.find_next_cb, 'F3')
@@ -473,4 +479,5 @@ if __name__ == "__main__":
 	app = QApplication(sys.argv)
 	ma = SeascopeApp()
 	ma.show()
-	sys.exit(app.exec_())
+	ret = app.exec_()
+	sys.exit(ret)
