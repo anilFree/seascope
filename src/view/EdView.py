@@ -36,6 +36,7 @@ class EditorView(QsciScintilla):
 
 		self.font = None
 		self.lexer = None
+		self.bookmark_marker = self.markerDefine(self.Circle)
 
 	def get_filename(self):
 		return self.filename
@@ -81,6 +82,12 @@ class EditorView(QsciScintilla):
 	def toggle_folds_cb(self):
 		self.foldAll()
 		
+	def bookmark_add(self, line):
+		self.markerAdd(line, self.bookmark_marker)
+
+	def bookmark_del(self, line):
+		self.markerDelete(line, self.bookmark_marker)
+
 	def set_font(self, font):
 		if not font:
 			return
@@ -320,8 +327,27 @@ class EditorBook(QTabWidget):
 		if self.is_show_folds:
 			ed.ev.toggle_folds_cb()
 
+	def bookmark_add(self, filename, line):
+		for i in range(self.count()):
+			ed = self.widget(i)
+			if (ed.get_filename() == filename):
+				ed.ev.bookmark_add(line)
+
+	def bookmark_del(self, filename, line):
+		for i in range(self.count()):
+			ed = self.widget(i)
+			if (ed.get_filename() == filename):
+				ed.ev.bookmark_del(line)
+
+
 	def show_file(self, filename):
 		self.show_file_line(filename, None)
+
+	def show_line(self, line):
+		ed = self.currentWidget()
+		if not ed:
+			return
+		ed.ev.goto_line(line)
 
 	def find_cb(self):
 		ed = self.currentWidget()

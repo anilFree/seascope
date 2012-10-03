@@ -18,7 +18,7 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, DebugView
+	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, DebugView, BookmarkManager
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
@@ -67,6 +67,11 @@ class SeascopeApp(QMainWindow):
 
 	def go_prev_res_cb(self):
 		self.res_book.go_next_res(-1)
+	def go_bookmark(self, action):
+		for f, l in self.bm_mgr.bookmarks():
+			if action.text() == QString(f + " : " + str(l)):
+				self.edit_book.show_file(f)
+				self.edit_book.show_line(l)
 	def go_next_res_cb(self):
 		self.res_book.go_next_res(+1)
 	def go_prev_pos_cb(self):
@@ -149,6 +154,12 @@ class SeascopeApp(QMainWindow):
 		backend.prj_actions.append(act)
 
 		self.backend_menu = menubar.addMenu('')
+
+		self.m_bm = menubar.addMenu('&Bookmark')
+		self.m_bm.addAction('Toggle current line', self.toggle_bookmark, 'Ctrl+B')
+		self.m_bm.addAction('Delete all bookmarks', self.annihilate_bookmarks, '')
+		self.m_bm.addSeparator()
+		self.bm_actionGroup = QActionGroup(self, triggered=self.go_bookmark)
 
 		m_go = menubar.addMenu('&Go')
 		m_go.addAction('Previous Result', self.go_prev_res_cb, 'Alt+Up')
@@ -342,6 +353,7 @@ class SeascopeApp(QMainWindow):
 
 		self.res_book.clear()
 		self.file_view.clear()
+		self.bm_mgr.clear()
 
 	def proj_settings_cb(self):
 		backend.proj_settings_trigger()
@@ -372,6 +384,34 @@ class SeascopeApp(QMainWindow):
 	def show_file_line(self, filename, line):
 		self.edit_book.show_file_line(filename, line)
 
+	def append_bookmark(self, f, l):
+		self.bm_mgr.append(f, l)
+		self.edit_book.bookmark_add(f, l - 1)
+		actionText = QString(f + " : " + str(l))
+		act = QAction(actionText, self)
+		self.bm_actionGroup.addAction(act)
+		self.m_bm.addAction(act)
+
+	def delete_bookmark(self, f, l):
+		self.bm_mgr.delete(f, l)
+		self.edit_book.bookmark_del(f, l - 1)
+		actionText = QString(f + " : " + str(l))
+		actions = self.bm_actionGroup.actions()
+		for act in actions:
+			if actionText == act.text():
+				self.bm_actionGroup.removeAction(act)
+		
+	def toggle_bookmark(self):
+		(f, l) = self.edit_book.get_current_file_line()
+		if self.bm_mgr.check(f, l) == 0:
+			self.append_bookmark(f, l)
+		else:
+			self.delete_bookmark(f, l)
+
+	def annihilate_bookmarks(self):
+		for file_name, line_no in reversed(self.bm_mgr.bookmarks()):
+			self.delete_bookmark(file_name, line_no)
+		
 	def show_toolbar_cb(self):
 		self.is_show_toolbar = self.show_toolbar.isChecked()
 		if (self.is_show_toolbar):
@@ -392,8 +432,9 @@ class SeascopeApp(QMainWindow):
 		else:
 			self.edit_book = EdView.EditorBook()
 
-		self.res_book = ResView.ResultManager()
+		self.res_book  = ResView.ResultManager()
 		self.file_view = FileView.FileTree()
+		self.bm_mgr    = BookmarkManager.BookmarkManager()
 
 		self.sbar = self.statusBar()
 		self.create_mbar()
