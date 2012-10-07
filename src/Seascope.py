@@ -159,6 +159,9 @@ class SeascopeApp(QMainWindow):
 		self.m_bm.addAction('Toggle current line', self.toggle_bookmark, 'Ctrl+B')
 		self.m_bm.addAction('Delete all bookmarks', self.annihilate_bookmarks, '')
 		self.m_bm.addSeparator()
+		self.m_bm.addAction('Previous bookmark', self.edit_book.bookmark_prev_cb, 'Alt+PgUp')
+		self.m_bm.addAction('Next bookmark', self.edit_book.bookmark_next_cb, 'Alt+PgDown')
+		self.m_bm.addSeparator()
 		self.bm_actionGroup = QActionGroup(self, triggered=self.go_bookmark)
 
 		m_go = menubar.addMenu('&Go')

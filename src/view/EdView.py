@@ -88,6 +88,15 @@ class EditorView(QsciScintilla):
 	def bookmark_del(self, line):
 		self.markerDelete(line, self.bookmark_marker)
 
+	def goto_marker(self, is_next):
+		(eline, inx) = self.getCursorPosition()
+		if is_next:
+			val = self.markerFindNext(eline + 1, -1)
+		else:
+			val = self.markerFindPrevious(eline - 1, -1)
+		if val > 0:
+			self.setCursorPosition(val, 0)
+
 	def set_font(self, font):
 		if not font:
 			return
@@ -434,3 +443,13 @@ class EditorBook(QTabWidget):
 		cmd = cmd.replace('%F', f).replace('%L', str(l))
 		if not QProcess.startDetached(cmd):
 			DialogManager.show_msg_dialog('Failed to start: ' + cmd)
+
+	def bookmark_prev_cb(self):
+		ed = self.currentWidget()
+		if ed:
+			ed.ev.goto_marker(False)
+
+	def bookmark_next_cb(self):
+		ed = self.currentWidget()
+		if ed:
+			ed.ev.goto_marker(True)
