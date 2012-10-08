@@ -94,7 +94,7 @@ class EditorView(QsciScintilla):
 			val = self.markerFindNext(eline + 1, -1)
 		else:
 			val = self.markerFindPrevious(eline - 1, -1)
-		if val > 0:
+		if val >= 0:
 			self.setCursorPosition(val, 0)
 
 	def set_font(self, font):
