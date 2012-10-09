@@ -271,7 +271,7 @@ class FileTree(QTabWidget):
 
 	def search_file_cb(self):
 		self.ft.search_file_cb()
-		self.setCurrentIndex(0)
+		self.setCurrentWidget(self.ft)
 
 	def clear(self):
 		self.ft.clear()
