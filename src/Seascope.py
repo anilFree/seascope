@@ -54,7 +54,7 @@ class SeascopeApp(QMainWindow):
 				self.exit_dont_ask = True
 
 		# extra proc for editing enabled
-		if(self.inner_editing):
+		if self.inner_editing:
 			self.edit_book.close_all_cb()
 
 		self.app_write_config()
@@ -101,7 +101,7 @@ class SeascopeApp(QMainWindow):
 		m_file.addAction('&Preferences', self.file_preferences_cb)
 		m_file.addAction('&Debug', self.show_dbg_dialog, 'Ctrl+D')
 		m_file.addSeparator()
-		if (self.inner_editing):
+		if self.inner_editing:
 			m_file.addAction('&Save', self.edit_book.save_current_page, 'Ctrl+S')
 		m_file.addAction('&Close', self.file_close_cb, QKeySequence.Close)
 		m_file.addSeparator()
@@ -192,7 +192,7 @@ class SeascopeApp(QMainWindow):
 
 		# edit related
 		# if need editing support
-		if (self.inner_editing):
+		if self.inner_editing:
 			self.toolbar.addSeparator()
 			self.toolbar.addAction(si(QStyle.SP_DialogSaveButton), 'Save', self.edit_book.save_current_page)
 			self.toolbar.addSeparator()
@@ -239,6 +239,7 @@ class SeascopeApp(QMainWindow):
 		self.app_font = None
 		self.ev_font = None
 		self.exit_dont_ask = False
+		self.inner_editing_conf = False
 		self.inner_editing = False
 		self.is_show_toolbar = False
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
@@ -277,9 +278,13 @@ class SeascopeApp(QMainWindow):
 					self.exit_dont_ask = True
 			if (key == 'inner_editing'):
 				if ('true' == line[1].split('\n')[0]):
-					self.inner_editing = True
+					self.inner_editing_conf = True
 				else:
-					self.inner_editing = False
+					self.inner_editing_conf = False
+			if os.getenv("SEASCOPE_EDIT"):
+				self.inner_editing = True
+			else:
+				self.inner_editing = self.inner_editing_conf
 		cf.close()
 
 	def app_write_config(self):
@@ -291,7 +296,7 @@ class SeascopeApp(QMainWindow):
 			cf.write('app_font' + '=' + self.app_font + '\n')
 		if (self.ev_font):
 			cf.write('edit_font' + '=' + self.ev_font + '\n')
-		if (self.inner_editing):
+		if (self.inner_editing_conf):
 			cf.write('inner_editing' + '=' + 'true' + '\n')
 		else:
 			cf.write('inner_editing' + '=' + 'false' + '\n')
@@ -349,7 +354,7 @@ class SeascopeApp(QMainWindow):
 		backend.proj_close()
 		
 		# whether editing enabled
-		if(not self.inner_editing):
+		if not self.inner_editing:
 			self.edit_book.clear()
 		else:
 			self.edit_book.close_all_cb()
@@ -430,7 +435,7 @@ class SeascopeApp(QMainWindow):
 
 		self.app_read_config()
 
-		if (self.inner_editing):
+		if self.inner_editing:
 			self.edit_book = EdViewRW.EditorBookRW()
 		else:
 			self.edit_book = EdView.EditorBook()
@@ -442,10 +447,10 @@ class SeascopeApp(QMainWindow):
 		self.sbar = self.statusBar()
 		self.create_mbar()
 		
-		if (self.is_show_toolbar):
+		if self.is_show_toolbar:
 			self.create_toolbar()
 
-		if(self.inner_editing):
+		if self.inner_editing:
 			EdViewRW.EditorView.ev_popup = self.backend_menu
 		else:
 			EdView.EditorView.ev_popup = self.backend_menu
