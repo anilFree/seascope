@@ -199,6 +199,7 @@ class EditorBook(QTabWidget):
 		ed.ev.show_line_number_cb(self.is_show_line)
 		ed.ev.set_font(self.ev_font)
 		self.addTab(ed, fileName)
+		ed.ev.show_folds_cb(self.is_show_folds)
 
 	def get_current_word(self):
 		ed = self.currentWidget()
@@ -322,6 +323,7 @@ class EditorBook(QTabWidget):
 			page.ev.set_font(self.ev_font)
 			page.ev.show_line_number_cb(self.is_show_line)
 			self.addTab(page, os.path.basename(filename))
+			page.ev.show_folds_cb(self.is_show_folds)
 		
 		self.setCurrentWidget(page)
 		if (line != None):
