@@ -89,6 +89,7 @@ class EditorBookRW(EditorBook):
 		filename = page.get_filename()
 		if (filename):
 			page.ev.save_file(filename)
+			page.fcv.rerun(filename)
 
 	def save_all_file(self):
 		for i in range(self.count()):
