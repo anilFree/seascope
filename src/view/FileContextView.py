@@ -27,6 +27,12 @@ class FileContextView(QTabWidget):
 		self.filename = filename
 		filecontext.run_plugins(filename, self)
 
+	def rerun(self, filename):
+		inx = self.currentIndex()
+		self.clear()
+		self.run(filename)
+		self.setCurrentIndex(inx)
+
 	def focus_search_ctags(self):
 		for inx in range(self.count()):
 			page = self.widget(inx)
