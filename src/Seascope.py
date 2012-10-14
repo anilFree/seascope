@@ -65,12 +65,47 @@ class SeascopeApp(QMainWindow):
 		QApplication.quit()
 		QProcess.startDetached(sys.executable, QApplication.arguments());
 
-	def go_prev_res_cb(self):
-		self.res_book.go_next_res(-1)
-	def go_bookmark(self, action):
+	def bookmark_add(self, f, l):
+		self.bm_mgr.append(f, l)
+		self.edit_book.bookmark_add(f, l - 1)
+		actionText = QString(f + " : " + str(l))
+		act = QAction(actionText, self)
+		self.bm_actionGroup.addAction(act)
+		self.m_bm.addAction(act)
+
+	def bookmark_delete(self, f, l):
+		self.bm_mgr.delete(f, l)
+		self.edit_book.bookmark_del(f, l - 1)
+		actionText = QString(f + " : " + str(l))
+		actions = self.bm_actionGroup.actions()
+		for act in actions:
+			if actionText == act.text():
+				self.bm_actionGroup.removeAction(act)
+		
+	def bookmark_toggle_cb(self):
+		(f, l) = self.edit_book.get_current_file_line()
+		if self.bm_mgr.check(f, l) == 0:
+			self.bookmark_add(f, l)
+		else:
+			self.bookmark_delete(f, l)
+
+	def bookmark_del_file_cb(self, filename):
+		if filename == '':
+			return
+		for f, l in reversed(self.bm_mgr.bookmarks()):
+			if f == filename:
+				self.bookmark_delete(f, l)
+
+	def bookmark_del_all_cb(self):
+		for f, l in reversed(self.bm_mgr.bookmarks()):
+			self.bookmark_delete(f, l)
+		
+	def bookmark_go(self, action):
 		for f, l in self.bm_mgr.bookmarks():
 			if action.text() == QString(f + " : " + str(l)):
 				self.edit_book.show_file_line(f, l)
+	def go_prev_res_cb(self):
+		self.res_book.go_next_res(-1)
 	def go_next_res_cb(self):
 		self.res_book.go_next_res(+1)
 	def go_prev_pos_cb(self):
@@ -154,14 +189,14 @@ class SeascopeApp(QMainWindow):
 
 		self.backend_menu = menubar.addMenu('')
 
-		self.m_bm = menubar.addMenu('&Bookmark')
-		self.m_bm.addAction('Toggle current line', self.toggle_bookmark, 'Ctrl+B')
-		self.m_bm.addAction('Delete all bookmarks', self.annihilate_bookmarks, '')
+		self.m_bm = menubar.addMenu('&Codemark')
+		self.m_bm.addAction('Toggle codemark', self.bookmark_toggle_cb, 'Ctrl+B')
+		self.m_bm.addAction('Delete all codemarks', self.bookmark_del_all_cb, '')
 		self.m_bm.addSeparator()
 		self.m_bm.addAction('Previous bookmark', self.edit_book.bookmark_prev_cb, 'Alt+PgUp')
 		self.m_bm.addAction('Next bookmark', self.edit_book.bookmark_next_cb, 'Alt+PgDown')
 		self.m_bm.addSeparator()
-		self.bm_actionGroup = QActionGroup(self, triggered=self.go_bookmark)
+		self.bm_actionGroup = QActionGroup(self, triggered=self.bookmark_go)
 
 		m_go = menubar.addMenu('&Go')
 		m_go.addAction('Previous Result', self.go_prev_res_cb, 'Alt+Up')
@@ -391,34 +426,6 @@ class SeascopeApp(QMainWindow):
 	def show_file_line(self, filename, line):
 		self.edit_book.show_file_line(filename, line)
 
-	def append_bookmark(self, f, l):
-		self.bm_mgr.append(f, l)
-		self.edit_book.bookmark_add(f, l - 1)
-		actionText = QString(f + " : " + str(l))
-		act = QAction(actionText, self)
-		self.bm_actionGroup.addAction(act)
-		self.m_bm.addAction(act)
-
-	def delete_bookmark(self, f, l):
-		self.bm_mgr.delete(f, l)
-		self.edit_book.bookmark_del(f, l - 1)
-		actionText = QString(f + " : " + str(l))
-		actions = self.bm_actionGroup.actions()
-		for act in actions:
-			if actionText == act.text():
-				self.bm_actionGroup.removeAction(act)
-		
-	def toggle_bookmark(self):
-		(f, l) = self.edit_book.get_current_file_line()
-		if self.bm_mgr.check(f, l) == 0:
-			self.append_bookmark(f, l)
-		else:
-			self.delete_bookmark(f, l)
-
-	def annihilate_bookmarks(self):
-		for file_name, line_no in reversed(self.bm_mgr.bookmarks()):
-			self.delete_bookmark(file_name, line_no)
-		
 	def show_toolbar_cb(self):
 		self.is_show_toolbar = self.show_toolbar.isChecked()
 		if (self.is_show_toolbar):
@@ -471,6 +478,7 @@ class SeascopeApp(QMainWindow):
 		self.res_book.sig_show_file_line.connect(self.edit_book.show_file_line)
 		self.file_view.sig_show_file.connect(self.edit_book.show_file)
 		self.edit_book.sig_open_dir_view.connect(self.file_view.open_dir_view)
+		self.edit_book.sig_file_closed.connect(self.bookmark_del_file_cb)
 
 		self.hsp = QSplitter();
 		self.hsp.addWidget(self.edit_book)
