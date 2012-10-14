@@ -160,13 +160,16 @@ class EditorPage(QSplitter):
 	def __init__(self, parent=None):
 		QSplitter.__init__(self)
 		self.fcv = FileContextView(self)
-		self.ev = EditorView(self)
+		self.ev = self.new_editor_view()
 		self.addWidget(self.fcv)
 		self.addWidget(self.ev)
 		self.setSizes([1, 300])
 
 		self.ev.cursorPositionChanged.connect(self.fcv.sig_ed_cursor_changed)
 		self.fcv.sig_goto_line.connect(self.ev.goto_line)
+
+	def new_editor_view(self):
+		return EditorView(self)
 
 	def open_file(self, filename):
 		self.ev.open_file(filename);
@@ -193,13 +196,24 @@ class EditorBook(QTabWidget):
 		self.f_text = None
 		self.ev_font = "Monospace,10,-1,5,50,0,0,0,0,0"
 
+	def new_editor_page(self):
+		return EditorPage()
+
 	def addFile(self, fileName):
-		ed = EditorPage()
+		ed = self.new_editor_page()
 		ed.open_file(fileName)
-		ed.ev.show_line_number_cb(self.is_show_line)
 		ed.ev.set_font(self.ev_font)
-		self.addTab(ed, fileName)
+		ed.ev.show_line_number_cb(self.is_show_line)
 		ed.ev.show_folds_cb(self.is_show_folds)
+		self.addTab(ed, os.path.basename(fileName))
+		return ed
+
+	def search_already_opened_files(self, filename):
+		for i in range(self.count()):
+			page = self.widget(i)
+			if (page.get_filename() == filename):
+				return page
+		return None
 
 	def get_current_word(self):
 		ed = self.currentWidget()
@@ -243,14 +257,6 @@ class EditorBook(QTabWidget):
 		if (line == None):
 			return
 		ed.ev.goto_line(line)	
-
-	def show_file(self, filename, line):
-		for i in range(self.count()):
-			ed = self.widget(i)
-			if (ed.get_filename() == filename):
-				self.setCurrentWidget(ed)
-				return
-		self.addFile(filename)
 
 	def focus_editor(self):
 		page = self.currentWidget()
@@ -301,15 +307,8 @@ class EditorBook(QTabWidget):
 			self.pmenu.addAction("Open dir", self.open_dir_cb)
 			self.pmenu.exec_(QCursor.pos())
 
-	def search_already_opened_files(self, filename):
-		for i in range(self.count()):
-			page = self.widget(i)
-			if (page.get_filename() == filename):
-				return page
-		return None
-
 	def show_file_line(self, filename, line):
-		if (line != None):
+		if line:
 			(f, l) = self.get_current_file_line()
 			if (f):
 				self.sig_history_update.emit(f, l)
@@ -317,42 +316,16 @@ class EditorBook(QTabWidget):
 		if (not os.path.exists(filename)):
 			return
 		page = self.search_already_opened_files(filename)
-		if (page == None):	
-			page = EditorPage()
-			page.open_file(filename)
-			page.ev.set_font(self.ev_font)
-			page.ev.show_line_number_cb(self.is_show_line)
-			self.addTab(page, os.path.basename(filename))
-			page.ev.show_folds_cb(self.is_show_folds)
-		
+		if page == None:
+			page = self.addFile(filename)
 		self.setCurrentWidget(page)
-		if (line != None):
+		if line:
 			page.ev.goto_line(line)
 			self.sig_history_update.emit(filename, line)
 		page.ev.setFocus()
 
-	def toggle_folds_cb(self):
-		ed = self.currentWidget()
-		if not ed:
-			return
-		if self.is_show_folds:
-			ed.ev.toggle_folds_cb()
-
-	def bookmark_add(self, filename, line):
-		for i in range(self.count()):
-			ed = self.widget(i)
-			if (ed.get_filename() == filename):
-				ed.ev.bookmark_add(line)
-
-	def bookmark_del(self, filename, line):
-		for i in range(self.count()):
-			ed = self.widget(i)
-			if (ed.get_filename() == filename):
-				ed.ev.bookmark_del(line)
-
-
 	def show_file(self, filename):
-		self.show_file_line(filename, None)
+		self.show_file_line(filename, 0)
 
 	def show_line(self, line):
 		ed = self.currentWidget()
@@ -428,12 +401,19 @@ class EditorBook(QTabWidget):
 		self.m_show_line_num.setChecked(val)
 		self.show_line_number_cb()
 
-        def show_folds_cb(self):
+	def show_folds_cb(self):
 		val = self.m_show_folds.isChecked()
 		self.is_show_folds = val
 		for inx in range(self.count()):
 			ed = self.widget(inx)
 			ed.ev.show_folds_cb(val)
+
+	def toggle_folds_cb(self):
+		ed = self.currentWidget()
+		if not ed:
+			return
+		if self.is_show_folds:
+			ed.ev.toggle_folds_cb()
 
 	def open_in_external_editor(self, cmd):
 		if not cmd:
@@ -445,6 +425,16 @@ class EditorBook(QTabWidget):
 		cmd = cmd.replace('%F', f).replace('%L', str(l))
 		if not QProcess.startDetached(cmd):
 			DialogManager.show_msg_dialog('Failed to start: ' + cmd)
+
+	def bookmark_add(self, filename, line):
+		ed = self.search_already_opened_files(filename)
+		if ed:
+			ed.ev.bookmark_add(line)
+
+	def bookmark_del(self, filename, line):
+		ed = self.search_already_opened_files(filename)
+		if ed:
+			ed.ev.bookmark_del(line)
 
 	def bookmark_prev_cb(self):
 		ed = self.currentWidget()

@@ -214,16 +214,20 @@ class QueryIdutils(QueryBase):
 		return qsig
 
 	def id_file_list_update(self):
-		id_file = os.path.join(self.conf.id_dir, 'ID')
-		if not os.path.exists(id_file):
+		wdir = self.conf.id_dir
+		if not os.path.exists(os.path.join(wdir, 'ID')):
 			return
 		fl = []
 		try:
 			import subprocess
-			pargs = [ 'fnid', '-S', 'newline', '-f', id_file ]
-			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			pargs = [ 'fnid', '-S', 'newline', '-f', 'ID' ]
+			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=wdir)
 			(out_data, err_data) = proc.communicate()
-			fl = re.split('\r?\n', out_data.strip())
+			fl = []
+			for f in re.split('\r?\n', out_data.strip()):
+				if f == '':
+					continue
+				fl.append(os.path.join(wdir, f))
 			PluginHelper.file_view_update(fl)
 		except:
 			import sys

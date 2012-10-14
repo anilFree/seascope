@@ -198,6 +198,9 @@ class QuerySignal(QObject):
 			pass
 		if not hint_file:
 			return res
+		if not os.path.isabs(hint_file):
+			print 'BUG: relevancy_sort: not abs path:', hint_file
+			return res
 		if len(res) > 10000:
 			return res
 		return self._relevancy_sort(hint_file, res)

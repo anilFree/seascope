@@ -138,9 +138,10 @@ class ResultPage(QTreeWidget):
 			return (None, None)
 		filename = str(model.data(model.index(row, 1)).toString())
 		try:
-			line = int(str(model.data(model.index(row, 2)).toString()))
+			line = model.data(model.index(row, 2)).toString()
+			line = int(line)
 		except:
-			line = None
+			line = 0
 		return (filename, line)
 
 	def add_result_continue(self):
@@ -156,7 +157,6 @@ class ResultPage(QTreeWidget):
 			#self.addTopLevelItem(item)
 			if (self.is_history):
 				root.insertChild(0, item)
-
 			else:
 				root.addChild(item)
 			count = count + 1
