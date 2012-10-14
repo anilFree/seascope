@@ -70,8 +70,7 @@ class SeascopeApp(QMainWindow):
 	def go_bookmark(self, action):
 		for f, l in self.bm_mgr.bookmarks():
 			if action.text() == QString(f + " : " + str(l)):
-				self.edit_book.show_file(f)
-				self.edit_book.show_line(l)
+				self.edit_book.show_file_line(f, l)
 	def go_next_res_cb(self):
 		self.res_book.go_next_res(+1)
 	def go_prev_pos_cb(self):

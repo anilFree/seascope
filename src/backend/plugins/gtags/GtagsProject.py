@@ -205,14 +205,14 @@ class QueryGtags(QueryBase):
 		return qsig
 
 	def gt_file_list_update(self):
-		gt_file = os.path.join(self.conf.gt_dir, 'GTAGS')
-		if not os.path.exists(gt_file):
+		wdir = self.conf.gt_dir
+		if not os.path.exists(os.path.join(wdir, 'GTAGS')):
 			return
 		fl = []
 		try:
 			import subprocess
 			pargs = [ 'global', '-P', '-a' ]
-			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=self.conf.gt_dir)
+			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=wdir)
 			(out_data, err_data) = proc.communicate()
 			fl = re.split('\r?\n', out_data.strip())
 			PluginHelper.file_view_update(fl)
