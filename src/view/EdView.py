@@ -179,6 +179,7 @@ class EditorPage(QSplitter):
 		return self.ev.get_filename()
 		
 class EditorBook(QTabWidget):
+	sig_file_closed = pyqtSignal(str)
 	sig_history_update = pyqtSignal(str, int)
 	sig_tab_changed = pyqtSignal(str)
 	sig_open_dir_view = pyqtSignal(str)
@@ -188,7 +189,7 @@ class EditorBook(QTabWidget):
 
 		self.setMovable(True)
 		self.setTabsClosable(True)
-		self.tabCloseRequested.connect(self.close_cb)
+		self.tabCloseRequested.connect(self.removeTab)
 		self.currentChanged.connect(self.tab_change_cb)
 		
 		self.is_show_line = False
@@ -214,6 +215,20 @@ class EditorBook(QTabWidget):
 			if (page.get_filename() == filename):
 				return page
 		return None
+
+	def removeTab(self, inx):
+		ed = self.widget(inx)
+		f = ed.ev.get_filename()
+		QTabWidget.removeTab(self, inx)
+		self.sig_file_closed.emit(f)
+
+	def clear(self):
+		while self.count() != 0:
+			self.removeTab(0)
+
+	def close_all_cb(self):
+		if DialogManager.show_yes_no("Close all files ?"):
+			self.clear()
 
 	def get_current_word(self):
 		ed = self.currentWidget()
@@ -277,11 +292,6 @@ class EditorBook(QTabWidget):
 		if ed:
 			ed.ev.copy()
 
-	def close_cb(self, inx):
-		self.removeTab(inx)
-	def close_all_cb(self):
-		if DialogManager.show_yes_no("Close all files ?"):
-			self.clear()
 	def tab_change_cb(self, inx):
 		if (inx == -1):
 			fname = ''
