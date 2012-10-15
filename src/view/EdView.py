@@ -36,7 +36,7 @@ class EditorView(QsciScintilla):
 
 		self.font = None
 		self.lexer = None
-		self.bookmark_marker = self.markerDefine(self.Circle)
+		self.codemark_marker = self.markerDefine(self.Circle)
 
 	def get_filename(self):
 		return self.filename
@@ -82,11 +82,11 @@ class EditorView(QsciScintilla):
 	def toggle_folds_cb(self):
 		self.foldAll()
 		
-	def bookmark_add(self, line):
-		self.markerAdd(line, self.bookmark_marker)
+	def codemark_add(self, line):
+		self.markerAdd(line, self.codemark_marker)
 
-	def bookmark_del(self, line):
-		self.markerDelete(line, self.bookmark_marker)
+	def codemark_del(self, line):
+		self.markerDelete(line, self.codemark_marker)
 
 	def goto_marker(self, is_next):
 		(eline, inx) = self.getCursorPosition()
@@ -436,15 +436,15 @@ class EditorBook(QTabWidget):
 		if not QProcess.startDetached(cmd):
 			DialogManager.show_msg_dialog('Failed to start: ' + cmd)
 
-	def bookmark_add(self, filename, line):
+	def codemark_add(self, filename, line):
 		ed = self.search_already_opened_files(filename)
 		if ed:
-			ed.ev.bookmark_add(line)
+			ed.ev.codemark_add(line)
 
-	def bookmark_del(self, filename, line):
+	def codemark_del(self, filename, line):
 		ed = self.search_already_opened_files(filename)
 		if ed:
-			ed.ev.bookmark_del(line)
+			ed.ev.codemark_del(line)
 
 	def bookmark_prev_cb(self):
 		ed = self.currentWidget()
