@@ -8,7 +8,7 @@
 import sys
 from array import *
 
-class BookmarkManager():
+class CodemarkManager():
 
 	def __init__(self, parent=None):
 		self.haystack = []
@@ -55,12 +55,12 @@ class BookmarkManager():
 	def clear(self):
 		del self.haystack[:]
 
-	def bookmarks(self):
+	def codemarks(self):
 		return self.haystack
 
 	def dump(self):
 		for i in range(len(self.haystack)):
-			print >> sys.stderr, "bm index ", i, " ", self.haystack[i]
+			print >> sys.stderr, "cm index ", i, " ", self.haystack[i]
 
 #############################################################################
 #
@@ -70,7 +70,7 @@ class BookmarkManager():
 
 if __name__ == '__main__':
 	
-	bm = BookmarkManager()
+	cm = CodemarkManager()
 
 	#
 	# case 1, basic add, delete
@@ -78,50 +78,50 @@ if __name__ == '__main__':
 	
 	print >> sys.stderr, "Initial empty"
 	
-	print >> sys.stderr, "bm has ", bm.count(), "items (0)"
+	print >> sys.stderr, "cm has ", cm.count(), "items (0)"
 
-	bm.append("file1", 100)
-	bm.append("file2", 200)
-	bm.append("file3", 300)
+	cm.append("file1", 100)
+	cm.append("file2", 200)
+	cm.append("file3", 300)
 
-	print >> sys.stderr, "bm has " , bm.count(), "items (3) "
+	print >> sys.stderr, "cm has " , cm.count(), "items (3) "
 	
-	bm.delete("file1", 100)
+	cm.delete("file1", 100)
 
-	print >> sys.stderr, "bm has " , bm.count(), "items (2)"
+	print >> sys.stderr, "cm has " , cm.count(), "items (2)"
 	
-	bm.delete("file2", 100) # not existed
+	cm.delete("file2", 100) # not existed
 
-	print >> sys.stderr, "bm has " , bm.count(), "items (2)"
+	print >> sys.stderr, "cm has " , cm.count(), "items (2)"
 
-	bm.delete_index(1)
+	cm.delete_index(1)
 
-	print >> sys.stderr, "bm has " , bm.count(), "items (1)"
+	print >> sys.stderr, "cm has " , cm.count(), "items (1)"
 
 	#
 	# case 2, dump
 	#
 
-	for i in range(bm.count()):
-		(f, l) = bm.get(i)
+	for i in range(cm.count()):
+		(f, l) = cm.get(i)
 		print >> sys.stderr, f, " (#", l, ")"
 
 	#
 	# case 3, duplicate
 	#
 
-	index = bm.append("file4", 400)
+	index = cm.append("file4", 400)
 	print >> sys.stderr, "index for file4 #400 is " , index
 	
-	index = bm.append("file4", 400)
+	index = cm.append("file4", 400)
 	print >> sys.stderr, "index for file4 #400 is " , index, " (again)"
 	
-	print >> sys.stderr, "bm has " , bm.count(), "items (2) "
+	print >> sys.stderr, "cm has " , cm.count(), "items (2) "
 
 	#
 	# case 4, dump for eye examine
 	#
 
-	print >> sys.stderr, "bm dump for final check"
+	print >> sys.stderr, "cm dump for final check"
 
-	bm.dump()
+	cm.dump()

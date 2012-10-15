@@ -18,7 +18,7 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, DebugView, BookmarkManager
+	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, DebugView, CodemarkView
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
@@ -65,43 +65,47 @@ class SeascopeApp(QMainWindow):
 		QApplication.quit()
 		QProcess.startDetached(sys.executable, QApplication.arguments());
 
-	def bookmark_add(self, f, l):
-		self.bm_mgr.append(f, l)
-		self.edit_book.bookmark_add(f, l - 1)
+	def codemark_add(self, f, l):
+		self.cm_mgr.append(f, l)
+		self.edit_book.codemark_add(f, l - 1)
 		actionText = QString(f + " : " + str(l))
 		act = QAction(actionText, self)
-		self.bm_actionGroup.addAction(act)
-		self.m_bm.addAction(act)
+		self.cm_actionGroup.addAction(act)
+		self.m_cm.addAction(act)
 
-	def bookmark_delete(self, f, l):
-		self.bm_mgr.delete(f, l)
-		self.edit_book.bookmark_del(f, l - 1)
+	def codemark_delete(self, f, l):
+		self.cm_mgr.delete(f, l)
+		self.edit_book.codemark_del(f, l - 1)
 		actionText = QString(f + " : " + str(l))
-		actions = self.bm_actionGroup.actions()
+		actions = self.cm_actionGroup.actions()
 		for act in actions:
 			if actionText == act.text():
-				self.bm_actionGroup.removeAction(act)
+				self.cm_actionGroup.removeAction(act)
 		
-	def bookmark_toggle_cb(self):
+	def codemark_toggle_cb(self):
 		(f, l) = self.edit_book.get_current_file_line()
-		if self.bm_mgr.check(f, l) == 0:
-			self.bookmark_add(f, l)
+		if self.cm_mgr.check(f, l) == 0:
+			self.codemark_add(f, l)
 		else:
-			self.bookmark_delete(f, l)
+			self.codemark_delete(f, l)
 
-	def bookmark_del_file_cb(self, filename):
+	def codemark_del_file_cb(self, filename):
 		if filename == '':
 			return
-		for f, l in reversed(self.bm_mgr.bookmarks()):
+		for f, l in reversed(self.cm_mgr.codemarks()):
 			if f == filename:
-				self.bookmark_delete(f, l)
+				self.codemark_delete(f, l)
 
-	def bookmark_del_all_cb(self):
-		for f, l in reversed(self.bm_mgr.bookmarks()):
-			self.bookmark_delete(f, l)
+	def codemark_del_all_cb(self):
+		if not self.cm_mgr.count():
+			return
+		if not DialogManager.show_yes_no('Delete all codemarks ?'):
+			return
+		for f, l in reversed(self.cm_mgr.codemarks()):
+			self.codemark_delete(f, l)
 		
-	def bookmark_go(self, action):
-		for f, l in self.bm_mgr.bookmarks():
+	def codemark_go(self, action):
+		for f, l in self.cm_mgr.codemarks():
 			if action.text() == QString(f + " : " + str(l)):
 				self.edit_book.show_file_line(f, l)
 	def go_prev_res_cb(self):
@@ -189,14 +193,14 @@ class SeascopeApp(QMainWindow):
 
 		self.backend_menu = menubar.addMenu('')
 
-		self.m_bm = menubar.addMenu('&Codemark')
-		self.m_bm.addAction('Toggle codemark', self.bookmark_toggle_cb, 'Ctrl+B')
-		self.m_bm.addAction('Delete all codemarks', self.bookmark_del_all_cb, '')
-		self.m_bm.addSeparator()
-		self.m_bm.addAction('Previous bookmark', self.edit_book.bookmark_prev_cb, 'Alt+PgUp')
-		self.m_bm.addAction('Next bookmark', self.edit_book.bookmark_next_cb, 'Alt+PgDown')
-		self.m_bm.addSeparator()
-		self.bm_actionGroup = QActionGroup(self, triggered=self.bookmark_go)
+		self.m_cm = menubar.addMenu('&Codemark')
+		self.m_cm.addAction('Toggle codemark', self.codemark_toggle_cb, 'Ctrl+B')
+		self.m_cm.addAction('Delete all codemarks', self.codemark_del_all_cb, '')
+		self.m_cm.addSeparator()
+		self.m_cm.addAction('Previous bookmark', self.edit_book.bookmark_prev_cb, 'Alt+PgUp')
+		self.m_cm.addAction('Next bookmark', self.edit_book.bookmark_next_cb, 'Alt+PgDown')
+		self.m_cm.addSeparator()
+		self.cm_actionGroup = QActionGroup(self, triggered=self.codemark_go)
 
 		m_go = menubar.addMenu('&Go')
 		m_go.addAction('Previous Result', self.go_prev_res_cb, 'Alt+Up')
@@ -395,7 +399,7 @@ class SeascopeApp(QMainWindow):
 
 		self.res_book.clear()
 		self.file_view.clear()
-		self.bm_mgr.clear()
+		self.cm_mgr.clear()
 
 	def proj_settings_cb(self):
 		backend.proj_settings_trigger()
@@ -448,7 +452,7 @@ class SeascopeApp(QMainWindow):
 
 		self.res_book  = ResView.ResultManager()
 		self.file_view = FileView.FileTree()
-		self.bm_mgr    = BookmarkManager.BookmarkManager()
+		self.cm_mgr    = CodemarkView.CodemarkManager()
 
 		self.sbar = self.statusBar()
 		self.create_mbar()
@@ -478,7 +482,7 @@ class SeascopeApp(QMainWindow):
 		self.res_book.sig_show_file_line.connect(self.edit_book.show_file_line)
 		self.file_view.sig_show_file.connect(self.edit_book.show_file)
 		self.edit_book.sig_open_dir_view.connect(self.file_view.open_dir_view)
-		self.edit_book.sig_file_closed.connect(self.bookmark_del_file_cb)
+		self.edit_book.sig_file_closed.connect(self.codemark_del_file_cb)
 
 		self.hsp = QSplitter();
 		self.hsp.addWidget(self.edit_book)
