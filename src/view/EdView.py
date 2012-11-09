@@ -226,6 +226,24 @@ class EditorBook(QTabWidget):
 		while self.count() != 0:
 			self.removeTab(0)
 
+	def close_left(self):
+		if (self.count() <= 1):
+			return;
+		inx = self.currentIndex()
+		for i in range(inx):
+			self.removeTab(0)
+
+	def close_right(self):
+		if (self.count() <= 1):
+			return;
+		inx = self.currentIndex()
+		for i in range(self.count() - (inx + 1)):
+			self.removeTab(inx + 1)
+		
+	def close_others(self):
+		self.close_left();
+		self.close_right();
+
 	def close_all_cb(self):
 		if DialogManager.show_yes_no("Close all files ?"):
 			self.clear()
@@ -313,6 +331,9 @@ class EditorBook(QTabWidget):
 		if (m_ev.button() == Qt.RightButton):
 			# setup popup menu
 			self.pmenu = QMenu()
+			self.pmenu.addAction("Close &Left", self.close_left)
+			self.pmenu.addAction("Close &Right", self.close_right)
+			self.pmenu.addAction("Close &Others", self.close_others)
 			self.pmenu.addAction("Close &All", self.close_all_cb)
 			self.pmenu.addAction("Open dir", self.open_dir_cb)
 			self.pmenu.exec_(QCursor.pos())
