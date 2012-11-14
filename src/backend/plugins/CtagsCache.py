@@ -85,17 +85,17 @@ class CtagsThread(QThread):
 
 		m = self.ctags_bsearch(ct, n)
 		if m == -1:
-			return
+			return True
 		if ct[m][1] != n:
 			if ct[m][2] in ['variable']:
 				#line[0] = '***** SMART *****'
 				#print line
-				return
+				return True
 			if f.endswith('.py'):
 				while m > 0 and (ct[m][2] in ['namespace']):
 					m = m - 1
 				if m == - 1:
-					return
+					return True
 		if ct[m][1] == n:
 			if self.cmd_str == 'DEF':
 				x = m
@@ -108,7 +108,11 @@ class CtagsThread(QThread):
 					for m in range(x, y + 1):
 						if re.match(self.sig.sym, ct[m][0]):
 							break
+		else:
+			if self.cmd_str == 'DEF':
+				return False
 		line[0] = ct[m][0]
+		return True
 
 	def _run_ctags(self):
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
@@ -159,12 +163,14 @@ class CtagsThread(QThread):
 		
 		#t3 = datetime.now()
 		#print '  ct', t3 - t2
-
+		res = []
 		for line in self.res:
 			if line[0] not in self.cond_list:
 				continue
-			self._ctags_fix(line)
-
+			if not self._ctags_fix(line):
+				continue
+			res.append(line)
+		self.res = res
 		#t4 = datetime.now()
 		#print '  fix', t4 - t3
 		#print '  total', t4 - t2
