@@ -226,27 +226,40 @@ class EditorBook(QTabWidget):
 		while self.count() != 0:
 			self.removeTab(0)
 
-	def close_left(self):
-		if (self.count() <= 1):
-			return;
-		inx = self.currentIndex()
-		for i in range(inx):
-			self.removeTab(0)
+	def remove_tab_list(self, inx_list):
+		for inx in sorted(inx_list, reverse=True):
+			self.removeTab(inx)
 
-	def close_right(self):
-		if (self.count() <= 1):
-			return;
-		inx = self.currentIndex()
-		for i in range(self.count() - (inx + 1)):
-			self.removeTab(inx + 1)
-		
-	def close_others(self):
-		self.close_left();
-		self.close_right();
+	def tab_list(self, inx, type):
+		inx_list = []
+		if type == 'all':
+			return range(self.count())
+		if type == 'left':
+			return range(inx)
+		if type == 'right':
+			return range(inx + 1, self.count())
+		if type == 'other':
+			return self.tab_list(inx, 'left') + self.tab_list(inx, 'right')
+		if type == 'all' or type == 'files':
+			return range(self.count())
+		assert 0
 
+	def close_list_common(self, type):
+		inx_list = self.tab_list(self.currentIndex(), type)
+		if len(inx_list) == 0:
+			return
+		if not DialogManager.show_yes_no('Close all %s ?' % type):
+			return
+		self.remove_tab_list(inx_list)
+
+	def close_all_left_cb(self):
+		self.close_list_common('left')
+	def close_all_right_cb(self):
+		self.close_list_common('right')
+	def close_all_other_cb(self):
+		self.close_list_common('other')
 	def close_all_cb(self):
-		if DialogManager.show_yes_no("Close all files ?"):
-			self.clear()
+		self.close_list_common('files')
 
 	def get_current_word(self):
 		ed = self.currentWidget()
@@ -331,11 +344,13 @@ class EditorBook(QTabWidget):
 		if (m_ev.button() == Qt.RightButton):
 			# setup popup menu
 			self.pmenu = QMenu()
-			self.pmenu.addAction("Close &Left", self.close_left)
-			self.pmenu.addAction("Close &Right", self.close_right)
-			self.pmenu.addAction("Close &Others", self.close_others)
-			self.pmenu.addAction("Close &All", self.close_all_cb)
 			self.pmenu.addAction("Open dir", self.open_dir_cb)
+			self.pmenu.addSeparator()
+			self.pmenu.addAction("Close All &Left", self.close_all_left_cb)
+			self.pmenu.addAction("Close All &Right", self.close_all_right_cb)
+			self.pmenu.addAction("Close &Others", self.close_all_other_cb)
+			self.pmenu.addSeparator()
+			self.pmenu.addAction("Close &All", self.close_all_cb)
 			self.pmenu.exec_(QCursor.pos())
 
 	def show_file_line(self, filename, line):
