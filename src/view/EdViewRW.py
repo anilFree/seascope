@@ -83,20 +83,26 @@ class EditorBookRW(EditorBook):
 	def new_editor_page(self):
 		return EditorPageRW()
 
-	# save current file
-	def save_current_page(self):
-		page = self.widget(self.currentIndex())
+	def save_file_at_inx(self, inx):
+		if inx < 0:
+			return
+		page = self.widget(inx)
 		filename = page.get_filename()
-		if (filename):
+		if filename:
 			page.ev.save_file(filename)
 			page.fcv.rerun(filename)
 
+	def save_current_page(self):
+		inx = self.currentIndex()
+		self.save_file_at_inx(inx)
+
+	def save_tab_list(self, inx_list):
+		for inx in inx_list:
+			self.save_file_at_inx(inx)
+
 	def save_all_file(self):
-		for i in range(self.count()):
-			page = self.widget(i)
-			filename = page.get_filename()
-			if (filename):
-				page.ev.save_file(filename)
+		inx_list = range(self.count())
+		self.save_tab_list(inx_list)
 
 	def page_modified_cb(self, isModifiled):
 		inx = self.currentIndex()
@@ -112,26 +118,32 @@ class EditorBookRW(EditorBook):
 	
 	def close_cb(self, inx):
 		page = self.widget(self.currentIndex())
-		if (page.ev.isModified()):
-			if DialogManager.show_yes_no("Do you want to save files ?"):
+		if page.ev.isModified():
+			if DialogManager.show_yes_no("Do you want to save file ?"):
 				self.save_current_page()
 		self.removeTab(inx)
 
-	def close_all_cb(self):
-		needSave = False
-		for i in range(self.count()):
+	def has_modified_file(self, inx_list):
+		for i in inx_list:
 			page = self.widget(i)
-			if (page.ev.isModified()):
-				needSave = True
-				break
-		if needSave:
-			if DialogManager.show_yes_no("Save all changes ?"):
-				self.save_all_file()	
-			self.clear()
-		else:
-			if DialogManager.show_yes_no("Close all files ?"):
-				self.clear()
+			if page.ev.isModified():
+				return True
+		return False
 
+	def close_list_common(self, type):
+		inx_list = self.tab_list(self.currentIndex(), type)
+		if len(inx_list) == 0:
+			return
+		if self.has_modified_file(inx_list):
+			msg = 'Closing all %s.\nSave changes ?' % type
+			if DialogManager.show_yes_no(msg):
+				self.save_tab_list()
+			self.remove_tab_list(inx_list)
+		else:
+			msg = 'Close all %s ?' % type
+			if not DialogManager.show_yes_no(msg):
+				return
+			self.remove_tab_list(inx_list)
 
 	def show_file_line(self, filename, line):
 		EditorBook.show_file_line(self, filename, line)
