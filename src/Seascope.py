@@ -62,8 +62,26 @@ class SeascopeApp(QMainWindow):
 	def file_restart_cb(self):
 		if not DialogManager.show_yes_no('Restart ?'):
 			return
+		hint = self.edit_book.get_file_line_list()
+		self.proj_close_cb()
 		QApplication.quit()
+		os.environ['SEASCOPE_RESTART_HINT'] = '%s' % str(hint)
 		QProcess.startDetached(sys.executable, QApplication.arguments());
+	def file_restarted_cb(self):
+		try:
+			hint = os.environ['SEASCOPE_RESTART_HINT']
+			#del os.environ['SEASCOPE_RESTART_HINT']
+			fll = eval(hint)
+			for fl in fll:
+				try:
+					(f, l) = fl.rsplit(':', 1)
+					l = int(l)
+					self.edit_book.show_file_line(f, l, hist=False)
+				except Exception as e:
+					print e
+					pass
+		except:
+			pass
 
 	def codemark_add(self, f, l):
 		self.cm_mgr.append(f, l)
@@ -390,12 +408,11 @@ class SeascopeApp(QMainWindow):
 		self.setWindowTitle("Seascope")
 
 		backend.proj_close()
-		
-		# whether editing enabled
-		if not self.inner_editing:
-			self.edit_book.clear()
-		else:
+
+		if self.inner_editing:
 			self.edit_book.close_all_cb()
+		else:
+			self.edit_book.clear()
 
 		self.res_book.clear()
 		self.file_view.clear()
@@ -440,43 +457,7 @@ class SeascopeApp(QMainWindow):
 	def is_code_quick_view(self):
 		QMessageBox.information(None, "Seascope", 'Not implemented yet!', QMessageBox.Ok)
 
-	def __init__(self, parent=None):
-		QMainWindow.__init__(self)
-
-		self.app_read_config()
-
-		if self.inner_editing:
-			self.edit_book = EdViewRW.EditorBookRW()
-		else:
-			self.edit_book = EdView.EditorBook()
-
-		self.res_book  = ResView.ResultManager()
-		self.file_view = FileView.FileTree()
-		self.cm_mgr    = CodemarkView.CodemarkManager()
-
-		self.sbar = self.statusBar()
-		self.create_mbar()
-		
-		if self.is_show_toolbar:
-			self.create_toolbar()
-
-		if self.inner_editing:
-			EdViewRW.EditorView.ev_popup = self.backend_menu
-		else:
-			EdView.EditorView.ev_popup = self.backend_menu
-
-		CallView.CallTreeWindow.parent = self
-		ClassGraphView.ClassGraphWindow.parent = self
-
-		PluginHelper.backend_menu = self.backend_menu
-		PluginHelper.edit_book = self.edit_book
-		PluginHelper.res_book = self.res_book
-		PluginHelper.call_view = CallView
-		PluginHelper.class_graph_view = ClassGraphView
-		PluginHelper.file_view = self.file_view
-		PluginHelper.dbg_view = DebugView
-		
-
+	def connect_signals(self):
 		self.edit_book.sig_history_update.connect(self.res_book.history_update)
 		self.edit_book.sig_tab_changed.connect(self.editor_tab_changed_cb)
 		self.res_book.sig_show_file_line.connect(self.edit_book.show_file_line)
@@ -484,6 +465,7 @@ class SeascopeApp(QMainWindow):
 		self.edit_book.sig_open_dir_view.connect(self.file_view.open_dir_view)
 		self.edit_book.sig_file_closed.connect(self.codemark_del_file_cb)
 
+	def setup_widget_tree(self):
 		self.hsp = QSplitter();
 		self.hsp.addWidget(self.edit_book)
 		self.hsp.addWidget(self.file_view)
@@ -509,17 +491,63 @@ class SeascopeApp(QMainWindow):
 			self.edit_book.ev_font = self.ev_font	
 		self.show_toolbar.setChecked(self.is_show_toolbar)
 
-		if len(self.recent_projects):
-			self.proj_open(self.recent_projects[0])
-		#else:
-			#self.proj_open_cb()
-		if (self.app_style):
+	def create_widgets(self):
+		if self.inner_editing:
+			self.edit_book = EdViewRW.EditorBookRW()
+		else:
+			self.edit_book = EdView.EditorBook()
+
+		self.res_book  = ResView.ResultManager()
+		self.file_view = FileView.FileTree()
+		self.cm_mgr    = CodemarkView.CodemarkManager()
+
+		self.sbar = self.statusBar()
+		self.create_mbar()
+		
+		if self.is_show_toolbar:
+			self.create_toolbar()
+
+	def setup_widget_hints(self):
+		if self.inner_editing:
+			EdViewRW.EditorView.ev_popup = self.backend_menu
+		else:
+			EdView.EditorView.ev_popup = self.backend_menu
+
+		CallView.CallTreeWindow.parent = self
+		ClassGraphView.ClassGraphWindow.parent = self
+
+		PluginHelper.backend_menu = self.backend_menu
+		PluginHelper.edit_book = self.edit_book
+		PluginHelper.res_book = self.res_book
+		PluginHelper.call_view = CallView
+		PluginHelper.class_graph_view = ClassGraphView
+		PluginHelper.file_view = self.file_view
+		PluginHelper.dbg_view = DebugView
+		
+	def setup_style_and_font(self):
+		if self.app_style:
 			QApplication.setStyle(self.app_style)
-		if (self.app_font):
+		if self.app_font:
 			font = QFont()
 			font.fromString(self.app_font)
 			QApplication.setFont(font)
 
+	def __init__(self, parent=None):
+		QMainWindow.__init__(self)
+
+		self.app_read_config()
+
+		self.create_widgets()
+		self.setup_widget_hints()
+		self.connect_signals()
+		self.setup_widget_tree()
+		self.setup_style_and_font()
+
+		if len(self.recent_projects):
+			self.proj_open(self.recent_projects[0])
+		#else:
+			#self.proj_open_cb()
+		self.file_restarted_cb()
 
 if __name__ == "__main__":
 

@@ -232,7 +232,7 @@ class EditorBook(QTabWidget):
 
 	def tab_list(self, inx, type):
 		inx_list = []
-		if type == 'all':
+		if type == 'all' or type == 'files':
 			return range(self.count())
 		if type == 'left':
 			return range(inx)
@@ -240,8 +240,6 @@ class EditorBook(QTabWidget):
 			return range(inx + 1, self.count())
 		if type == 'other':
 			return self.tab_list(inx, 'left') + self.tab_list(inx, 'right')
-		if type == 'all' or type == 'files':
-			return range(self.count())
 		assert 0
 
 	def close_list_common(self, type):
@@ -288,6 +286,18 @@ class EditorBook(QTabWidget):
 			return (None, None)
 		(line, inx) = ed.ev.getCursorPosition()
 		return (ed.ev.filename, line + 1)
+	def get_file_line_list(self):
+		fl_list = []
+		tlist = range(self.count())
+		inx = self.currentIndex()
+		if inx >= 0:
+			tlist.append(inx)
+		for inx in tlist:
+			ed = self.widget(inx)
+			(line, inx) = ed.ev.getCursorPosition()
+			fl_list.append('%s:%d' % (ed.ev.filename, line + 1))
+		return fl_list
+
 	def matching_brace_cb(self):
 		ed = self.currentWidget()
 		if ed:
@@ -353,11 +363,12 @@ class EditorBook(QTabWidget):
 			self.pmenu.addAction("Close &All", self.close_all_cb)
 			self.pmenu.exec_(QCursor.pos())
 
-	def show_file_line(self, filename, line):
+	def show_file_line(self, filename, line, hist=True):
 		if line:
 			(f, l) = self.get_current_file_line()
 			if (f):
-				self.sig_history_update.emit(f, l)
+				if hist:
+					self.sig_history_update.emit(f, l)
 		filename = str(filename)
 		if (not os.path.exists(filename)):
 			return
@@ -367,7 +378,8 @@ class EditorBook(QTabWidget):
 		self.setCurrentWidget(page)
 		if line:
 			page.ev.goto_line(line)
-			self.sig_history_update.emit(filename, line)
+			if hist:
+				self.sig_history_update.emit(filename, line)
 		page.ev.setFocus()
 
 	def show_file(self, filename):
