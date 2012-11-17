@@ -145,8 +145,8 @@ class EditorBookRW(EditorBook):
 				return
 			self.remove_tab_list(inx_list)
 
-	def show_file_line(self, filename, line):
-		EditorBook.show_file_line(self, filename, line)
+	def show_file_line(self, filename, line, hist=True):
+		EditorBook.show_file_line(self, filename, line, hist=hist)
 		page = self.currentWidget()
 		# modified signal callback
 		page.ev.sig_file_modified.connect(self.page_modified_cb)
