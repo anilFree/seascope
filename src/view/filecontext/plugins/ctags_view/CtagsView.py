@@ -10,6 +10,21 @@ from PyQt4.QtCore import *
 
 import CtagsManager
 
+# Search Result
+class SR:
+	NONE  = 0
+	LSKIP = 1
+	LUPD  = 2
+	MATCH = 3
+	RUPD  = 4
+	RSKIP = 5
+	def __init__(self, k):
+		self.line = k
+		self.left = 0
+		self.right = 1000000
+		self.item = None
+		self.done = False
+
 class CtagsListItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
@@ -110,6 +125,66 @@ class CtagsList(QTreeWidget):
 					break
 		self.setCurrentItem(item)
 
+	def search_item_check(self, item, sr):
+		try:
+			val = item.line_val()
+		except:
+			return SR.NONE
+		if val < sr.left:
+			return SR.LSKIP
+		if val < sr.line:
+			sr.left = val
+			sr.item = item
+			return SR.LUPD
+		if val == sr.line:
+			sr.left = val
+			sr.item = item
+			sr.done = True
+			return SR.MATCH
+		if val < sr.right:
+			sr.right = val
+			sr.item = item
+			return SR.RUPD
+		return SR.RSKIP
+
+	def search_recursive(self, p, sr):
+		inx = 0;
+		r = SR.NONE
+		while inx < p.childCount():
+			item = p.child(inx)
+			if not item.childCount():
+				break
+			inx += 1
+			if r < SR.MATCH:
+				r = self.search_item_check(item, sr)
+				if r == SR.MATCH:
+					return
+			self.search_recursive(item, sr)
+			if sr.done:
+				return
+		if not inx < p.childCount():
+			return
+
+		last_item = p.child(p.childCount() - 1)
+		r = self.search_item_check(last_item, sr)
+		if r <= sr.MATCH:
+			return
+
+		r = SR.NONE
+		while inx < p.childCount():
+			item = p.child(inx)
+			inx += 1
+			r = self.search_item_check(item, sr)
+			if r >= SR.MATCH:
+				return
+
+	def search_tree(self, line, pos):
+		line = line + 1
+		sr = SR(line)
+		p = self.invisibleRootItem()
+		self.search_recursive(p, sr)
+		self.setCurrentItem(sr.item)
+		
 
 class CtagsListPage(QWidget):
 	sig_goto_line = pyqtSignal(int)
@@ -187,6 +262,7 @@ class CtagsTreePage(QWidget):
 		page = CtagsTreePage(parent)
 		page.ct.add_ctree_result(res)
 		parent.add_page(page, 'T')
+		parent.sig_ed_cursor_changed.connect(page.ct.search_tree)
 
 def run(filename, parent):
 	CtagsListPage.do_ct_query(filename, parent)
