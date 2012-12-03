@@ -273,7 +273,8 @@ class PluginProcess(QObject):
 		self.sig.sym = sym
 		self.sig.rquery = rquery
 		self.p_cmd = ' '.join(pargs)
-		#print 'pp:cmd:', pargs[0], pargs[1:]
+		if os.getenv('SEASCOPE_DEBUG'):
+			print self.p_cmd
 		self.proc.start(pargs[0], pargs[1:])
 		if self.proc.waitForStarted() == False:
 			return None

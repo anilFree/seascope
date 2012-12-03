@@ -200,7 +200,7 @@ class QueryIdutils(QueryBase):
 			pass
 		elif cmd_str in ['-->', '<--']:
 			pargs += ['-l']
-		pargs += [ req ]
+		pargs += [ '--', req ]
 		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
