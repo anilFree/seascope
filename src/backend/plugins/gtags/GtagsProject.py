@@ -187,7 +187,7 @@ class QueryGtags(QueryBase):
 		pargs = [ 'global', '-a', '--result=cscope', '-x' ] + opt
 		if cmd_opt != '':
 			pargs += [ cmd_opt ]
-		pargs += [ req ]
+		pargs += [ '--', req ]
 		
 		qsig = GtProcess(self.conf.gt_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig

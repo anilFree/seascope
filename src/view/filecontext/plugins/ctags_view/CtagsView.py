@@ -143,7 +143,8 @@ class CtagsList(QTreeWidget):
 			return SR.MATCH
 		if val < sr.right:
 			sr.right = val
-			sr.item = item
+                        if not sr.item:
+				sr.item = item
 			return SR.RUPD
 		return SR.RSKIP
 
