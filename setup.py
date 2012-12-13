@@ -9,7 +9,7 @@ from distutils.core import setup
 
 setup(name='Seascope',
 	version='0.7',
-	description='A multi-platform multi-language source code browsing tool'
+	description='A multi-platform multi-language source code browsing tool',
 	long_description='A pyQt GUI front-end for idutils, cscope and gtags. Written in python using pyQt, QScintilla libraries.',
 	url='http://seascope.googlecode.com',
 	packages=['Seascope',
