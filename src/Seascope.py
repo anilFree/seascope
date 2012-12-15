@@ -66,7 +66,7 @@ class SeascopeApp(QMainWindow):
 		self.proj_close_cb()
 		QApplication.quit()
 		os.environ['SEASCOPE_RESTART_HINT'] = '%s' % str(hint)
-		QProcess.startDetached(sys.executable, QApplication.arguments());
+		QProcess.startDetached(sys.executable, QApplication.arguments(), self.seascope_start_dir);
 	def file_restarted_cb(self):
 		try:
 			hint = os.environ['SEASCOPE_RESTART_HINT']
@@ -558,6 +558,7 @@ if __name__ == "__main__":
 		sys.exit(-1)
 
 	# change working dir to the script dir so that we can run this script anywhere else
+	app_start_dir = os.getcwd()
 	app_dir = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(app_dir)
 	
@@ -566,6 +567,7 @@ if __name__ == "__main__":
 
 	app = QApplication(sys.argv)
 	ma = SeascopeApp()
+	ma.seascope_start_dir = app_start_dir
 	ma.show()
 	ret = app.exec_()
 	sys.exit(ret)
