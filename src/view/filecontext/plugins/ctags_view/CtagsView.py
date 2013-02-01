@@ -28,8 +28,12 @@ class SR:
 class CtagsListItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
-		if li[2] in [ 'class', 'interface', 'struct', 'type', 'enum', '' ]:
+		if li[2] in [ 'class', 'interface', 'struct', 'type', 'enum', 'constrainer', '' ]:
 			self.set_bold()
+		if li[2] in [ 'reactor' ]:
+			brush = self.foreground(0)
+			brush.setColor(Qt.gray)
+			self.setForeground(0, brush)
 
 	def set_bold(self):
 		f = self.font(0)

@@ -4,7 +4,7 @@
 # License: BSD 
 
 import subprocess
-import re
+import re, os
 
 def _eintr_retry_call(func, *args):
 	while True:
@@ -57,10 +57,23 @@ class CtagsTreeBuilder:
 	def __init__(self):
 		self.symTree = emptyOrderedDict()
 
-	def runCtags(self, f):
+	def cmdForFile(self, f):
+		suffix_cmd_map = []
+		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
+		if custom_map:
+			custom_map = eval(custom_map)
+			suffix_cmd_map += custom_map
 		#args = 'ctags -n -u --fields=+K -f - --extra=+q'
 		#args = 'ctags -n -u --fields=+Ki -f -'
 		args = 'ctags -n -u --fields=+K-f-t -f -'
+		suffix_cmd_map.append( ['', args] )
+		for (suffix, cmd) in suffix_cmd_map:
+			if f.endswith(suffix):
+				return cmd
+		return None
+
+	def runCtags(self, f):
+		args = self.cmdForFile(f)
 		args = args.split()
 		args.append(f)
 		# In python >= 2.7 can use subprocess.check_output
