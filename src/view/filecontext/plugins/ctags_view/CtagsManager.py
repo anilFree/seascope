@@ -89,8 +89,11 @@ class CtagsTreeBuilder:
 		for line in data:
 			if line == '':
 				continue
-			line = line.split('\t', 4)
-			res.append(line)
+			try:
+				line = line.split('\t', 4)
+				res.append(line)
+			except:
+				print 'bad line:', line
 		return res
 
 

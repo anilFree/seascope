@@ -48,12 +48,42 @@ class ClassGraphGenerator:
 			res.add(f)
 		return res
 
+	def runCtagsCustom(self, fl):
+		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
+		if not custom_map:
+			return []
+		try:
+			custom_map = eval(custom_map)
+		except:
+			print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
+			return []
+
+		cmd_list = []
+		for (suffix, cmd) in custom_map:
+			_fl = [ f for f in fl if f.endswith(suffix) ]
+			args = cmd.split()
+			args += _fl
+			cmd_list.append(args)
+
+		if not len(cmd_list):
+			return []
+
+		out_data_all = []
+		for args in cmd_list:
+			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			(out_data, err_data) = proc.communicate('\n'.join(fl))
+			out_data = re.split('\r?\n', out_data)
+			out_data_all += out_data
+		return out_data_all
+
+
 	def runCtags(self, fl):
 		cmd = 'ctags -n -u --fields=+i -L - -f -'
 		args = cmd.split()
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(fl))
 		out_data = re.split('\r?\n', out_data)
+		out_data += self.runCtagsCustom(fl)
 		return out_data
 
 	def classHierarchy(self, sym):
