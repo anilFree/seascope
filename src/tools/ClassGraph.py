@@ -19,7 +19,15 @@ class ClassGraphGenerator:
 		self.visitedSym = {}
 		if is_base:
 			self.visitedSym = {'object' : 1}
+			if os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP'):
+				_d = {	'Entity' : 1,
+					'Type' : 1,
+					'PtrInterFace' : 1,
+					'Enum' : 1,
+					'Nominal' : 1 }
+				self.visitedSym.update(_d)
 		self.is_base = is_base
+		self.is_fq = False
 
 	def addGraphRule(self, sym, d):
 		if (sym, d) in self.visitedRules:
@@ -87,7 +95,11 @@ class ClassGraphGenerator:
 		return out_data
 
 	def classHierarchy(self, sym):
-		fl = self.refFiles(sym)
+		if self.is_fq:
+			subSym = re.split('::|\.', sym)[-1]
+		else:
+			subSym = sym
+		fl = self.refFiles(subSym)
 		data = self.runCtags(fl)
 
 		res = []
@@ -97,20 +109,43 @@ class ClassGraphGenerator:
 			line = line.split('\t', 4)
 			if len(line) == 4:
 				continue
-			sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
-			if 'inherits' not in sd:
+			_sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
+			if 'inherits' not in _sd:
 				continue
-			sd = sd['inherits']
+			sd = _sd['inherits'].strip()
 			if sd == '':
 				continue
 			sd = sd.split(',')
-			dd = [ re.split('::|\.', x.strip())[-1] for x in sd ]
+			if self.is_fq:
+				dd = sd
+			else:
+				dd = [ re.split('::|\.', x.strip())[-1] for x in sd ]
+			try:
+				if self.is_fq:
+					cls_prefix = _sd['class']
+				else:
+					cls_prefix = None
+			except:
+				cls_prefix = None
 			if self.is_base:
-				if sym == line[0]:
-					res += dd
+				if cls_prefix:
+					if sym == cls_prefix + "::" + line[0]:
+						res += dd
+					if sym == cls_prefix + "." + line[0]:
+						res += dd
+				else:
+					if sym == line[0]:
+						res += dd
 			else:
 				if sym in dd:
-					res.append(line[0])
+					if cls_prefix:
+						sep = '::'
+						if '.' in cls_prefix:
+							sep = '.'
+						res.append(cls_prefix + sep + line[0])
+					else:
+						res.append(line[0])
+		#print sym, res
 		return res
 
 	def classHierarchyRecursive(self, symList):
@@ -165,8 +200,16 @@ class ClassGraphGenerator:
 		print >> sys.stderr, 'saved', dot_svg, '\n'
 
 	def generateGraph(self, sym):
+		if sym == '::' or sym == '.':
+			return
+		if re.search('::|\.', sym):
+			self.is_fq = True
+		if sym.startswith('::') or sym.startswith('.'):
+			sym = re.split('::|\.', sym, maxsplit=1)[-1]
+
 		self.classHierarchyRecursive([sym])
 		dotInput = self.prepareDotInput(sym)
+		#print dotInput
 		#self.saveDotFile(sym, dotInput)
 
 		args = ['dot', '-Tsvg']
