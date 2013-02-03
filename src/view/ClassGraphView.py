@@ -75,7 +75,7 @@ class ClassGraphWidget(QWidget):
 	def set_current(self, btn):
 		inx = self.bgrp.id(btn)
 		#self.btn[inx].setChecked(True)
-		print 'inx clicked', inx
+		#print 'inx clicked', inx
 		if inx == 0:
 			print self.svgw.renderer().defaultSize()
 			self.svgw.setMinimumSize(0, 0)

@@ -130,7 +130,11 @@ class CtagsTreeBuilder:
 		for line in data:
 			if len(line) == 4:
 				continue
-			sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
+			try:
+				sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
+			except:
+				print 'bad line', line
+				continue
 			line[4] = sd
 			count = 0
 			for t in type_list:
@@ -165,9 +169,13 @@ class CtagsTreeBuilder:
 		return (self.symTree, True)
 
 	def doQuery(self, filename):
-		output = self.runCtags(filename)
-		output = self.parseCtagsOutput(output)
-		output = self.buildTree(output)
+		try:
+			output = self.runCtags(filename)
+			output = self.parseCtagsOutput(output)
+			output = self.buildTree(output)
+		except Exception as e:
+			print str(e)
+			output = [None, False]
 		return output
 
 
