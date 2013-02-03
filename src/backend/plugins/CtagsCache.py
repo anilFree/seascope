@@ -190,24 +190,36 @@ class CtagsThread(QThread):
 		if self.cmd_str == '-->':
 			call_re = re.compile('\\b%s\\b\s*\(' % req)
 			extern_re = re.compile('^\s*extern\s+')
+			reactor_re = re.compile('\\b(\w+::)*(\w+)\s*=>\s*%s\\b' % req)
 			comment_re = re.compile('^\s*(\*\s|/\*|\*/|//\s|# )')
 			func_ptr_re = re.compile('\\b(\w+)\s*(=|:)\s*%s\s*[,;:)]' % req)
 			func_as_arg_re = re.compile('(^\s*|[(,]\s*)(\w+(\.|->))*%s\s*[,)]' % req);
-			for line in res:
+			def _check_line():
+				if line[1].endswith('.tac'):
+					if '=>' in line[3]:
+						grp = reactor_re.search(line[3])
+						if grp:
+							line[0] = grp.group(2) + "Is"
+							return True
+					# fallthru
 				if line[0] == req:
 					if not re.search('(\.|->)%s\\b' % req, line[3]):
-						continue
-				elif call_re.search(line[3]):
+						return False
+					return True
+				if call_re.search(line[3]):
 					if extern_re.search(line[3]):
-						continue
-				else:
-					grp = func_ptr_re.search(line[3])
-					if grp:
-						line[0] = grp.group(1)
-					else:
-						if not func_as_arg_re.search(line[3]):
-							continue
-
+						return False
+					return True
+				grp = func_ptr_re.search(line[3])
+				if grp:
+					line[0] = grp.group(1)
+					return True
+				if not func_as_arg_re.search(line[3]):
+					False
+				return True
+			for line in res:
+				if not _check_line():
+					continue
 				if line[0] == '<unknown>':
 					continue
 				if comment_re.search(line[3]):
