@@ -20,14 +20,12 @@ class ClassGraphGenerator:
 		if is_base:
 			self.visitedSym = {'object' : 1}
 			if os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP'):
-				_d = {	'Entity' : 1,
-					'Type' : 1,
-					'PtrInterFace' : 1,
-					'Enum' : 1,
-					'Nominal' : 1 }
-				self.visitedSym.update(_d)
+				for c in [ 'Entity', 'Type', 'PtrInterFace','Enum','Nominal' ]:
+					self.visitedSym[c] = 1
+					self.visitedSym['Tac::' + c] = 1
 		self.is_base = is_base
 		self.is_fq = False
+		self.is_debug = os.getenv('SEASCOPE_CLASS_GRAPH_DEBUG')
 
 	def addGraphRule(self, sym, d):
 		if (sym, d) in self.visitedRules:
@@ -94,14 +92,7 @@ class ClassGraphGenerator:
 		out_data += self.runCtagsCustom(fl)
 		return out_data
 
-	def classHierarchy(self, sym):
-		if self.is_fq:
-			subSym = re.split('::|\.', sym)[-1]
-		else:
-			subSym = sym
-		fl = self.refFiles(subSym)
-		data = self.runCtags(fl)
-
+	def parseCtagsInherits(self, sym, data):
 		res = []
 		for line in data:
 			if line == '':
@@ -117,7 +108,7 @@ class ClassGraphGenerator:
 				continue
 			sd = sd.split(',')
 			if self.is_fq:
-				dd = sd
+				dd = [ x.strip() for x in sd ]
 			else:
 				dd = [ re.split('::|\.', x.strip())[-1] for x in sd ]
 			try:
@@ -127,6 +118,9 @@ class ClassGraphGenerator:
 					cls_prefix = None
 			except:
 				cls_prefix = None
+			if not sym:
+				res.append([line[0], dd])
+				continue
 			if self.is_base:
 				if cls_prefix:
 					if sym == cls_prefix + "::" + line[0]:
@@ -145,7 +139,30 @@ class ClassGraphGenerator:
 						res.append(cls_prefix + sep + line[0])
 					else:
 						res.append(line[0])
-		#print sym, res
+		if self.is_debug:
+			if sym:
+				print sym, res
+		return res
+
+	def classHierarchy(self, sym):
+		if self.is_fq:
+			subSym = re.split('::|\.', sym)[-1]
+		else:
+			subSym = sym
+		fl = self.refFiles(subSym)
+		data = self.runCtags(fl)
+		res = self.parseCtagsInherits(sym, data)
+		return res
+
+	def classHierarchyForDir(self, dname):
+		fl = []
+		for root, dirs, files in os.walk(dname, followlinks=True):
+			fl += [os.path.join(root, f) for f in files]
+		data = self.runCtags(fl)
+		res = self.parseCtagsInherits(None, data)
+		for (d, blist) in res:
+			for b in blist:
+				self.addGraphRule(b, d)
 		return res
 
 	def classHierarchyRecursive(self, symList):
@@ -168,7 +185,7 @@ class ClassGraphGenerator:
 					self.addGraphRule(sym, d)
 				self.classHierarchyRecursive(dclasses)
 
-	def prepareDotInput(self, sym):
+	def prepareDotInput(self, sym=None, dname=None):
 		if len(self.graphRules) == 0:
 			if is_base:
 				s = 'base'
@@ -176,8 +193,13 @@ class ClassGraphGenerator:
 				s= 'derived'
 			print >> sys.stderr, 'No %s classes for %s\n' % (s, sym)
 			sys.exit(0)
-		dotInput = 'digraph "%s" {\n' % sym
-		dotInput += '\t"%s" [style=bold];\n' % sym
+		if dname:
+			name = dname
+		else:
+			name = sym
+		dotInput = 'digraph "%s" {\n' % name
+		if not dname:
+			dotInput += '\t"%s" [style=bold];\n' % sym
 		for r in self.graphRules:
 			if not self.is_base:
 				dotInput += '\t"%s" -> "%s";\n' % (r[0], r[1])
@@ -199,17 +221,26 @@ class ClassGraphGenerator:
 
 		print >> sys.stderr, 'saved', dot_svg, '\n'
 
-	def generateGraph(self, sym):
-		if sym == '::' or sym == '.':
-			return
-		if re.search('::|\.', sym):
-			self.is_fq = True
-		if sym.startswith('::') or sym.startswith('.'):
-			sym = re.split('::|\.', sym, maxsplit=1)[-1]
+	def generateGraph(self, sym, dname=None):
+		if sym:
+			if sym == '::' or sym == '.':
+				return
+			if re.search('::|\.', sym):
+				self.is_fq = True
+			if sym.startswith('::') or sym.startswith('.'):
+				sym = re.split('::|\.', sym, maxsplit=1)[-1]
 
-		self.classHierarchyRecursive([sym])
-		dotInput = self.prepareDotInput(sym)
-		#print dotInput
+			self.classHierarchyRecursive([sym])
+			dotInput = self.prepareDotInput(sym=sym)
+		else:
+			if not dname:
+				return
+			self.classHierarchyForDir(dname)
+			dotInput = self.prepareDotInput(dname=dname)
+
+		if self.is_debug:
+			print dotInput
+			return ''
 		#self.saveDotFile(sym, dotInput)
 
 		args = ['dot', '-Tsvg']
@@ -231,6 +262,7 @@ if __name__ == '__main__':
 	op = optparse.OptionParser(usage=usage)
 	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
 	op.add_option("-b", action="store_true", dest="is_base", help="Show base classes")
+	op.add_option("-d", "--codedir", dest="code_dir", help="Code dir", metavar="CODE_DIR")
 	(options, args) = op.parse_args()
 	# id utils project dir
 	if not options.id_path:
@@ -243,14 +275,23 @@ if __name__ == '__main__':
 	is_base = False
 	if options.is_base:
 		is_base = True
-	# symbol
-	if len(args) != 1:
-		print >> sys.stderr, 'Please specify a symbol'
+	if len(args) and options.code_dir:
+		print >> sys.stderr, 'Cannot specify both -d and symbol'
 		sys.exit(-3)
-
-	sym = args[0]
-	#print options.id_path, args
+	if not len(args) and not options.code_dir:
+		print >> sys.stderr, 'Specify one among -d and symbol'
+		sys.exit(-4)
 
 	cgg = ClassGraphGenerator(id_path, is_base=is_base)
-	svg_data = cgg.generateGraph(sym)
+
+	if options.code_dir:
+		dname = options.code_dir
+		svg_data = cgg.generateGraph(sym=None, dname=dname)
+	else:
+		if len(args) != 1:
+			print >> sys.stderr, 'Please specify only one symbol'
+			sys.exit(-5)
+		sym = args[0]
+		svg_data = cgg.generateGraph(sym)
+
 	print svg_data
