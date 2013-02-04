@@ -30,7 +30,8 @@ cmd_table = [
 	[	['QDEF', ''], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
 	[	['---', None],	[None				],					],
-	[	['CLGRAPH', '13'], ['Class &Graph',	'Ctrl+:'],	['Class graph'		]	],
+	[	['CLGRAPH', '13'],  ['Class &Graph',	'Ctrl+:'],	['Class graph'		]	],
+	[	['CLGRAPHD', '14'], ['Class Graph Dir',	'Ctrl+;'],	['Class graph dir'	]	],
 	[	['---', None],	[None				],					],
 	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
 ]
@@ -125,6 +126,12 @@ class QueryUiIdutils(QueryUiBase):
 			return
 		if (not self.query.id_is_ready()):
 			show_msg_dialog('\nProject has no source files')
+			return
+		if cmd_str == 'CLGRAPHD':
+			f = PluginHelper.editor_current_file()
+			if f:
+				d = os.path.dirname(f)
+				self.query_class_graph_dir(d)
 			return
 		req = PluginHelper.editor_current_word()
 		if (req != None):

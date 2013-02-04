@@ -91,7 +91,11 @@ class QueryUiBase(QObject):
 		PluginHelper.call_view_page_new(req, self.query.query, self.ctree_args, opt)
 
 	def query_class_graph(self, req, opt):
-		PluginHelper.class_graph_view_page_new(req, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
+		PluginHelper.class_graph_view_page_new(req, None, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
+
+	def query_class_graph_dir(self, dname):
+		opt = []
+		PluginHelper.class_graph_view_page_new('', dname, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
 
 	def _prepare_rquery(self, cmd_str, req, opt):
 		rquery = {}

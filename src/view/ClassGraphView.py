@@ -21,7 +21,7 @@ if __name__ == '__main__':
 
 from backend.plugins.PluginBase import PluginProcess
 
-class CallGraphProcess(PluginProcess):
+class ClassGraphProcess(PluginProcess):
 	def __init__(self, wdir, rq):
 		PluginProcess.__init__(self, wdir)
 		self.name = 'call graph process'
@@ -56,18 +56,23 @@ class ClassGraphWidget(QWidget):
 		self.scrolla.setLayout(self.vlay2)
 		self.vlay1.addWidget(self.scrolla)
 
-	def startQuery(self, req, proj_dir, inx):
+	def startQuery(self, req, dname, proj_dir, inx):
 		if self.is_done:
 			return
 
-		self.lbl.setText(['derived', 'base'][inx] + '(' + req + ')')
+		name = req if req else dname
+		self.lbl.setText(['derived', 'base'][inx] + '(' + name + ')')
 
 		tool_path = os.path.join('tools', 'ClassGraph.py')
 		pargs = [sys.executable, tool_path]
 		if inx == 1:
 			pargs += ['-b']
-		pargs += ['-p', proj_dir, req]
-		sig_res = CallGraphProcess('.', None).run_query_process(pargs, req)
+		pargs += ['-p', proj_dir]
+		if req:
+			pargs += [req]
+		else:
+			pargs += ['-d', dname]
+		sig_res = ClassGraphProcess('.', None).run_query_process(pargs, req)
 		sig_res[0].connect(self.clgraph_add_result)
 		self.is_busy = True
 		self.show_progress_bar()
@@ -140,12 +145,16 @@ class ClassGraphWidget(QWidget):
 class ClassGraphWindow(QMainWindow):
 	parent = None
 
-	def __init__(self, req, proj_dir,  cmd_func, cmd_args, cmd_opt):
+	def __init__(self, req, dname, proj_dir, cmd_func, cmd_args, cmd_opt):
 		QMainWindow.__init__(self, ClassGraphWindow.parent)
 		self.req = req
+		self.dname = dname
 		self.proj_dir = proj_dir
 
-		self.setWindowTitle(req)
+		if req:
+			self.setWindowTitle(req)
+		else:
+			self.setWindowTitle(dname)
 
 		self.setFont(QFont("San Serif", 8))
 
@@ -193,12 +202,12 @@ class ClassGraphWindow(QMainWindow):
 		ct = self.ctree[inx]
 		ct.setFocus()
 		
-		ct.startQuery(self.req, self.proj_dir, inx)
+		ct.startQuery(self.req, self.dname, self.proj_dir, inx)
 
 
 
-def create_page(req, proj_dir, cmd_func, cmd_args, cmd_opt):
-	w = ClassGraphWindow(req, proj_dir, cmd_func, cmd_args, cmd_opt)
+def create_page(req, dname, proj_dir, cmd_func, cmd_args, cmd_opt):
+	w = ClassGraphWindow(req, dname, proj_dir, cmd_func, cmd_args, cmd_opt)
 	w.resize(900, 600)
 	w.show()
 	return w
@@ -208,6 +217,7 @@ if __name__ == '__main__':
 	usage = "usage: %prog [options] symbol"
 	op = optparse.OptionParser(usage=usage)
 	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
+	op.add_option("-d", "--codedir", dest="code_dir", help="Code dir", metavar="CODE_DIR")
 	(options, args) = op.parse_args()
 	# id utils project dir
 	if not options.id_path:
@@ -217,20 +227,29 @@ if __name__ == '__main__':
 	if not os.path.exists(os.path.join(id_path, 'ID')):
 		print >> sys.stderr, 'idutils project path does not exist'
 		sys.exit(-2)
-	# symbol
-	if len(args) != 1:
-		print >> sys.stderr, 'Please specify a symbol'
+	if len(args) and options.code_dir:
+		print >> sys.stderr, 'Cannot specify both -d and symbol'
 		sys.exit(-3)
-
-	sym = args[0]
-	#print options.id_path, args
+	if not len(args) and not options.code_dir:
+		print >> sys.stderr, 'Specify one among -d and symbol'
+		sys.exit(-4)
 
 	app = QApplication(sys.argv)
-
 	cmd_args = [
 		['CLGRAPH', 'D', 'Derived classes'],
 		['CLGRAPH', 'B', 'Base classes']
 	]
-	w = create_page(sym, id_path, None, cmd_args, None)
+
+	if options.code_dir:
+		dname = options.code_dir
+		w = create_page('', dname, id_path, None, cmd_args, None)
+	else:
+		if len(args) != 1:
+			print >> sys.stderr, 'Please specify a symbol'
+			sys.exit(-5)
+
+		sym = args[0]
+		w = create_page(sym, None, id_path, None, cmd_args, None)
+
 
 	sys.exit(app.exec_())

@@ -67,8 +67,8 @@ def call_view_page_new(req, query_func, ctree_query_args, opt):
 	hint_file = editor_current_file()
 	call_view.create_page(req, query_func, ctree_query_args, opt, hint_file)
 
-def class_graph_view_page_new(req, proj_dir, query_func, clgraph_query_args, opt):
-	class_graph_view.create_page(req, proj_dir, query_func, clgraph_query_args, opt)
+def class_graph_view_page_new(req, dname, proj_dir, query_func, clgraph_query_args, opt):
+	class_graph_view.create_page(req, dname, proj_dir, query_func, clgraph_query_args, opt)
 
 def file_view_update(flist):
 	file_view.add_files(flist)
