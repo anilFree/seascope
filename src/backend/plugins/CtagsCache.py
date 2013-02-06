@@ -5,7 +5,7 @@
 
 from PyQt4.QtCore import *
 from datetime import datetime
-import re
+import os, re, subprocess
 
 #class CtagsInfo:
 	#def __init__(self):
@@ -111,16 +111,49 @@ class CtagsThread(QThread):
 		else:
 			if self.cmd_str == 'DEF':
 				return False
+			if self.cmd_str == '-->':
+				if f.endswith('.tac'):
+					if ct[m][2] in ['reactor']:
+						line[0] = ct[m][0].split('=>')[0].strip() + "Is"
+						return True
 		line[0] = ct[m][0]
 		return True
+
+	def runCtagsCustom(self, fl):
+		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
+		if not custom_map:
+			return []
+		try:
+			custom_map = eval(custom_map)
+		except:
+			print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
+			return []
+
+		cmd_list = []
+		for (suffix, cmd) in custom_map:
+			_fl = [ f for f in fl if f.endswith(suffix) ]
+			args = cmd.split()
+			args += _fl
+			cmd_list.append(args)
+
+		if not len(cmd_list):
+			return []
+
+		out_data_all = []
+		for args in cmd_list:
+			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			(out_data, err_data) = proc.communicate('\n'.join(fl))
+			out_data = re.split('\r?\n', out_data)
+			out_data_all += out_data
+		return out_data_all
 
 	def _run_ctags(self):
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
 		args = cmd.split()
-		import subprocess
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(self.file_list))
 		out_data = re.split('\r?\n', out_data)
+		out_data += self.runCtagsCustom(self.file_list)
 
 		for line in out_data:
 			if line == '':
@@ -190,7 +223,7 @@ class CtagsThread(QThread):
 		if self.cmd_str == '-->':
 			call_re = re.compile('\\b%s\\b\s*\(' % req)
 			extern_re = re.compile('^\s*extern\s+')
-			reactor_re = re.compile('\\b(\w+::)*(\w+)\s*=>\s*%s\\b' % req)
+			reactor_re = re.compile('\\b(\w+::)*(\w+)\s*=>.*\\b%s\\b' % req)
 			comment_re = re.compile('^\s*(\*\s|/\*|\*/|//\s|# )')
 			func_ptr_re = re.compile('\\b(\w+)\s*(=|:)\s*%s\s*[,;:)]' % req)
 			func_as_arg_re = re.compile('(^\s*|[(,]\s*)(\w+(\.|->))*%s\s*[,)]' % req);

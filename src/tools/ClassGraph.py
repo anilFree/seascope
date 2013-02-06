@@ -168,7 +168,7 @@ class ClassGraphGenerator:
 	def classHierarchyRecursive(self, symList):
 		for sym in symList:
 			if sym in self.visitedSym:
-				return
+				continue
 			self.visitedSym[sym] = 1
 
 			dclasses = self.classHierarchy(sym)
