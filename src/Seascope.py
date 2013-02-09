@@ -63,7 +63,8 @@ class SeascopeApp(QMainWindow):
 		if not DialogManager.show_yes_no('Restart ?'):
 			return
 		hint = self.edit_book.get_file_line_list()
-		self.proj_close_cb()
+		if backend.proj_is_open():
+			self.proj_close_cb()
 		QApplication.quit()
 		os.environ['SEASCOPE_RESTART_HINT'] = '%s' % str(hint)
 		QProcess.startDetached(sys.executable, QApplication.arguments(), self.seascope_start_dir);
@@ -543,8 +544,16 @@ class SeascopeApp(QMainWindow):
 		self.setup_widget_tree()
 		self.setup_style_and_font()
 
-		if len(self.recent_projects):
-			self.proj_open(self.recent_projects[0])
+		prj_path = None
+		args = QApplication.arguments()
+		if len(args) == 2:
+			prj_path = str(args[1])
+			
+		if not prj_path or os.getenv('SEASCOPE_RESTART_HINT'):
+			if len(self.recent_projects):
+				prj_path = self.recent_projects[0]
+		if prj_path:
+			self.proj_open(prj_path)
 		#else:
 			#self.proj_open_cb()
 		self.file_restarted_cb()
@@ -562,9 +571,11 @@ if __name__ == "__main__":
 	app_dir = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(app_dir)
 	
+	# load plugins
 	backend.load_plugins()
 	view.load_plugins()
 
+	# start app
 	app = QApplication(sys.argv)
 	ma = SeascopeApp()
 	ma.seascope_start_dir = app_start_dir
