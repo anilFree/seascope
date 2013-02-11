@@ -42,6 +42,7 @@ class ClassGraphWidget(QWidget):
 		self.cmd_func = cmd_func
 		self.cmd_id = cmd_id
 		self.cmd_opt = cmd_opt
+		self.is_debug = os.getenv('SEASCOPE_CLASS_GRAPH_VIEW_DEBUG')
 
 		self.vlay1 = QVBoxLayout()
 		self.setLayout(self.vlay1)
@@ -67,8 +68,11 @@ class ClassGraphWidget(QWidget):
 		pargs = [sys.executable, tool_path]
 		if inx == 1:
 			pargs += ['-b']
-		pargs += ['-p', proj_dir]
 		if req:
+			if dname:
+				pargs += ['-d', dname]
+			else:
+				pargs += ['-p', proj_dir]
 			pargs += [req]
 		else:
 			pargs += ['-d', dname]
@@ -113,6 +117,8 @@ class ClassGraphWidget(QWidget):
 			hlay.addWidget(btn)
 
 	def clgraph_add_result(self, req, res):
+		if self.is_debug:
+			print res
 		self.is_busy = False
 		self.is_done = True
 		self.remove_progress_bar()
@@ -214,25 +220,40 @@ def create_page(req, dname, proj_dir, cmd_func, cmd_args, cmd_opt):
 
 if __name__ == '__main__':
 	import optparse
-	usage = "usage: %prog [options] symbol"
+	usage = "usage: %prog (-d <code_dir/file> | -p <idutils_proj>) [symbol]"
 	op = optparse.OptionParser(usage=usage)
-	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
 	op.add_option("-d", "--codedir", dest="code_dir", help="Code dir", metavar="CODE_DIR")
+	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
 	(options, args) = op.parse_args()
-	# id utils project dir
-	if not options.id_path:
-		print >> sys.stderr, 'idutils project path required'
+
+	sym = ''
+	dname = ''
+	id_path = None
+
+	if (not any([options.code_dir, options.id_path]) or
+               all([options.code_dir, options.id_path])):
+		print >> sys.stderr, 'Specify one among -d or -p'
 		sys.exit(-1)
-	id_path = os.path.normpath(options.id_path)
-	if not os.path.exists(os.path.join(id_path, 'ID')):
-		print >> sys.stderr, 'idutils project path does not exist'
-		sys.exit(-2)
-	if len(args) and options.code_dir:
-		print >> sys.stderr, 'Cannot specify both -d and symbol'
-		sys.exit(-3)
-	if not len(args) and not options.code_dir:
-		print >> sys.stderr, 'Specify one among -d and symbol'
-		sys.exit(-4)
+
+	if len(args):
+		if len(args) != 1:
+			print >> sys.stderr, 'Please specify a symbol'
+			sys.exit(-4)
+		sym = args[0]
+
+	if options.code_dir:
+		dname = options.code_dir
+		if not os.path.exists(dname):
+			print >> sys.stderr, '"%s": does not exist' %  dname
+			sys.exit(-2)
+	if options.id_path:
+		if not sym:
+			print >> sys.stderr, '-p option needs a symbol'
+			sys.exit(-3)
+		id_path = os.path.normpath(options.id_path)
+		if not os.path.exists(os.path.join(id_path, 'ID')):
+			print >> sys.stderr, 'idutils project path does not exist'
+			sys.exit(-4)
 
 	app = QApplication(sys.argv)
 	cmd_args = [
@@ -240,16 +261,6 @@ if __name__ == '__main__':
 		['CLGRAPH', 'B', 'Base classes']
 	]
 
-	if options.code_dir:
-		dname = options.code_dir
-		w = create_page('', dname, id_path, None, cmd_args, None)
-	else:
-		if len(args) != 1:
-			print >> sys.stderr, 'Please specify a symbol'
-			sys.exit(-5)
-
-		sym = args[0]
-		w = create_page(sym, None, id_path, None, cmd_args, None)
-
+	w = create_page(sym, dname, id_path, None, cmd_args, None)
 
 	sys.exit(app.exec_())
