@@ -10,10 +10,103 @@ import subprocess
 import os
 import re
 
+class CtagsInhCache:
+	def __init__(self, is_base, is_fq, is_debug):
+		self.cit_cache = {}
+		self.is_base   = is_base
+		self.is_fq     = is_fq
+		self.is_debug  = False
+
+		map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
+		if not map:
+			return []
+		try:
+			map = eval(map)
+		except:
+			print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
+			map = None
+		self.ct_custom_map = map
+
+	def _filterCtInherits(self, data, sym=None):
+		res = {}
+		for line in data:
+			if line == '':
+				continue
+			line = line.split('\t', 4)
+			if len(line) == 4:
+				continue
+			_sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
+			if 'inherits' not in _sd:
+				continue
+			sd = _sd['inherits'].strip()
+			if sd == '':
+				continue
+			if 'class' in _sd:
+				cls = _sd['class'].strip()
+			else:
+				cls = None
+			if line[1] not in res:
+				res[line[1]] = []
+			res[line[1]].append([line[0], sd, cls])
+			if self.is_debug:
+				print line[0], line[1], sd, cls
+		return res
+
+	def _runCtagsCustom(self, fl):
+		if not self.ct_custom_map:
+			return
+		cmd_list = []
+		for (suffix, cmd) in self.ct_custom_map:
+			_fl = [ f for f in fl if f.endswith(suffix) ]
+			args = cmd.split()
+			args += _fl
+			cmd_list.append(args)
+
+		if not len(cmd_list):
+			return []
+
+		out_data_all = []
+		for args in cmd_list:
+			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+			(out_data, err_data) = proc.communicate('\n'.join(fl))
+			out_data = re.split('\r?\n', out_data)
+			out_data_all += out_data
+		return out_data_all
+
+	def _runCtags(self, fl):
+		cmd = 'ctags -n -u --fields=+i -L - -f -'
+		args = cmd.split()
+		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+		(out_data, err_data) = proc.communicate('\n'.join(fl))
+		out_data = re.split('\r?\n', out_data)
+		out_data += self._runCtagsCustom(fl)
+		return out_data
+
+	def runCtagsInh(self, fl):
+		data = self._runCtags(fl)
+		ct_dict = self._filterCtInherits(data, None)
+		for f in fl:
+			if f not in ct_dict:
+				ct_dict[f] = []
+		return ct_dict
+
+	def ctInhInfo(self, flist):
+		fl = [ f for f in flist if f not in self.cit_cache ]
+		#print len(fl), len(flist), len(self.cit_cache)
+		if len(fl):
+			ct_dict = self.runCtagsInh(fl)
+			self.cit_cache.update(ct_dict)
+		res = []
+		for f in flist:
+			res += self.cit_cache[f]
+		return res
+
 class ClassGraphGenerator:
 	def __init__(self, d, wlimit=5000, is_base=False):
 		self.wdir = d;
 		self.width_limit = wlimit;
+		self.dname = None
+		self.dirCtInhInfo = None
 		self.graphRules = []
 		self.visitedRules = {}
 		self.visitedSym = {}
@@ -26,6 +119,7 @@ class ClassGraphGenerator:
 		self.is_base = is_base
 		self.is_fq = False
 		self.is_debug = os.getenv('SEASCOPE_CLASS_GRAPH_DEBUG')
+		self.cic = CtagsInhCache(self.is_base, self.is_fq, self.is_debug)
 
 	def addGraphRule(self, sym, d):
 		if (sym, d) in self.visitedRules:
@@ -54,89 +148,38 @@ class ClassGraphGenerator:
 			res.add(f)
 		return res
 
-	def runCtagsCustom(self, fl):
-		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
-		if not custom_map:
-			return []
-		try:
-			custom_map = eval(custom_map)
-		except:
-			print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
-			return []
-
-		cmd_list = []
-		for (suffix, cmd) in custom_map:
-			_fl = [ f for f in fl if f.endswith(suffix) ]
-			args = cmd.split()
-			args += _fl
-			cmd_list.append(args)
-
-		if not len(cmd_list):
-			return []
-
-		out_data_all = []
-		for args in cmd_list:
-			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-			(out_data, err_data) = proc.communicate('\n'.join(fl))
-			out_data = re.split('\r?\n', out_data)
-			out_data_all += out_data
-		return out_data_all
-
-
-	def runCtags(self, fl):
-		cmd = 'ctags -n -u --fields=+i -L - -f -'
-		args = cmd.split()
-		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-		(out_data, err_data) = proc.communicate('\n'.join(fl))
-		out_data = re.split('\r?\n', out_data)
-		out_data += self.runCtagsCustom(fl)
-		return out_data
-
-	def parseCtagsInherits(self, sym, data):
+	def parseCtagsInherits(self, data, sym=None):
 		res = []
 		for line in data:
-			if line == '':
-				continue
-			line = line.split('\t', 4)
-			if len(line) == 4:
-				continue
-			_sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
-			if 'inherits' not in _sd:
-				continue
-			sd = _sd['inherits'].strip()
+			sd = line[1]
 			if sd == '':
 				continue
 			sd = sd.split(',')
 			if self.is_fq:
 				dd = [ x.strip() for x in sd ]
+				cls = line[2]
 			else:
 				dd = [ re.split('::|\.', x.strip())[-1] for x in sd ]
-			try:
-				if self.is_fq:
-					cls_prefix = _sd['class']
-				else:
-					cls_prefix = None
-			except:
-				cls_prefix = None
+				cls = None
 			if not sym:
 				res.append([line[0], dd])
 				continue
 			if self.is_base:
-				if cls_prefix:
-					if sym == cls_prefix + "::" + line[0]:
+				if cls:
+					if sym == cls + "::" + line[0]:
 						res += dd
-					if sym == cls_prefix + "." + line[0]:
+					if sym == cls + "." + line[0]:
 						res += dd
 				else:
 					if sym == line[0]:
 						res += dd
 			else:
 				if sym in dd:
-					if cls_prefix:
+					if cls:
 						sep = '::'
-						if '.' in cls_prefix:
+						if '.' in cls:
 							sep = '.'
-						res.append(cls_prefix + sep + line[0])
+						res.append(cls + sep + line[0])
 					else:
 						res.append(line[0])
 		if self.is_debug:
@@ -144,26 +187,26 @@ class ClassGraphGenerator:
 				print sym, res
 		return res
 
+
 	def classHierarchy(self, sym):
 		if self.is_fq:
 			subSym = re.split('::|\.', sym)[-1]
 		else:
 			subSym = sym
-		fl = self.refFiles(subSym)
-		data = self.runCtags(fl)
-		res = self.parseCtagsInherits(sym, data)
+		if self.dname:
+			data = self.dirCtInhInfo
+		else:
+			fl = self.refFiles(subSym)
+			data = self.cic.ctInhInfo(fl)
+		res = self.parseCtagsInherits(data, sym)
 		return res
 
-	def classHierarchyForDir(self, dname):
+	def runCtInhForDir(self, dname):
+		self.dname = dname
 		fl = []
 		for root, dirs, files in os.walk(dname, followlinks=True):
 			fl += [os.path.join(root, f) for f in files]
-		data = self.runCtags(fl)
-		res = self.parseCtagsInherits(None, data)
-		for (d, blist) in res:
-			for b in blist:
-				self.addGraphRule(b, d)
-		return res
+		self.dirCtInhInfo = self.cic.ctInhInfo(fl)
 
 	def classHierarchyRecursive(self, symList):
 		for sym in symList:
@@ -185,21 +228,23 @@ class ClassGraphGenerator:
 					self.addGraphRule(sym, d)
 				self.classHierarchyRecursive(dclasses)
 
-	def prepareDotInput(self, sym=None, dname=None):
+	def classHierarchyForDir(self, dname):
+		res = self.parseCtagsInherits(self.dirCtInhInfo)
+		for (d, blist) in res:
+			for b in blist:
+				self.addGraphRule(b, d)
+
+	def prepareDotInput(self, sym_or_dname):
 		if len(self.graphRules) == 0:
 			if is_base:
 				s = 'base'
 			else:
 				s= 'derived'
-			print >> sys.stderr, 'No %s classes for %s\n' % (s, sym)
+			print >> sys.stderr, 'No %s classes for %s\n' % (s, sym_or_dname)
 			sys.exit(0)
-		if dname:
-			name = dname
-		else:
-			name = sym
-		dotInput = 'digraph "%s" {\n' % name
-		if not dname:
-			dotInput += '\t"%s" [style=bold];\n' % sym
+		dotInput = 'digraph "%s" {\n' % sym_or_dname
+		if not sym_or_dname:
+			dotInput += '\t"%s" [style=bold];\n' % sym_or_dname
 		for r in self.graphRules:
 			if not self.is_base:
 				dotInput += '\t"%s" -> "%s";\n' % (r[0], r[1])
@@ -221,7 +266,14 @@ class ClassGraphGenerator:
 
 		print >> sys.stderr, 'saved', dot_svg, '\n'
 
-	def generateGraph(self, sym, dname=None):
+	def generateGraph(self, sym=None, dname=None):
+		if not any([sym, dname]):
+			return
+		if dname:
+			self.runCtInhForDir(dname)
+			if not sym:
+				self.classHierarchyForDir(dname)
+				dotInput = self.prepareDotInput(dname)
 		if sym:
 			if sym == '::' or sym == '.':
 				return
@@ -229,14 +281,8 @@ class ClassGraphGenerator:
 				self.is_fq = True
 			if sym.startswith('::') or sym.startswith('.'):
 				sym = re.split('::|\.', sym, maxsplit=1)[-1]
-
 			self.classHierarchyRecursive([sym])
-			dotInput = self.prepareDotInput(sym=sym)
-		else:
-			if not dname:
-				return
-			self.classHierarchyForDir(dname)
-			dotInput = self.prepareDotInput(dname=dname)
+			dotInput = self.prepareDotInput(sym)
 
 		if self.is_debug:
 			print dotInput
@@ -258,40 +304,41 @@ class ClassGraphGenerator:
 
 if __name__ == '__main__':
 	import optparse
-	usage = "usage: %prog [options] symbol"
+	usage = "usage: %prog [options] (-d <code_dir/file> | -p <idutils_proj>) [symbol]"
 	op = optparse.OptionParser(usage=usage)
-	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
 	op.add_option("-b", action="store_true", dest="is_base", help="Show base classes")
 	op.add_option("-d", "--codedir", dest="code_dir", help="Code dir", metavar="CODE_DIR")
+	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
 	(options, args) = op.parse_args()
-	# id utils project dir
-	if not options.id_path:
-		print >> sys.stderr, 'idutils project path required'
+
+	if (not any([options.code_dir, options.id_path]) or
+               all([options.code_dir, options.id_path])):
+		print >> sys.stderr, 'Specify one among -d or -p'
 		sys.exit(-1)
-	id_path = os.path.normpath(options.id_path)
-	if not os.path.exists(os.path.join(id_path, 'ID')):
-		print >> sys.stderr, 'idutils project path does not exist'
-		sys.exit(-2)
+	
+	sym = None
+	dname = None
 	is_base = False
 	if options.is_base:
 		is_base = True
-	if len(args) and options.code_dir:
-		print >> sys.stderr, 'Cannot specify both -d and symbol'
-		sys.exit(-3)
-	if not len(args) and not options.code_dir:
-		print >> sys.stderr, 'Specify one among -d and symbol'
-		sys.exit(-4)
-
-	cgg = ClassGraphGenerator(id_path, is_base=is_base)
+	if len(args):
+		if len(args) != 1:
+			print >> sys.stderr, 'Please specify only one symbol'
+			sys.exit(-2)
+		sym = args[0]
 
 	if options.code_dir:
 		dname = options.code_dir
-		svg_data = cgg.generateGraph(sym=None, dname=dname)
+		if not os.path.exists(dname):
+			print >> sys.stderr, '"%s": does not exist' %  dname
+			sys.exit(-3)
+		cgg = ClassGraphGenerator(dname, is_base=is_base)
 	else:
-		if len(args) != 1:
-			print >> sys.stderr, 'Please specify only one symbol'
-			sys.exit(-5)
-		sym = args[0]
-		svg_data = cgg.generateGraph(sym)
+		id_path = os.path.normpath(options.id_path)
+		if not os.path.exists(os.path.join(id_path, 'ID')):
+			print >> sys.stderr, 'idutils project path does not exist'
+			sys.exit(-4)
+		cgg = ClassGraphGenerator(id_path, is_base=is_base)
+	svg_data = cgg.generateGraph(sym=sym, dname=dname)
 
 	print svg_data
