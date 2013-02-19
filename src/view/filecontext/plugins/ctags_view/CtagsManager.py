@@ -15,9 +15,24 @@ def _eintr_retry_call(func, *args):
 				continue
 			raise
 
+def cmdForFile(f):
+	suffix_cmd_map = []
+	custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
+	if custom_map:
+		custom_map = eval(custom_map)
+		suffix_cmd_map += custom_map
+	#args = 'ctags -n -u --fields=+K -f - --extra=+q'
+	#args = 'ctags -n -u --fields=+Ki -f -'
+	args = 'ctags -n -u --fields=+K -f -'
+	suffix_cmd_map.append( ['', args] )
+	for (suffix, cmd) in suffix_cmd_map:
+		if f.endswith(suffix):
+			return cmd
+	return None
+
 def ct_query(filename):
-	cmd = 'ctags -n -u --fields=+K -f -'
-	args = cmd.split()
+	args = cmdForFile(filename)
+	args = args.split()
 	args.append(filename)
 	try:
 		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
