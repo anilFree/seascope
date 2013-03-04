@@ -23,21 +23,7 @@ class EditorViewRW(EditorView):
 		EditorView.ed_settings_1(self)
 
 	def open_file(self, filename):
-
-		self.filename = filename
-
-		## Choose a lexer
-		if not self.lexer:
-			if (re.search('\.(py|pyx|pxd|pxi|scons)$', filename) != None):
-				self.lexer = QsciLexerPython()
-			else:
-				self.lexer = QsciLexerCPP()
-
-		## Braces matching
-		self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
-
-		## Render on screen
-		self.show()
+		self.open_file_begin(filename)
 
 		## Show this file in the editor
 		data = open(filename).read()
@@ -53,11 +39,8 @@ class EditorViewRW(EditorView):
 		
 		## support edit 
 		self.setReadOnly(False)
-		self.show()
 
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-		self.setFocus()
-
+		self.open_file_end()
 		
 
 	def modifiedChanged(self):
