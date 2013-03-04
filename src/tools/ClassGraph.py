@@ -18,13 +18,12 @@ class CtagsInhCache:
 		self.is_debug  = False
 
 		map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP', 0)
-		if not map:
-			return
-		try:
-			map = eval(map)
-		except:
-			print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
-			map = None
+		if map:
+			try:
+				map = eval(map)
+			except:
+				print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
+				map = None
 		self.ct_custom_map = map
 
 	def _filterCtInherits(self, data, sym=None):
@@ -54,7 +53,7 @@ class CtagsInhCache:
 
 	def _runCtagsCustom(self, fl):
 		if not self.ct_custom_map:
-			return
+			return []
 		cmd_list = []
 		for (suffix, cmd) in self.ct_custom_map:
 			_fl = [ f for f in fl if f.endswith(suffix) ]
