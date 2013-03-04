@@ -17,9 +17,9 @@ class CtagsInhCache:
 		self.is_fq     = is_fq
 		self.is_debug  = False
 
-		map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
+		map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP', 0)
 		if not map:
-			return []
+			return
 		try:
 			map = eval(map)
 		except:
@@ -112,13 +112,13 @@ class ClassGraphGenerator:
 		self.visitedSym = {}
 		if is_base:
 			self.visitedSym = {'object' : 1}
-			if os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP'):
+			if os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP', 0):
 				for c in [ 'Entity', 'Type', 'PtrInterFace','Enum','Nominal' ]:
 					self.visitedSym[c] = 1
 					self.visitedSym['Tac::' + c] = 1
 		self.is_base = is_base
 		self.is_fq = False
-		self.is_debug = os.getenv('SEASCOPE_CLASS_GRAPH_DEBUG')
+		self.is_debug = os.getenv('SEASCOPE_CLASS_GRAPH_DEBUG', 0)
 		self.cic = CtagsInhCache(self.is_base, self.is_fq, self.is_debug)
 
 	def addGraphRule(self, sym, d):
