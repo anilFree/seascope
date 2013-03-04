@@ -7,6 +7,7 @@
 
 import os
 import re
+import array
 
 from PyQt4 import QtGui
 from PyQt4.QtGui import *
@@ -116,15 +117,56 @@ class EditorView(QsciScintilla):
 		self.lexer.setFont(self.font,-1)
 		self.setLexer(self.lexer)
 
-	def open_file(self, filename):
-		self.filename = filename
+	def lpropChanged(self, prop, val):
+		print 'lpropChanged', prop, val
 
-		## Choose a lexer
+	def setProperty(self, name, val):
+		name_buff = array.array('c', name + "\0")
+		val_buff = array.array("c", str(val) + "\0")
+		address_name_buffer = name_buff.buffer_info()[0]
+		address_val_buffer = val_buff.buffer_info()[0]
+		self.SendScintilla(QsciScintillaBase.SCI_SETPROPERTY, address_name_buffer, address_val_buffer)
+
+	def getProperty(self, name):
+		name_buff = array.array('c', name + "\0")
+		val_buff = array.array("c", str(0) + "\0")
+		address_name_buffer = name_buff.buffer_info()[0]
+		address_val_buffer = val_buff.buffer_info()[0]
+		self.SendScintilla(QsciScintillaBase.SCI_GETPROPERTY, address_name_buffer, address_val_buffer)
+		return ''.join(val_buff)
+
+	def printPropertyAll(self):
+		sz = self.SendScintilla(QsciScintillaBase.SCI_PROPERTYNAMES, 0, 0)
+		if not sz:
+			return
+		val_buff = array.array("c", (' ' * sz) + "\0")
+		address_val_buffer = val_buff.buffer_info()[0]
+		self.SendScintilla(QsciScintillaBase.SCI_PROPERTYNAMES, 0, address_val_buffer)
+		print '###>'
+		for p in ''.join(val_buff).splitlines():
+			v = self.getProperty(p)
+			print '    %s = %s' % (p, v)
+
+	def set_lexer(self, filename):
 		if not self.lexer:
 			if (re.search('\.(py|pyx|pxd|pxi|scons)$', filename) != None):
 				self.lexer = QsciLexerPython()
 			else:
 				self.lexer = QsciLexerCPP()
+
+			self.setLexer(self.lexer)
+			self.setProperty("lexer.cpp.track.preprocessor", "0")
+			is_debug = os.getenv("SEASCOPE_QSCI_LEXER_DEBUG", 0)
+			if is_debug:
+				self.lexer.propertyChanged.connect(self.lpropChanged)
+				self.printPropertyAll()
+
+
+	def open_file_begin(self, filename):
+		self.filename = filename
+
+		## Choose a lexer
+		self.set_lexer(filename)
 
 		## Braces matching
 		self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
@@ -132,16 +174,22 @@ class EditorView(QsciScintilla):
 		## Render on screen
 		self.show()
 
+	def open_file_end(self):
+		self.show()
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+		#self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.setFocus()
+
+	def open_file(self, filename):
+		self.open_file_begin(filename)
+
 		## Show this file in the editor
 		self.setText(open(filename).read())
 		
 		## Mark read-only
 		self.setReadOnly(True)
-		self.show()
 
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-		#self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-		self.setFocus()
+		self.open_file_end()
 
 	def goto_line(self, line):
 		line = line - 1
@@ -151,6 +199,8 @@ class EditorView(QsciScintilla):
 		self.setFocus()
 
 	def contextMenuEvent(self, ev):
+		if not EditorView.ev_popup:
+			return
 		f = EditorView.ev_popup.font()
 		EditorView.ev_popup.setFont(QFont("San Serif", 8))
 		EditorView.ev_popup.exec_(QCursor.pos())
