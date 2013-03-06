@@ -33,7 +33,7 @@ class SeascopeApp(QMainWindow):
 		ev_font = QFont()
 		ev_font.fromString(self.edit_book.ev_font)
 		res = DialogManager.show_preferences_dialog(self.app_style, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing, self.eb_is_show_line)
-		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing, self.eb_is_show_line) = res
+		(self.app_style, self.app_font, self.edit_ext_cmd, ev_font, self.exit_dont_ask, self.inner_editing_conf, self.eb_is_show_line) = res
 		if self.edit_ext_cmd != None:
 			self.edit_ext_cmd = str(self.edit_ext_cmd).strip()
 		if (self.edit_ext_cmd == None or self.edit_ext_cmd == ''):
