@@ -24,6 +24,7 @@ from FileContextView import *
 
 class EditorView(QsciScintilla):
 	ev_popup = None
+	sig_text_selected = pyqtSignal(str)
 	def __init__(self, parent=None):
 		QsciScintilla.__init__(self, parent)
 		#self.setGeometry(300, 300, 400, 300)
@@ -205,6 +206,13 @@ class EditorView(QsciScintilla):
 		EditorView.ev_popup.setFont(QFont("San Serif", 8))
 		EditorView.ev_popup.exec_(QCursor.pos())
 		EditorView.ev_popup.setFont(f)
+		
+	def mouseReleaseEvent(self, ev):
+		super(EditorView, self).mouseReleaseEvent(ev)
+		if(self.hasSelectedText()):
+			self.query_text = self.selectedText()
+			#print 'selectedText ----', self.query_text
+			self.sig_text_selected.emit(self.query_text)
 
 class EditorPage(QSplitter):
 	def __init__(self, parent=None):
@@ -233,6 +241,7 @@ class EditorBook(QTabWidget):
 	sig_history_update = pyqtSignal(str, int)
 	sig_tab_changed = pyqtSignal(str)
 	sig_open_dir_view = pyqtSignal(str)
+	sig_editor_text_selected = pyqtSignal(str)
 
 	def __init__(self, *args):
 		apply(QTabWidget.__init__,(self, ) + args)
@@ -431,6 +440,11 @@ class EditorBook(QTabWidget):
 			if hist:
 				self.sig_history_update.emit(filename, line)
 		page.ev.setFocus()
+		# text selected callback: need to send out again.
+		page.ev.sig_text_selected.connect(self.editor_text_selected)
+
+	def editor_text_selected(self, text):
+		self.sig_editor_text_selected.emit(text)
 
 	def show_file(self, filename):
 		self.show_file_line(filename, 0)
