@@ -420,6 +420,7 @@ class SeascopeApp(QMainWindow):
 		self.res_book.clear()
 		self.file_view.clear()
 		self.cm_mgr.clear()
+		self.context_view.clear()
 
 	def proj_settings_cb(self):
 		backend.proj_settings_trigger()
