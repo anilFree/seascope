@@ -18,7 +18,7 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, DebugView, CodemarkView
+	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView, DebugView, CodemarkView
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
@@ -516,12 +516,14 @@ class SeascopeApp(QMainWindow):
 
 		CallView.CallTreeWindow.parent = self
 		ClassGraphView.ClassGraphWindow.parent = self
+		FileFuncGraphView.FileFuncGraphWindow.parent = self
 
 		PluginHelper.backend_menu = self.backend_menu
 		PluginHelper.edit_book = self.edit_book
 		PluginHelper.res_book = self.res_book
 		PluginHelper.call_view = CallView
 		PluginHelper.class_graph_view = ClassGraphView
+		PluginHelper.file_func_graph_view = FileFuncGraphView
 		PluginHelper.file_view = self.file_view
 		PluginHelper.dbg_view = DebugView
 		
