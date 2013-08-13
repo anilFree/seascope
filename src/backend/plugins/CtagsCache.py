@@ -104,10 +104,14 @@ class CtagsThread(QThread):
 					x = x - 1
 				while y < len(ct) - 1 and ct[y + 1][1] == n:
 					y = y + 1
-				if x < y:
-					for m in range(x, y + 1):
-						if re.match(self.sig.sym, ct[m][0]):
-							break
+				if x > y:
+					return False
+				for m in range(x, y + 1):
+					reqPat = self.sig.sym + '$'
+					if re.match(reqPat, ct[m][0]):
+						line[0] = ct[m][0]
+						return True
+					return False
 		else:
 			if self.cmd_str == 'DEF':
 				return False
@@ -214,7 +218,8 @@ class CtagsThread(QThread):
 		if self.cmd_str == 'DEF':
 			import_re = re.compile('^\s*import\s+')
 			for line in res:
-				if not re.match(req, line[0]):
+				reqPat = req + '$'
+				if not re.match(reqPat, line[0]):
 					continue
 				if import_re.search(line[3]) and line[1].endswith('.py'):
 					continue
