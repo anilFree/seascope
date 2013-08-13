@@ -97,6 +97,10 @@ class QueryUiBase(QObject):
 		opt = []
 		PluginHelper.class_graph_view_page_new('', dname, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
 
+	def query_file_func_graph(self, fname):
+		opt = []
+		PluginHelper.file_func_graph_view_page_new('', fname, self.query.conf.id_dir, self.query.query, self.ffgraph_args, opt)
+
 	def _prepare_rquery(self, cmd_str, req, opt):
 		rquery = {}
 		rquery['cmd'] = cmd_str

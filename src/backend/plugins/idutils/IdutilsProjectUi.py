@@ -32,6 +32,7 @@ cmd_table = [
 	[	['---', None],	[None				],					],
 	[	['CLGRAPH', '13'],  ['Class &Graph',	'Ctrl+:'],	['Class graph'		]	],
 	[	['CLGRAPHD', '14'], ['Class Graph Dir',	'Ctrl+;'],	['Class graph dir'	]	],
+	[	['FFGRAPH', '14'], ['File Func Graph',	'Ctrl+^'],	['File Func graph dir'	]	],
 	[	['---', None],	[None				],					],
 	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
 ]
@@ -61,6 +62,14 @@ clgraph_query_args = [
 	['CLGRAPH',	'D', 'Derived classes'			],
 	['CLGRAPH',	'B', 'Base classes'			],
 ]
+
+ffgraph_query_args = [
+	['FFGRAPH',    'F',   'File functions graph'],
+	['FFGRAPH_E',  'F+E', 'File functions + external graph'],
+	['FFGRAPH_D',  'D',   'Directory functions graph'],
+	['FFGRAPH_DE', 'D+E', 'Directory functions + external graph']
+]
+
 		
 class QueryDialog(QDialog):
 	dlg = None
@@ -120,6 +129,7 @@ class QueryUiIdutils(QueryUiBase):
 		self.query = qry
 		self.ctree_args = ctree_query_args
 		self.clgraph_args = clgraph_query_args
+		self.ffgraph_args = ffgraph_query_args
 
 	def query_cb(self, cmd_str):
 		if (not self.query.id_is_open()):
@@ -132,6 +142,11 @@ class QueryUiIdutils(QueryUiBase):
 			if f:
 				d = os.path.dirname(f)
 				self.query_class_graph_dir(d)
+			return
+		if cmd_str == 'FFGRAPH':
+			f = PluginHelper.editor_current_file()
+			if f:
+				self.query_file_func_graph(f)
 			return
 		req = PluginHelper.editor_current_word()
 		if (req != None):

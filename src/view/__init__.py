@@ -3,7 +3,7 @@
 #
 # License: BSD 
 
-__all__ = ["CallView", "ClassGraphView", "EdView", "FileView", "ResView"]
+__all__ = ["CallView", "ClassGraphView", "FileFuncGraphView", "EdView", "FileView", "ResView"]
 
 def load_plugins():
 	import filecontext
