@@ -1,0 +1,156 @@
+# Copyright (c) 2010 Anil Kumar
+# All rights reserved.
+#
+# License: BSD 
+
+import os
+import sys
+import re
+
+from PyQt4 import QtGui, QtCore, uic
+
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
+
+from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import QueryUiBase
+from .. import PluginBase, PluginHelper
+
+
+cmd_table = [
+	[	['REF',	'-r'],	['&References',		'Ctrl+0'],	['References to'	]	],
+	[	['DEF',	''],	['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
+	#[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
+	[	['-->',	'-r'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
+	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
+	[	['GRP',	'-g'],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
+	[	['FIL',	'-P'],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
+	[	['INC',	'-g'],	['&Include/Import',	'Ctrl+8'],	['Find include/import'	]	],
+	[	['---', None],	[None				]					],
+	[	['QDEF', ''],	['&Quick Definition',	'Ctrl+]'],	[None			]	],
+	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
+	[	['---', None],	[None				],					],
+	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
+]
+
+menu_cmd_list = [ [c[0][0]] + c[1] for c in cmd_table ]
+cmd_str2id = {}
+cmd_str2qstr = {}
+cmd_qstr2str = {}
+for c in cmd_table:
+	if c[0][1] != None:
+		cmd_str2id[c[0][0]] = c[0][1]
+		cmd_str2qstr[c[0][0]] = c[2][0]
+		cmd_qstr2str[c[2][0]] = c[0][0]
+# python 2.7
+#cmd_str2id = { c[0][0]:c[0][1] for c in cmd_table if c[0][1] != None }
+#cmd_str2qstr = { c[0][0]:c[2][0] for c in cmd_table if c[0][1] != None }
+#cmd_qstr2str = { c[2][0]:c[0][0] for c in cmd_table if c[0][1] != None }
+cmd_qstrlist = [ c[2][0] for c in cmd_table if c[0][1] != None and c[2][0] != None ]
+
+ctree_query_args = [
+	['-->',	'--> F', 'Calling tree'			],
+	#['<--',	'F -->', 'Called tree'			],
+	['REF',	'==> F', 'Advanced calling tree'	],
+]
+		
+class QueryDialog(QDialog):
+	dlg = None
+
+	def __init__(self):
+		QDialog.__init__(self)
+
+		self.ui = uic.loadUi('backend/plugins/gtags/ui/gt_query.ui', self)
+		self.qd_sym_inp.setAutoCompletion(False)
+		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
+		self.qd_cmd_inp.addItems(cmd_qstrlist)
+
+	def run_dialog(self, cmd_str, req):
+		s = cmd_str2qstr[cmd_str]
+		inx = self.qd_cmd_inp.findText(s)
+		self.qd_cmd_inp.setCurrentIndex(inx)
+		if (req == None):
+			req = ''
+		self.qd_sym_inp.setFocus()
+		self.qd_sym_inp.setEditText(req)
+		self.qd_sym_inp.lineEdit().selectAll()
+		self.qd_substr_chkbox.setChecked(False)
+		self.qd_icase_chkbox.setChecked(False)
+
+		self.show()
+		if (self.exec_() == QDialog.Accepted):
+			req = str(self.qd_sym_inp.currentText())
+			s = str(self.qd_cmd_inp.currentText())
+			cmd_str = cmd_qstr2str[s]
+			#self.qd_sym_inp.addItem(req)
+			if (req != '' and self.qd_substr_chkbox.isChecked()):
+				req = '.*' + req + '.*'
+			opt = None
+			if (self.qd_icase_chkbox.isChecked()):
+				opt = '-i'
+			res = (cmd_str, req, opt)
+			return res
+		return None
+
+	@staticmethod
+	def show_dlg(cmd_str, req):
+		if (QueryDialog.dlg == None):
+			QueryDialog.dlg = QueryDialog()
+		return QueryDialog.dlg.run_dialog(cmd_str, req)
+
+def show_msg_dialog(msg):
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+
+class QueryUiGtags(QueryUiBase):
+	def __init__(self, qry):
+		self.menu_cmd_list = menu_cmd_list
+		QueryUiBase.__init__(self)
+		self.query = qry
+		self.ctree_args = ctree_query_args
+
+	def query_cb(self, cmd_str):
+		if (not self.query.gt_is_open()):
+			return
+		if (not self.query.gt_is_ready()):
+			show_msg_dialog('\nProject has no source files')
+			return
+		req = PluginHelper.editor_current_word()
+		if (req != None):
+			req = str(req).strip()
+		opt = None
+		if (cmd_str != 'QDEF'):
+			val = QueryDialog.show_dlg(cmd_str, req)
+			if (val == None):
+				return
+			(cmd_str, req, opt) = val
+		if (req == None or req == ''):
+			return
+
+		if cmd_str == 'QDEF':
+			self.query_qdef(req, opt)
+		elif cmd_str == 'CTREE':
+			self.query_ctree(req, opt)
+		else:
+			self.do_query(cmd_str, req, opt)
+
+	def prepare_menu(self):
+		QueryUiBase.prepare_menu(self)
+		menu = PluginHelper.backend_menu
+		menu.setTitle('G&tags')
+
+	@staticmethod
+	def prj_show_settings_ui(proj_args):
+		dlg = ProjectSettingsGtagsDialog()
+		return dlg.run_dialog(proj_args)
+
+class ProjectSettingsGtagsDialog(QDialog):
+	def __init__(self):
+		QDialog.__init__(self)
+
+		self.ui = uic.loadUi('ui/project_settings.ui', self)
+
+	def run_dialog(self, proj_args):
+		self.pi_path_lbl.setText(proj_args[0])
+		self.pi_type_lbl.setText('GNU global/gtags')
+		self.exec_()
+		return proj_args
