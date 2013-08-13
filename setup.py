@@ -5,6 +5,7 @@
 #
 # License: BSD 
 
+import textwrap
 from distutils.core import setup
 
 setup(name='Seascope',
