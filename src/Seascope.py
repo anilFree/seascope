@@ -18,7 +18,7 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView, DebugView, CodemarkView
+	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView, DebugView, CodemarkView, CodeContextView
 	import backend
 	from backend.plugins import PluginHelper
 	import DialogManager
@@ -282,7 +282,8 @@ class SeascopeApp(QMainWindow):
 		self.toolbar.addAction(si(QStyle.SP_MediaSkipBackward), 'Previous Position', self.go_prev_pos_cb)
 		self.toolbar.addAction(si(QStyle.SP_MediaSkipForward), 'Next Position', self.go_next_pos_cb)
 		self.toolbar.addSeparator()
-		self.toolbar.addAction(QIcon('icons/codeview.png'), 'Code Quick View', self.is_code_quick_view)
+		self.codeqkview = self.toolbar.addAction(QIcon('icons/codeview.png'), 'Code Quick View', self.is_code_quick_view)
+		self.codeqkview.setCheckable(True)
 	
 		
 	# app config
@@ -301,6 +302,7 @@ class SeascopeApp(QMainWindow):
 		self.is_show_toolbar = False
 		self.edit_ext_cmd = 'x-terminal-emulator -e vim %F +%L'
 		self.eb_is_show_line = False
+		self.enable_code_qkview = False
 
 		path = self.app_get_config_file()
 		if (not os.path.exists(path)):
@@ -418,6 +420,7 @@ class SeascopeApp(QMainWindow):
 		self.res_book.clear()
 		self.file_view.clear()
 		self.cm_mgr.clear()
+		self.context_view.clear()
 
 	def proj_settings_cb(self):
 		backend.proj_settings_trigger()
@@ -456,7 +459,12 @@ class SeascopeApp(QMainWindow):
 			self.removeToolBar(self.toolbar)
 
 	def is_code_quick_view(self):
-		QMessageBox.information(None, "Seascope", 'Not implemented yet!', QMessageBox.Ok)
+		self.enable_code_qkview = not self.enable_code_qkview
+		self.codeqkview.setChecked(self.enable_code_qkview)
+		if (self.enable_code_qkview):
+			self.context_view.show()
+		else:
+			self.context_view.hide()
 
 	def connect_signals(self):
 		self.edit_book.sig_history_update.connect(self.res_book.history_update)
@@ -465,6 +473,23 @@ class SeascopeApp(QMainWindow):
 		self.file_view.sig_show_file.connect(self.edit_book.show_file)
 		self.edit_book.sig_open_dir_view.connect(self.file_view.open_dir_view)
 		self.edit_book.sig_file_closed.connect(self.codemark_del_file_cb)
+		self.edit_book.sig_editor_text_selected.connect(self.editor_text_selected)
+		self.context_view.sig_codecontext_showfile.connect(self.code_context_showfile_cb)
+		
+	def editor_text_selected(self, text):
+		if (self.enable_code_qkview):
+			rquery = {}
+			rquery['cmd'] = 'DEF'
+			rquery['req'] = str(text)
+			rquery['opt'] = None
+			sig_res = backend.prj.qry.query(rquery)
+			sig_res[0].connect(self.code_context_view_cb)
+
+	def code_context_view_cb(self, sym, res):
+		self.context_view.showResult(sym, res)
+	
+	def code_context_showfile_cb(self, filename, line):
+		self.show_file_line(filename, line)
 
 	def setup_widget_tree(self):
 		self.hsp = QSplitter();
@@ -476,8 +501,14 @@ class SeascopeApp(QMainWindow):
 		self.vsp.setOrientation(Qt.Vertical)
 		self.vsp.addWidget(self.hsp)
 		self.vsp.addWidget(self.res_book)
-		self.vsp.setSizes([1, 1])
-
+		self.hsp_res = QSplitter();
+		self.hsp_res.addWidget(self.res_book)
+		self.hsp_res.addWidget(self.context_view)
+		self.vsp.addWidget(self.hsp_res)
+		
+		self.hsp_res.setSizes([200, 1])
+		self.vsp.setSizes([1, 60])
+		
 		self.setCentralWidget(self.vsp)
 		self.setWindowTitle('Seascope')
 		self.setGeometry(300, 100, 800, 600)
@@ -501,6 +532,8 @@ class SeascopeApp(QMainWindow):
 		self.res_book  = ResView.ResultManager()
 		self.file_view = FileView.FileTree()
 		self.cm_mgr    = CodemarkView.CodemarkManager()
+		self.context_view = CodeContextView.CodeContextViewManager()
+		self.context_view.hide()
 
 		self.sbar = self.statusBar()
 		self.create_mbar()
