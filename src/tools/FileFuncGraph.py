@@ -82,7 +82,8 @@ class FFgraph:
 			res = self.parse_cs_result(output)
 			res = set([ e[0] for e in res ])
 		except Exception as e:
-			print 'findCalleeList', e
+			print >> sys.stderr, 'findCalleeList', e
+			res = []
 		return res
 
 	def generateDotHeader(self, name):
@@ -149,7 +150,7 @@ class FFgraph:
 			res = self.getCallerCalleeInfo(f, is_extern)
 			dotInput = self.generateDotInput(f, res, is_extern)
 		except Exception as e:
-			print e
+			print >> sys.stderr, e
 		
 		if not gOut:
 			print dotInput
@@ -165,6 +166,7 @@ class FFgraph:
 			return svg_data
 		except Exception as e:
 			print >> sys.stderr, 'Failed to run:', ' '.join(args), '\n'
+			print >> sys.stderr, 'dotInput:', dotInput, '\n'
 			print >> sys.stderr, e, '\n'
 		
 
