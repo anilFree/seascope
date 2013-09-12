@@ -14,8 +14,37 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 try:
-	from PyQt4.Qsci import QsciScintilla, QsciScintillaBase, QsciLexerCPP, QsciLexerPython
-except ImportError:
+	from PyQt4.Qsci import QsciScintilla, QsciScintillaBase
+	from PyQt4.Qsci import QsciLexerCPP, QsciLexerJava
+	from PyQt4.Qsci import QsciLexerPython, QsciLexerRuby
+	from PyQt4.Qsci import QsciLexerBash, QsciLexerDiff, QsciLexerMakefile
+	from PyQt4.Qsci import QsciLexerLua, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX
+	from PyQt4.Qsci import QsciLexerHTML, QsciLexerCSS
+	from PyQt4.Qsci import QsciLexerPerl, QsciLexerVHDL
+
+	suffix_to_lexer = [
+		[['c', 'h', 'cpp', 'hpp', 'cc', 'hh', 'cxx', 'hxx', 'C', 'H', 'h++'], QsciLexerCPP],
+		[['java'], QsciLexerJava],
+		[['py', 'pyx', 'pxd', 'pxi', 'scons'], QsciLexerPython],
+		[['rb', 'ruby'], QsciLexerRuby],
+		[['sh', 'bash'], QsciLexerBash],
+		[['diff', 'patch'], QsciLexerDiff],
+		[['mak', 'mk'], QsciLexerMakefile],
+		[['lua'], QsciLexerLua],
+		[['sql'], QsciLexerSQL],
+		[['tcl', 'tk', 'wish', 'itcl'], QsciLexerTCL],
+		[['tex'], QsciLexerTeX],
+		[['htm', 'html'], QsciLexerHTML],
+		[['css'], QsciLexerCSS],
+		[['pl', 'perl'], QsciLexerPerl],
+		[['vhdl', 'vhd'], QsciLexerVHDL],
+	]
+	filename_to_lexer = [
+		[['Makefile', 'makefile', 'Makefile.am', 'makefile.am', 'Makefile.in', 'makefile.in'], QsciLexerMakefile],
+	]
+
+except ImportError as e:
+	print e
 	print "Error: required qscintilla-python package not found"
 	raise ImportError
 
@@ -148,13 +177,20 @@ class EditorView(QsciScintilla):
 			v = self.getProperty(p)
 			print '    %s = %s' % (p, v)
 
+	def lexer_for_file(self, filename):
+		(prefix, ext) = os.path.splitext(filename)
+		for (el, lxr) in suffix_to_lexer:
+			if ext in el:
+				return lxr
+		for (el, lxr) in filename_to_lexer:
+			if filename in el:
+				return lxr
+		return QsciLexerCPP
+
 	def set_lexer(self, filename):
 		if not self.lexer:
-			if (re.search('\.(py|pyx|pxd|pxi|scons)$', filename) != None):
-				self.lexer = QsciLexerPython()
-			else:
-				self.lexer = QsciLexerCPP()
-
+			lexerClass = self.lexer_for_file(filename)
+			self.lexer = lexerClass()
 			self.setLexer(self.lexer)
 			self.setProperty("lexer.cpp.track.preprocessor", "0")
 			is_debug = os.getenv("SEASCOPE_QSCI_LEXER_DEBUG", 0)
