@@ -568,8 +568,9 @@ class SeascopeApp(QMainWindow):
 			font.fromString(self.app_font)
 			QApplication.setFont(font)
 
-	def __init__(self, parent=None):
+	def __init__(self, parent=None, app_start_dir=None):
 		QMainWindow.__init__(self)
+		self.seascope_start_dir = app_start_dir
 
 		self.app_read_config()
 
@@ -583,6 +584,9 @@ class SeascopeApp(QMainWindow):
 		args = QApplication.arguments()
 		if len(args) == 2:
 			prj_path = str(args[1])
+			if not os.path.isabs(prj_path):
+				dname = self.seascope_start_dir
+				prj_path = os.path.join(dname, prj_path)
 			
 		if not prj_path or os.getenv('SEASCOPE_RESTART_HINT'):
 			if len(self.recent_projects):
@@ -612,8 +616,7 @@ if __name__ == "__main__":
 
 	# start app
 	app = QApplication(sys.argv)
-	ma = SeascopeApp()
-	ma.seascope_start_dir = app_start_dir
+	ma = SeascopeApp(app_start_dir=app_start_dir)
 	ma.show()
 	ret = app.exec_()
 	sys.exit(ret)
