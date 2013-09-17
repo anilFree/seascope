@@ -270,7 +270,8 @@ class PluginProcess(QObject):
 			self.sig.sig_result_dbg.emit(self.p_cmd, res, self.err_str)
 			try:
 				res = self.parse_result(res, self.sig)
-			except:
+			except Exception as e:
+				print e
 				res = [['', '', '', 'error while parsing output of: ' + self.p_cmd]]
 			if res != None:
 				self.sig.emit_result(res)
