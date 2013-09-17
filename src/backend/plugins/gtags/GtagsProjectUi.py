@@ -23,7 +23,7 @@ cmd_table = [
 	#[	['<--',	'2'],	['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
 	[	['-->',	'-r'],	['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
 	#[	['TXT',	'4'],	['Find &Text',		'Ctrl+4'],	['Find text'		]	],
-	[	['GRP',	'-g'],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
+	[	['GREP','-g'],	['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
 	[	['FIL',	'-P'],	['Find &File',		'Ctrl+7'],	['Find files'		]	],
 	[	['INC',	'-g'],	['&Include/Import',	'Ctrl+8'],	['Find include/import'	]	],
 	[	['---', None],	[None				]					],

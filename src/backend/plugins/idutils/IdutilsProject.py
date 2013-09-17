@@ -157,12 +157,19 @@ class IdProcess(PluginProcess):
 			return res
 
 		res = []
-		for line in text:
-			if line == '':
-				continue
-			line = line.split(':', 2)
-			line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
-			res.append(line)
+		if self.cmd_str == 'GREP':
+			for line in text:
+				if line == '':
+					continue
+				line = ['<unknown>'] + line.split(':', 2)
+				res.append(line)
+		else:
+			for line in text:
+				if line == '':
+					continue
+				line = line.split(':', 2)
+				line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
+				res.append(line)
 
 		#t3 = datetime.now()
 		#print 'parse-loop', t3 - t2
@@ -192,15 +199,23 @@ class QueryIdutils(QueryBase):
 		pargs = ['lid', '-R', 'grep']
 		if cmd_str == 'FIL':
 			pargs = ['fnid', '-S', 'newline']
-		elif cmd_str == 'TXT':
-			pargs += ['-l']
+		elif cmd_str == 'GREP':
+			pargs = ['grep', '-E', '-R', '-n', '-I']
+		#elif cmd_str == 'TXT':
+			#pargs += ['-l']
 		elif 'substring' in opt:
 			#req = '.*' + req + '.*'
 			#pargs += ' -s'
 			pass
 		elif cmd_str in ['-->', '<--']:
 			pargs += ['-l']
+
+		if cmd_str != 'FIL':
+			if 'ignorecase' in opt:
+				pargs += ['-i']
 		pargs += [ '--', req ]
+		if cmd_str == 'GREP':
+			pargs += [self.conf.id_dir]
 		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
