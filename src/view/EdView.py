@@ -51,82 +51,11 @@ except ImportError as e:
 import DialogManager
 from FileContextView import *
 
-class EditorView(QsciScintilla):
-	ev_popup = None
-	sig_text_selected = pyqtSignal(str)
+class EditorViewBase(QsciScintilla):
 	def __init__(self, parent=None):
 		QsciScintilla.__init__(self, parent)
-		#self.setGeometry(300, 300, 400, 300)
-
-		## Editing line color
-		self.setCaretLineVisible(True)
-		self.setCaretLineBackgroundColor(QtGui.QColor("#d4feff")) # orig: EEF6FF
-		#self.setCaretWidth(2)
-
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-
 		self.font = None
 		self.lexer = None
-		self.codemark_marker = self.markerDefine(self.Circle)
-
-	def get_filename(self):
-		return self.filename
-
-	def ed_settings_1(self):
-		## Margins colors
-		# line numbers margin
-		self.setMarginsBackgroundColor(QtGui.QColor("#333333"))
-		self.setMarginsForegroundColor(QtGui.QColor("#CCCCCC"))
-
-		# folding margin colors (foreground,background)
-		self.setFoldMarginColors(QtGui.QColor("#888888"),QtGui.QColor("#eeeeee"))
-
-		## Edge Mode shows a red vetical bar at 80 chars
-		self.setEdgeMode(QsciScintilla.EdgeLine)
-		self.setEdgeColumn(80)
-		self.setEdgeColor(QtGui.QColor("#FF0000"))
-
-		## Editing line color
-		self.setCaretLineVisible(True)
-		self.setCaretLineBackgroundColor(QtGui.QColor("#CDA869"))
-
-	def show_line_number_cb(self, val):
-		if (val):
-			width = self.fm.width( "00000" ) + 5
-		else:
-			width = 0
-
-		self.setMarginWidth(0, width)
-		self.setMarginLineNumbers(0, val)
-
-	def show_folds_cb(self, val):
-		if val:
-			#self.setMarginsForegroundColor( QtGui.QColor("#404040") )
-			#self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
-
-			## Folding visual : we will use circled tree fold
-			self.setFolding(QsciScintilla.CircledTreeFoldStyle)
-		else:
-			self.setFolding(QsciScintilla.NoFoldStyle)
-			self.clearFolds()
-
-	def toggle_folds_cb(self):
-		self.foldAll()
-		
-	def codemark_add(self, line):
-		self.markerAdd(line, self.codemark_marker)
-
-	def codemark_del(self, line):
-		self.markerDelete(line, self.codemark_marker)
-
-	def goto_marker(self, is_next):
-		(eline, inx) = self.getCursorPosition()
-		if is_next:
-			val = self.markerFindNext(eline + 1, -1)
-		else:
-			val = self.markerFindPrevious(eline - 1, -1)
-		if val >= 0:
-			self.setCursorPosition(val, 0)
 
 	def set_font(self, font):
 		if not font:
@@ -198,6 +127,81 @@ class EditorView(QsciScintilla):
 				self.lexer.propertyChanged.connect(self.lpropChanged)
 				self.printPropertyAll()
 
+
+class EditorView(EditorViewBase):
+	ev_popup = None
+	sig_text_selected = pyqtSignal(str)
+	def __init__(self, parent=None):
+		EditorViewBase.__init__(self, parent)
+		#self.setGeometry(300, 300, 400, 300)
+
+		## Editing line color
+		self.setCaretLineVisible(True)
+		self.setCaretLineBackgroundColor(QtGui.QColor("#d4feff")) # orig: EEF6FF
+		#self.setCaretWidth(2)
+
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+
+		self.codemark_marker = self.markerDefine(self.Circle)
+
+	def get_filename(self):
+		return self.filename
+
+	def ed_settings_1(self):
+		## Margins colors
+		# line numbers margin
+		self.setMarginsBackgroundColor(QtGui.QColor("#333333"))
+		self.setMarginsForegroundColor(QtGui.QColor("#CCCCCC"))
+
+		# folding margin colors (foreground,background)
+		self.setFoldMarginColors(QtGui.QColor("#888888"),QtGui.QColor("#eeeeee"))
+
+		## Edge Mode shows a red vetical bar at 80 chars
+		self.setEdgeMode(QsciScintilla.EdgeLine)
+		self.setEdgeColumn(80)
+		self.setEdgeColor(QtGui.QColor("#FF0000"))
+
+		## Editing line color
+		self.setCaretLineVisible(True)
+		self.setCaretLineBackgroundColor(QtGui.QColor("#CDA869"))
+
+	def show_line_number_cb(self, val):
+		if (val):
+			width = self.fm.width( "00000" ) + 5
+		else:
+			width = 0
+
+		self.setMarginWidth(0, width)
+		self.setMarginLineNumbers(0, val)
+
+	def show_folds_cb(self, val):
+		if val:
+			#self.setMarginsForegroundColor( QtGui.QColor("#404040") )
+			#self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
+
+			## Folding visual : we will use circled tree fold
+			self.setFolding(QsciScintilla.CircledTreeFoldStyle)
+		else:
+			self.setFolding(QsciScintilla.NoFoldStyle)
+			self.clearFolds()
+
+	def toggle_folds_cb(self):
+		self.foldAll()
+		
+	def codemark_add(self, line):
+		self.markerAdd(line, self.codemark_marker)
+
+	def codemark_del(self, line):
+		self.markerDelete(line, self.codemark_marker)
+
+	def goto_marker(self, is_next):
+		(eline, inx) = self.getCursorPosition()
+		if is_next:
+			val = self.markerFindNext(eline + 1, -1)
+		else:
+			val = self.markerFindPrevious(eline - 1, -1)
+		if val >= 0:
+			self.setCursorPosition(val, 0)
 
 	def open_file_begin(self, filename):
 		self.filename = filename
