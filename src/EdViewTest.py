@@ -35,6 +35,18 @@ if __name__ == '__main__':
 		book = EdViewRW.EditorBookRW()
 	else:
 		book = EdView.EditorBook()
+
+	actDescr = [
+		[ book.find_cb,      'Ctrl+F' ],
+                [ book.find_next_cb, 'F3' ],
+                [ book.find_prev_cb, 'Shift+F3' ],
+        ]
+        for ad in actDescr:
+		act = QAction(w)
+		act.setShortcut(ad[1])
+		act.triggered.connect(ad[0])
+		w.addAction(act)
+
 	w.setCentralWidget(book)
 	w.resize(900, 600)
 	w.show()
