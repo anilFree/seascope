@@ -43,6 +43,9 @@ class ProjectBase(QObject):
 		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 
 class ConfigBase(QObject):
+	def __init__(self, ptype):
+		self.prj_type = ptype
+
 	@staticmethod
 	def prepare_menu(menubar):
 		pass
@@ -91,15 +94,17 @@ class QueryUiBase(QObject):
 		PluginHelper.call_view_page_new(req, self.query.query, self.ctree_args, opt)
 
 	def query_class_graph(self, req, opt):
-		PluginHelper.class_graph_view_page_new(req, None, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
+		(prj_dir, dummy1, dummy2) = self.query.conf.get_proj_conf()
+		prj_type = self.query.conf.prj_type
+		PluginHelper.class_graph_view_page_new(req, prj_dir, prj_type, self.query.query, opt)
 
 	def query_class_graph_dir(self, dname):
 		opt = []
-		PluginHelper.class_graph_view_page_new('', dname, self.query.conf.id_dir, self.query.query, self.clgraph_args, opt)
+		PluginHelper.class_graph_view_page_new('', dname, None, self.query.query, opt)
 
 	def query_file_func_graph(self, fname):
 		opt = []
-		PluginHelper.file_func_graph_view_page_new('', fname, self.query.conf.id_dir, self.query.query, self.ffgraph_args, opt)
+		PluginHelper.file_func_graph_view_page_new('', fname, '', self.query.query, opt)
 
 	def _prepare_rquery(self, cmd_str, req, opt):
 		rquery = {}

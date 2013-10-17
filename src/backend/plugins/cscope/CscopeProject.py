@@ -16,7 +16,7 @@ from .. import PluginHelper
 
 class ConfigCscope(ConfigBase):
 	def __init__(self):
-		ConfigBase.__init__(self)
+		ConfigBase.__init__(self, 'cscope')
 
 		self.cs_dir = ''
 		self.cs_opt = []

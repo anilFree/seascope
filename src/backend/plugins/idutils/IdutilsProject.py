@@ -13,7 +13,7 @@ from IdutilsProjectUi import QueryUiIdutils
 
 class ConfigIdutils(ConfigBase):
 	def __init__(self):
-		ConfigBase.__init__(self)
+		ConfigBase.__init__(self, 'idutils')
 
 		self.id_dir = ''
 		self.id_opt = ''
