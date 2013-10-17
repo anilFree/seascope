@@ -101,8 +101,9 @@ class CtagsInhCache:
 		return res
 
 class ClassGraphGenerator:
-	def __init__(self, d, wlimit=5000, is_base=False):
+	def __init__(self, d, pcmd=None, wlimit=5000, is_base=False):
 		self.wdir = d;
+		self.pcmd = pcmd
 		self.width_limit = wlimit;
 		self.dname = None
 		self.dirCtInhInfo = None
@@ -123,11 +124,11 @@ class ClassGraphGenerator:
 	def addGraphRule(self, sym, d):
 		if (sym, d) in self.visitedRules:
 			return
-		self.visitedRules[(sym, d)] = 1
+		self.visitedRules[(sym, d)] = True
 		self.graphRules.append([sym, d])
 
 	def refFiles(self, sym):
-		args = ['lid', '-R', 'grep', sym]
+		args = list(self.pcmd) + [sym]
 		try:
 			# In python >= 2.7 can use subprocess.check_output
 			# output = subprocess.check_output(args, cwd=self.wdir)
@@ -135,8 +136,7 @@ class ClassGraphGenerator:
 			(output, err_data) = proc.communicate()
 			output = re.split('\r?\n', output)
 		except Exception as e:
-			print >> sys.stderr, e, '\n'
-			print >> sys.stderr, 'Run this script from a directory where lid can find ID file\n'
+			print >> sys.stderr, 'dir:', self.wdir, ':cmd:', args, ':', e, '\n'
 			sys.exit(-1)
 		res = set()
 		for line in output:
@@ -192,11 +192,13 @@ class ClassGraphGenerator:
 			subSym = re.split('::|\.', sym)[-1]
 		else:
 			subSym = sym
-		if self.dname:
-			data = self.dirCtInhInfo
-		else:
+
+		if self.pcmd:
 			fl = self.refFiles(subSym)
 			data = self.cic.ctInhInfo(fl)
+		else:
+			data = self.dirCtInhInfo
+
 		res = self.parseCtagsInherits(data, sym)
 		return res
 
@@ -265,14 +267,9 @@ class ClassGraphGenerator:
 
 		print >> sys.stderr, 'saved', dot_svg, '\n'
 
-	def generateGraph(self, sym=None, dname=None):
-		if not any([sym, dname]):
-			return
-		if dname:
+	def generateGraph(self, dname, sym=None):
+		if not self.pcmd:
 			self.runCtInhForDir(dname)
-			if not sym:
-				self.classHierarchyForDir(dname)
-				dotInput = self.prepareDotInput(dname)
 		if sym:
 			if sym == '::' or sym == '.':
 				return
@@ -282,6 +279,9 @@ class ClassGraphGenerator:
 				sym = re.split('::|\.', sym, maxsplit=1)[-1]
 			self.classHierarchyRecursive([sym])
 			dotInput = self.prepareDotInput(sym)
+		else:
+			self.classHierarchyForDir(dname)
+			dotInput = self.prepareDotInput(dname)
 
 		if self.is_debug:
 			print dotInput
@@ -303,41 +303,60 @@ class ClassGraphGenerator:
 
 if __name__ == '__main__':
 	import optparse
-	usage = "usage: %prog [options] (-d <code_dir/file> | -p <idutils_proj>) [symbol]"
+	usage = "usage: %prog [options] (-d <code_dir/file> | -t <prj_type>) [symbol]"
 	op = optparse.OptionParser(usage=usage)
 	op.add_option("-b", action="store_true", dest="is_base", help="Show base classes")
 	op.add_option("-d", "--codedir", dest="code_dir", help="Code dir", metavar="CODE_DIR")
-	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
+	op.add_option("-t", "--type", dest="prj_type", help="project type: idutils|gtags|cscope", metavar="PRJ_TYPE")
 	(options, args) = op.parse_args()
 
-	if (not any([options.code_dir, options.id_path]) or
-               all([options.code_dir, options.id_path])):
-		print >> sys.stderr, 'Specify one among -d or -p'
+	# dname
+	if not options.code_dir:
+		print >> sys.stderr, 'Specify -d'
 		sys.exit(-1)
-	
+	dname = options.code_dir
+	if not os.path.exists(dname):
+		print >> sys.stderr, '"%s": does not exist' %  dname
+		sys.exit(-2)
+	wdir = dname
+	if not os.path.isdir(wdir):
+		wdir = os.path.dirname(wdir)
+
+	# sym
 	sym = None
-	dname = None
-	is_base = False
-	if options.is_base:
-		is_base = True
 	if len(args):
 		if len(args) != 1:
 			print >> sys.stderr, 'Please specify only one symbol'
-			sys.exit(-2)
+			sys.exit(-3)
 		sym = args[0]
 
-	if options.code_dir:
-		dname = options.code_dir
-		if not os.path.exists(dname):
-			print >> sys.stderr, '"%s": does not exist' %  dname
-			sys.exit(-3)
-		cgg = ClassGraphGenerator(dname, is_base=is_base)
-	else:
-		id_path = os.path.normpath(options.id_path)
-		if not os.path.exists(os.path.join(id_path, 'ID')):
-			print >> sys.stderr, 'idutils project path does not exist'
+	# ptype
+	ptype = options.prj_type
+	if ptype:
+		if not sym:
+			print >> sys.stderr, '-t option needs sepficfying symbol'
 			sys.exit(-4)
-		cgg = ClassGraphGenerator(id_path, is_base=is_base)
-	svg_data = cgg.generateGraph(sym=sym, dname=dname)
+		if not os.path.isdir(dname):
+			print >> sys.stderr, '-t option needs codedir to be a directory'
+			sys.exit(-5)
+	pcmd = None
+	if ptype and os.path.isdir(dname):
+		prj_list = [
+			['idutils', 'ID',        ['lid', '-R', 'grep', '--']                          ],
+			['gtags', 'GRTAGS',      ['global', '-a', '--result=grep', '-x', '-r', '--']  ],
+			['cscope', 'cscope.out', ['cscope', '-L', '-d',  '-0', '--']                  ],
+			['grep',   '',           ['grep', '-R', '-n', '-I', '--',]                    ],
+		]
+		for p in prj_list:
+			if p[0] == ptype:
+				if os.path.exists(os.path.join(dname, p[1])):
+					pcmd = p[2]
+				break
+	# is_base
+	is_base = options.is_base
+
+	# run
+	cgg = ClassGraphGenerator(wdir, pcmd=pcmd, is_base=is_base)
+	svg_data = cgg.generateGraph(dname, sym)
 
 	print svg_data

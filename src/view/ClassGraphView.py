@@ -57,7 +57,7 @@ class ClassGraphWidget(QWidget):
 		self.scrolla.setLayout(self.vlay2)
 		self.vlay1.addWidget(self.scrolla)
 
-	def startQuery(self, req, dname, proj_dir, inx):
+	def startQuery(self, req, dname, proj_type, inx):
 		if self.is_done:
 			return
 
@@ -68,14 +68,11 @@ class ClassGraphWidget(QWidget):
 		pargs = [sys.executable, tool_path]
 		if inx == 1:
 			pargs += ['-b']
+		pargs += ['-d', dname]
+		if proj_type:
+			pargs += ['-t', proj_type]
 		if req:
-			if dname:
-				pargs += ['-d', dname]
-			else:
-				pargs += ['-p', proj_dir]
 			pargs += [req]
-		else:
-			pargs += ['-d', dname]
 		sig_res = ClassGraphProcess('.', None).run_query_process(pargs, req)
 		sig_res[0].connect(self.clgraph_add_result)
 		self.is_busy = True
@@ -151,11 +148,11 @@ class ClassGraphWidget(QWidget):
 class ClassGraphWindow(QMainWindow):
 	parent = None
 
-	def __init__(self, req, dname, proj_dir, cmd_func, cmd_args, cmd_opt):
+	def __init__(self, req, dname, proj_type, cmd_func, cmd_args, cmd_opt):
 		QMainWindow.__init__(self, ClassGraphWindow.parent)
 		self.req = req
 		self.dname = dname
-		self.proj_dir = proj_dir
+		self.proj_type = proj_type
 
 		if req:
 			self.setWindowTitle(req)
@@ -208,59 +205,73 @@ class ClassGraphWindow(QMainWindow):
 		ct = self.ctree[inx]
 		ct.setFocus()
 		
-		ct.startQuery(self.req, self.dname, self.proj_dir, inx)
+		ct.startQuery(self.req, self.dname, self.proj_type, inx)
 
 
 
-def create_page(req, dname, proj_dir, cmd_func, cmd_args, cmd_opt):
-	w = ClassGraphWindow(req, dname, proj_dir, cmd_func, cmd_args, cmd_opt)
+def create_page(req, dname, proj_type, cmd_func, cmd_args, cmd_opt):
+	w = ClassGraphWindow(req, dname, proj_type, cmd_func, cmd_args, cmd_opt)
 	w.resize(900, 600)
 	w.show()
 	return w
 
 if __name__ == '__main__':
 	import optparse
-	usage = "usage: %prog (-d <code_dir/file> | -p <idutils_proj>) [symbol]"
+	usage = "usage: %prog (-d <code_dir/file> | -t <prj_type>) [symbol]"
 	op = optparse.OptionParser(usage=usage)
 	op.add_option("-d", "--codedir", dest="code_dir", help="Code dir", metavar="CODE_DIR")
-	op.add_option("-p", "--project", dest="id_path", help="Idutils project dir", metavar="PROJECT")
+	op.add_option("-t", "--type", dest="prj_type", help="project type: idutils|gtags|cscope", metavar="PRJ_TYPE")
 	(options, args) = op.parse_args()
 
-	sym = ''
-	dname = ''
-	id_path = None
-
-	if (not any([options.code_dir, options.id_path]) or
-               all([options.code_dir, options.id_path])):
-		print >> sys.stderr, 'Specify one among -d or -p'
+	# dname
+	if not options.code_dir:
+		print >> sys.stderr, 'Specify -d'
 		sys.exit(-1)
+	dname = options.code_dir
+	if not os.path.exists(dname):
+		print >> sys.stderr, '"%s": does not exist' %  dname
+		sys.exit(-2)
+	wdir = dname
+	if not os.path.isdir(wdir):
+		wdir = os.path.dirname(wdir)
 
+	# sym
+	sym = None
 	if len(args):
 		if len(args) != 1:
-			print >> sys.stderr, 'Please specify a symbol'
-			sys.exit(-4)
+			print >> sys.stderr, 'Please specify only one symbol'
+			sys.exit(-3)
 		sym = args[0]
 
-	if options.code_dir:
-		dname = options.code_dir
-		if not os.path.exists(dname):
-			print >> sys.stderr, '"%s": does not exist' %  dname
-			sys.exit(-2)
-	if options.id_path:
+	# ptype
+	ptype = options.prj_type
+	if ptype:
 		if not sym:
-			print >> sys.stderr, '-p option needs a symbol'
-			sys.exit(-3)
-		id_path = os.path.normpath(options.id_path)
-		if not os.path.exists(os.path.join(id_path, 'ID')):
-			print >> sys.stderr, 'idutils project path does not exist'
+			print >> sys.stderr, '-t option needs sepficfying symbol'
 			sys.exit(-4)
-
+		if not os.path.isdir(dname):
+			print >> sys.stderr, '-t option needs codedir to be a directory'
+			sys.exit(-5)
+	pcmd = None
+	if ptype and os.path.isdir(dname):
+		prj_list = [
+			['idutils', 'ID'         ],
+			['gtags',   'GRTAGS'     ],
+			['cscope',  'cscope.out' ],
+			['grep',    ''           ],
+		]
+		for p in prj_list:
+			if p[0] == ptype:
+				if not os.path.exists(os.path.join(dname, p[1])):
+					print >> sys.stderr, 'Failed to find "%s" in directory "%s"' % (p[1], dname)
+					sys.exit(-6)
+					
 	app = QApplication(sys.argv)
 	cmd_args = [
 		['CLGRAPH', 'D', 'Derived classes'],
 		['CLGRAPH', 'B', 'Base classes']
 	]
 
-	w = create_page(sym, dname, id_path, None, cmd_args, None)
+	w = create_page(sym, dname, ptype, None, cmd_args, None)
 
 	sys.exit(app.exec_())

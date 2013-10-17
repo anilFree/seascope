@@ -16,7 +16,7 @@ from .. import PluginHelper
 
 class ConfigGtags(ConfigBase):
 	def __init__(self):
-		ConfigBase.__init__(self)
+		ConfigBase.__init__(self, 'gtags')
 
 		self.gt_dir = ''
 		self.gt_opt = ''

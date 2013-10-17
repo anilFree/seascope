@@ -285,6 +285,7 @@ class SeascopeApp(QMainWindow):
 		self.toolbar.addSeparator()
 		self.code_ctx_view_act = self.toolbar.addAction(QIcon('icons/codeview.png'), 'Code Quick View', self.code_ctx_view_act_cb)
 		self.code_ctx_view_act.setCheckable(True)
+		self.code_ctx_view_act.setChecked(self.is_show_code_ctx_view)
 	
 		
 	# app config
@@ -525,8 +526,6 @@ class SeascopeApp(QMainWindow):
 			self.edit_book.ev_font = self.ev_font
 			self.code_ctx_view.ev_font = self.ev_font
 		self.show_toolbar.setChecked(self.is_show_toolbar)
-
-		self.code_ctx_view_act.setChecked(self.is_show_code_ctx_view)
 
 	def create_widgets(self):
 		if self.inner_editing:

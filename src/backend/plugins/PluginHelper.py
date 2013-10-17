@@ -68,10 +68,20 @@ def call_view_page_new(req, query_func, ctree_query_args, opt):
 	hint_file = editor_current_file()
 	call_view.create_page(req, query_func, ctree_query_args, opt, hint_file)
 
-def class_graph_view_page_new(req, dname, proj_dir, query_func, clgraph_query_args, opt):
-	class_graph_view.create_page(req, dname, proj_dir, query_func, clgraph_query_args, opt)
+def class_graph_view_page_new(req, dname, prj_type, query_func, opt):
+	clgraph_query_args = [
+		['CLGRAPH',	'D', 'Derived classes'			],
+		['CLGRAPH',	'B', 'Base classes'			],
+	]
+	class_graph_view.create_page(req, dname, prj_type, query_func, clgraph_query_args, opt)
 
-def file_func_graph_view_page_new(req, dname, proj_dir, query_func, ffgraph_query_args, opt):
+def file_func_graph_view_page_new(req, dname, proj_dir, query_func, opt):
+	ffgraph_query_args = [
+		['FFGRAPH',    'F',   'File functions graph'],
+		['FFGRAPH_E',  'F+E', 'File functions + external graph'],
+		['FFGRAPH_D',  'D',   'Directory functions graph'],
+		['FFGRAPH_DE', 'D+E', 'Directory functions + external graph']
+	]
 	file_func_graph_view.create_page(req, dname, proj_dir, query_func, ffgraph_query_args, opt)
 
 def file_view_update(flist):

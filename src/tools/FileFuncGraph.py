@@ -80,7 +80,10 @@ class FFgraph:
 			if os.path.isdir(srcFile):
 				cmd = cmd + [ '-s' ]
 			cmd = cmd + [ srcFile ] 
-			output = subprocess.check_output(cmd)
+			# In python >= 2.7 can use subprocess.check_output
+			# output = subprocess.check_output(cmd)
+			proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+			(output, err_data) = proc.communicate()
 			#print 'cmd =', cmd
 			#print 'output =', output
 			res = self.parse_cs_result(output)

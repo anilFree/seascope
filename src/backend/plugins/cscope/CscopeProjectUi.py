@@ -30,6 +30,10 @@ cmd_table = [
 	[	['QDEF', '11'], ['&Quick Definition',	'Ctrl+]'],	[None			]	],
 	[	['CTREE','12'],	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
 	[	['---', None],	[None				],					],
+	[	['CLGRAPH', '13'],  ['Class &Graph',	'Ctrl+:'],	['Class graph'		]	],
+	[	['CLGRAPHD', '14'], ['Class Graph Dir',	'Ctrl+;'],	['Class graph dir'	]	],
+	[	['FFGRAPH', '14'], ['File Func Graph',	'Ctrl+^'],	['File Func graph dir'	]	],
+	[	['---', None],	[None				],					],
 	[	['UPD', '25'],	['Re&build Database',	None	],	[None			]	],
 ]
 
@@ -126,6 +130,17 @@ class QueryUiCscope(QueryUiBase):
 		if (not self.query.cs_is_ready()):
 			show_msg_dialog('\nProject has no source files')
 			return
+		if cmd_str == 'CLGRAPHD':
+			f = PluginHelper.editor_current_file()
+			if f:
+				d = os.path.dirname(f)
+				self.query_class_graph_dir(d)
+			return
+		if cmd_str == 'FFGRAPH':
+			f = PluginHelper.editor_current_file()
+			if f:
+				self.query_file_func_graph(f)
+			return
 		req = PluginHelper.editor_current_word()
 		if (req != None):
 			req = str(req).strip()
@@ -142,6 +157,8 @@ class QueryUiCscope(QueryUiBase):
 			self.query_qdef(req, opt)
 		elif cmd_str == 'CTREE':
 			self.query_ctree(req, opt)
+		elif cmd_str == 'CLGRAPH':
+			self.query_class_graph(req, opt)
 		else:
 			self.do_query(cmd_str, req, opt)
 
