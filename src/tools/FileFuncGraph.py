@@ -5,7 +5,7 @@ import subprocess
 import shutil
 import tempfile
 
-GRAPH_ON_TYPES = ['function']
+GRAPH_ON_TYPES = ['function', 'macro']
 
 def _eintr_retry_call(func, *args):
 	while True:
@@ -198,9 +198,13 @@ class FFgraph:
 		lSym = []
 		eSym = []
 		res = []
+		visitedCaller = dict()
 		for e in ct_out:
 			if e[2] in GRAPH_ON_TYPES:
 				caller = e[0]
+				if caller in visitedCaller:
+					continue
+				visitedCaller[caller] = True
 				calleeList = self.findCalleeList(caller, f)
 				localCalleeList = []
 				externCalleeList = []
@@ -227,17 +231,6 @@ def ff_graph(f, is_extern, gOut=True):
 	#gOut = False
 	svg_data = ffg.generateDotGraph(f, is_extern, gOut)
 	return svg_data
-
-if __name__ == '__main__2':
-	f = '/e/lin/k1/bld/drivers/pci/hotplug/pcielw.c'
-	f = '/e/lin/k1/bld/drivers/pci/probe.c'
-	svg_data = ff_graph(f, gOut=True)
-	print svg_data
-	#if svg_data:
-	#	s = open('/tmp/x.svg','w')
-	#	s.write(svg_data)
-	#	s.close()
-	#	subprocess.call(['gwenview', '/tmp/x.svg'])
 
 if __name__ == '__main__':
 	import optparse
