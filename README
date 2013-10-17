@@ -1,3 +1,5 @@
+version: 0.8
+
 Seascope is a GUI frontend for cscope, idutils.
 
 * Running the application
