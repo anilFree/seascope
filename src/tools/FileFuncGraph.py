@@ -5,6 +5,8 @@ import subprocess
 import shutil
 import tempfile
 
+GRAPH_ON_TYPES = ['function']
+
 def _eintr_retry_call(func, *args):
 	while True:
 		try:
@@ -79,6 +81,8 @@ class FFgraph:
 				cmd = cmd + [ '-s' ]
 			cmd = cmd + [ srcFile ] 
 			output = subprocess.check_output(cmd)
+			#print 'cmd =', cmd
+			#print 'output =', output
 			res = self.parse_cs_result(output)
 			res = set([ e[0] for e in res ])
 		except Exception as e:
@@ -195,13 +199,13 @@ class FFgraph:
 		eSym = []
 		res = []
 		for e in ct_out:
-			if e[2] in ['function']:
+			if e[2] in GRAPH_ON_TYPES:
 				caller = e[0]
 				calleeList = self.findCalleeList(caller, f)
 				localCalleeList = []
 				externCalleeList = []
 				for c in calleeList:
-					if c in localSym and localSym[c] in ['function']:
+					if c in localSym and localSym[c] in GRAPH_ON_TYPES:
 						localCalleeList.append(c)
 						continue
 					if is_extern:
@@ -248,7 +252,7 @@ if __name__ == '__main__':
                all([options.code_dir, options.id_path])):
 		print >> sys.stderr, 'Specify one among -d or -p'
 		sys.exit(-1)
-	
+
 	sym = None
 	dname = None
 	is_extern = False

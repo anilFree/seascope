@@ -545,7 +545,7 @@ class EditorBook(QTabWidget):
 	def change_ev_font(self, font):
 		if font == self.ev_font:	
 			return
-		self.ev_font=font
+		self.ev_font = font
 		for inx in range(self.count()):
 			ed = self.widget(inx)
 			ed.ev.set_font(self.ev_font)

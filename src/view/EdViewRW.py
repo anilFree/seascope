@@ -92,12 +92,9 @@ class EditorBookRW(EditorBook):
 		filename = self.tabText(inx)
 		# Sign modified.
 		if isModifiled:
-			filename = "*" + filename
-			self.setTabText(inx, filename)
+			self.tabBar().setTabTextColor(inx, Qt.red)
 		else:
-			filename = str(filename)
-			filename = filename.strip('*')
-			self.setTabText(inx, filename)	
+			self.tabBar().setTabTextColor(inx, Qt.black)
 	
 	def close_cb(self, inx):
 		page = self.widget(self.currentIndex())

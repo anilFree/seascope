@@ -16,10 +16,13 @@ from PyQt4.QtCore import *
 from EdView import EditorView
 
 # code context view
-class contextView(EditorView):
-	sig_dbclick_contextview = pyqtSignal()
+class ContextEditorView(EditorView):
+	sig_dblclick = pyqtSignal()
+
 	def __init__(self, parent = None):
 		EditorView.__init__(self, parent)
+
+		self.setCaretLineBackgroundColor(QtGui.QColor("#ffaa7f"))
 		
 	def mouseReleaseEvent(self, ev):
 		super(EditorView, self).mouseReleaseEvent(ev)
@@ -33,8 +36,13 @@ class contextView(EditorView):
 	def contextMenuEvent(self, ev):
 		pass
 	
-	def	mouseDoubleClickEvent(self, ev):
-		self.sig_dbclick_contextview.emit()
+	def mouseDoubleClickEvent(self, ev):
+		self.sig_dblclick.emit()
+
+	def show_file_line(self, fname, line):
+		self.open_file(fname)
+		self.goto_line(int(line))
+		self.show()
 
 class codeResultView(QTextBrowser):
 	sig_result_view_openfile = pyqtSignal(str, int)
@@ -45,16 +53,16 @@ class codeResultView(QTextBrowser):
 	def showResultList(self, sym, res):
 		self.res = res
 		richstr = '<div align="center">'
-		richstr += '<span style="font-size:14px;color:#990000;">Query of &lt; <strong><span style="color:#000099;">'
+		richstr += '<span style="font-size:10px;color:#990000;">Query of &lt; <strong><span style="color:#000099;">'
 		richstr += str(sym)
-		richstr += '</span></strong></span> <span style="font-size:14px;color:#990000;"> &gt; list</span>'
+		richstr += '</span></strong></span> <span style="font-size:10px;color:#990000;"> &gt; list</span>'
 		richstr += '<div align="left" style="line-height:2px">'
 		richstr += '<hr />'
 		for itm in res:
 			filename = itm[1]
 			linenum = itm[2]
 			context = itm[3]
-			richstr += 'Line <span style="font-size:12px;color:#6600CC;">'
+			richstr += 'Line <span style="font-size:10px;color:#6600CC;">'
 			richstr += str(linenum)
 			richstr += '</span> of <em><a href="'
 			richstr += str(filename)
@@ -64,7 +72,7 @@ class codeResultView(QTextBrowser):
 			richstr += str(filename)
 			richstr += '</a>'
 			richstr += '</span></span></em>'
-			richstr += '<pre style="line-height:0px"><span style="font-size:12px;color:#006600;line-height:2px;">'
+			richstr += '<pre style="line-height:0px"><span style="font-size:10px;color:#006600;line-height:2px;">'
 			richstr += str(context)
 			richstr += '</span></pre>'
 		richstr += '</div></div>'
@@ -85,21 +93,37 @@ class codeResultView(QTextBrowser):
 		self.anchorClicked.disconnect(self.anchorClicked_ev)
 
 # contextView Page
-class CodeContextViewPage(QSplitter):
+class CodeContextViewPage(QFrame):
 	def __init__(self, parent = None):
-		QSplitter.__init__(self)
-		self.setOrientation(Qt.Vertical)
+		QFrame.__init__(self)
+		self.vlay = QVBoxLayout()
+
 		self.cv_filetitle = QLabel()
-		self.cv = contextView()
+		self.cv = ContextEditorView()
 		self.resv = codeResultView()
-		self.addWidget(self.resv)
-		self.addWidget(self.cv_filetitle)
-		self.addWidget(self.cv)
-		self.setSizes([1,1,1])
+		self.vlay.addWidget(self.cv_filetitle)
+		self.vlay.addWidget(self.cv)
+		self.vlay.addWidget(self.resv)
+		#self.setSizes([1,1,1])
 		self.resv.show()
 		self.cv.hide()
 		self.cv_filetitle.hide()
-		self.cv_font = "Monospace,10,-1,5,75,0,0,0,0,0"
+
+		self.setLayout(self.vlay)
+
+	def showFileView(self, fname, line, sym, font):
+		self.filename = fname
+		self.linenum = line
+		t = '%s:%s   %s' % (fname, line, sym)
+		self.cv_filetitle.setText(t)
+		self.cv_filetitle.show()
+
+		cv = self.cv
+		cv.set_lexer(fname)
+		cv.set_font(font)
+		cv.show_line_number_cb(True)
+		cv.show_file_line(fname, line)
+		cv.show()
 
 # ContextView Manager
 class CodeContextViewManager(QTabWidget):
@@ -109,31 +133,42 @@ class CodeContextViewManager(QTabWidget):
 		self.setMovable(True)
 		self.setTabsClosable(True)
 		self.newContextViewPage()
+		self.cur_query = ''
 		self.cvp_cv_openedFile = False
 		
-		self.cvp.cv.sig_dbclick_contextview.connect(self.contextViewPage_openfile)
+		self.cv_font = "Monospace,10,-1,5,50,0,0,0,0,0"
+
+		self.cvp.cv.sig_dblclick.connect(self.contextViewPage_openfile)
 		self.cvp.resv.sig_result_view_openfile.connect(self.resultViewPage_openfile)
 	
+	def change_ev_font(self, font):
+		if font == self.cv_font:	
+			return
+		self.cv_font = font
+		for inx in range(self.count()):
+			cvp = self.widget(inx)
+			cvp.cv.set_font(self.cv_font)
+
 	def newContextViewPage(self):
 		self.cvp = CodeContextViewPage()
 		self.addTab(self.cvp, 'Context View')
 
+	def set_cur_query(self, text):
+		if self.cur_query == text:
+			return False
+		self.cur_query = text
+		return True
+
 	def showResult(self, sym, res):
-		# close last opened source file
-		# FIXME: close file
-		#if self.cvp_cv_openedFile:
-		#	f =  self.cvp.cv.get_filename()
-		#	close(f) 
+		if sym != self.cur_query:
+			return
 		self.cvp.cv.clear()
 			
 		# if queried one, show the file, or, list results.
 		if (len(res) == 1):
 			self.cvp.resv.hide()
-			self.cvp.cv.show()
 			itm = res[0]
-			self.cvp.filename = itm[1]
-			self.cvp.linenum = itm[2]
-			self.showFileContext(self.cvp.filename, self.cvp.linenum)
+			self.cvp.showFileView(itm[1], itm[2], sym, self.cv_font)
 			self.cvp_cv_openedFile = True
 		else:
 			self.cvp.cv.hide()
@@ -148,18 +183,6 @@ class CodeContextViewManager(QTabWidget):
 	def resultViewPage_openfile(self, filename, line):
 		self.sig_codecontext_showfile.emit(filename, int(line))
 			
-	def showFileContext(self, fname, line):
-		filetitle = '<span style="font-style:italic; color:#5500ff;">&nbsp;&nbsp;&nbsp;&nbsp;'
-		filetitle += fname
-		filetitle += '</span>'
-		self.cvp.cv_filetitle.setText(filetitle)
-		self.cvp.cv_filetitle.show()
-		self.cvp.cv.open_file(fname)
-		self.cvp.cv.set_font(self.cvp.cv_font)
-		self.cvp.cv.goto_line(int(line))
-		self.cvp.cv.setCaretLineBackgroundColor(QtGui.QColor("#ffaa7f"))
-		self.cvp.cv.show_line_number_cb(True)
-	
 	def clear(self):
 		self.cvp.cv_filetitle.clear()
 		self.cvp.resv.clear()
