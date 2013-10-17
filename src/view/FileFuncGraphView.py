@@ -57,6 +57,10 @@ class FileFuncGraphWidget(QWidget):
 		self.scrolla.setLayout(self.vlay2)
 		self.vlay1.addWidget(self.scrolla)
 
+		self.warn_experimental_lbl = QLabel('Warning: this is an EXPERIMENTAL feature based on cscope, might not work on all files for now.')
+		self.warn_experimental_lbl.setStyleSheet("QLabel { color : red; }")
+		self.vlay1.addWidget(self.warn_experimental_lbl)
+
 	def startQuery(self, req, dname, proj_dir, inx):
 		if self.is_done:
 			return
