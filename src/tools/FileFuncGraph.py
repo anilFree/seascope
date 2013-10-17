@@ -86,7 +86,7 @@ class FFgraph:
 			res = self.parse_cs_result(output)
 			res = set([ e[0] for e in res ])
 		except Exception as e:
-			print >> sys.stderr, 'findCalleeList', e
+			print >> sys.stderr, 'failed cmd:', cmd, ':', e
 			res = []
 		return res
 
