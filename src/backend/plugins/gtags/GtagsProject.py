@@ -18,40 +18,6 @@ class ConfigGtags(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self, 'gtags')
 
-		self.gt_dir = ''
-		self.gt_opt = ''
-		self.gt_list = []
-
-	def get_proj_name(self):
-		return os.path.split(self.gt_dir)[1]
-	def get_proj_src_files(self):
-		fl = self.gt_list
-		return fl
-
-	def proj_start(self):
-		gt_args = string.join(self.gt_opt)
-
-	def proj_open(self, proj_path):
-		self.gt_dir = proj_path
-		self.proj_start()
-
-	def proj_update(self, proj_args):
-		self.proj_new(proj_args)
-		
-	def proj_new(self, proj_args):
-		self.proj_args = proj_args
-		(self.gt_dir, self.gt_opt, self.gt_list) = proj_args
-		self.proj_start()
-
-	def proj_close(self):
-		pass
-
-	def get_proj_conf(self):
-		return (self.gt_dir, self.gt_opt, self.gt_list)
-
-	def is_ready(self):
-		return True
-
 class ProjectGtags(ProjectBase):
 	def __init__(self):
 		ProjectBase.__init__(self)
@@ -91,28 +57,6 @@ class ProjectGtags(ProjectBase):
 		prj = ProjectGtags._prj_new_or_open(conf)
 		return (prj)
 
-	def prj_close(self):
-		if (self.conf != None):
-			self.conf.proj_close()
-		self.conf = None
-
-	def prj_dir(self):
-		return self.conf.gt_dir
-	def prj_name(self):
-		return self.conf.get_proj_name()
-	def prj_src_files(self):
-		return self.conf.get_proj_src_files()
-
-	def prj_is_open(self):
-		return self.conf != None
-	def prj_is_ready(self):
-		return self.conf.is_ready()
-		
-	def prj_conf(self):
-		return self.conf.get_proj_conf()
-		
-	def prj_update_conf(self, proj_args):
-		self.conf.proj_update(proj_args)
 	def prj_settings_trigger(self):
 		proj_args = self.prj_conf()
 		proj_args = QueryUiGtags.prj_show_settings_ui(proj_args)
@@ -189,23 +133,23 @@ class QueryGtags(QueryBase):
 			pargs += [ cmd_opt ]
 		pargs += [ '--', req ]
 		
-		qsig = GtProcess(self.conf.gt_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
+		qsig = GtProcess(self.conf.c_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
 	def rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		if (os.path.exists(os.path.join(self.conf.gt_dir, 'GTAGS'))):
+		if (os.path.exists(os.path.join(self.conf.c_dir, 'GTAGS'))):
 			pargs = [ 'global', '-u' ]
 		else:
 			pargs = [ 'gtags', '-i' ]
-		qsig = GtProcess(self.conf.gt_dir, None).run_rebuild_process(pargs)
+		qsig = GtProcess(self.conf.c_dir, None).run_rebuild_process(pargs)
 		qsig.connect(self.gt_file_list_update)
 		return qsig
 
 	def gt_file_list_update(self):
-		wdir = self.conf.gt_dir
+		wdir = self.conf.c_dir
 		if not os.path.exists(os.path.join(wdir, 'GTAGS')):
 			return
 		fl = []
