@@ -15,38 +15,8 @@ class ConfigIdutils(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self, 'idutils')
 
-		self.id_dir = ''
-		self.id_opt = ''
-		self.id_list = []
-
-	def get_proj_name(self):
-		return os.path.split(self.id_dir)[1]
 	def get_proj_src_files(self):
 		return []
-
-	def proj_start(self):
-		id_args = string.join(self.id_opt)
-
-	def proj_open(self, proj_path):
-		self.id_dir = proj_path
-		self.proj_start()
-
-	def proj_update(self, proj_args):
-		self.proj_new(proj_args)
-		
-	def proj_new(self, proj_args):
-		self.proj_args = proj_args
-		(self.id_dir, self.id_opt, self.id_list) = proj_args
-		self.proj_start()
-
-	def proj_close(self):
-		pass
-
-	def get_proj_conf(self):
-		return (self.id_dir, self.id_opt, self.id_list)
-
-	def is_ready(self):
-		return True
 
 class ProjectIdutils(ProjectBase):
 	def __init__(self):
@@ -86,28 +56,6 @@ class ProjectIdutils(ProjectBase):
 		prj = ProjectIdutils._prj_new_or_open(conf)
 		return (prj)
 
-	def prj_close(self):
-		if (self.conf != None):
-			self.conf.proj_close()
-		self.conf = None
-
-	def prj_dir(self):
-		return self.conf.id_dir
-	def prj_name(self):
-		return self.conf.get_proj_name()
-	def prj_src_files(self):
-		return self.conf.get_proj_src_files()
-
-	def prj_is_open(self):
-		return self.conf != None
-	def prj_is_ready(self):
-		return self.conf.is_ready()
-		
-	def prj_conf(self):
-		return self.conf.get_proj_conf()
-		
-	def prj_update_conf(self, proj_args):
-		self.conf.proj_update(proj_args)
 	def prj_settings_trigger(self):
 		proj_args = self.prj_conf()
 		proj_args = QueryUiIdutils.prj_show_settings_ui(proj_args)
@@ -215,8 +163,8 @@ class QueryIdutils(QueryBase):
 				pargs += ['-i']
 		pargs += [ '--', req ]
 		if cmd_str == 'GREP':
-			pargs += [self.conf.id_dir]
-		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
+			pargs += [self.conf.c_dir]
+		qsig = IdProcess(self.conf.c_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
 	def rebuild(self):
@@ -226,12 +174,12 @@ class QueryIdutils(QueryBase):
 		pargs = os.getenv('SEASCOPE_IDUTILS_MKID_CMD', '').strip().split()
 		if not len(pargs):
 			pargs = [ 'mkid', '-s' ]
-		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
+		qsig = IdProcess(self.conf.c_dir, None).run_rebuild_process(pargs)
 		qsig.connect(self.id_file_list_update)
 		return qsig
 
 	def id_file_list_update(self):
-		wdir = self.conf.id_dir
+		wdir = self.conf.c_dir
 		if not os.path.exists(os.path.join(wdir, 'ID')):
 			return
 		fl = []

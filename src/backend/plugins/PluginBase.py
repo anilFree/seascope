@@ -20,23 +20,27 @@ class ProjectBase(QObject):
 		QObject.__init__(self)
 
 	def prj_close(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		if (self.conf != None):
+			self.conf.proj_close()
+		self.conf = None
 
-	def prj_get_dir(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
-	def prj_get_name(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
-	def prj_get_src_files(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+	def prj_dir(self):
+		return self.conf.c_dir
+	def prj_name(self):
+		return self.conf.get_proj_name()
+	def prj_src_files(self):
+		return self.conf.get_proj_src_files()
 
 	def prj_is_open(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		return self.conf != None
 	def prj_is_ready(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
-	def prj_get_conf(self):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		return self.conf.is_ready()
+		
+	def prj_conf(self):
+		return self.conf.get_proj_conf()
+		
 	def prj_update_conf(self, proj_args):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		self.conf.proj_update(proj_args)
 
 	def prj_show_settings(self, proj_args):
 		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
@@ -46,6 +50,47 @@ class ProjectBase(QObject):
 class ConfigBase(QObject):
 	def __init__(self, ptype):
 		self.prj_type = ptype
+		self.c_dir = ''
+		self.c_opt = ''
+		self.c_flist = []
+
+	def get_proj_name(self):
+		return os.path.split(self.c_dir)[1]
+
+	def get_proj_src_files(self):
+		fl = self.c_flist
+		return fl
+
+	def get_proj_conf(self):
+		return (self.c_dir, self.c_opt, self.c_flist)
+
+	def read_config(self):
+		pass
+	def write_config(self):
+		pass
+
+	def proj_start(self):
+		pass
+
+	def proj_open(self, proj_path):
+		self.c_dir = proj_path
+		self.read_config()
+		self.proj_start()
+
+	def proj_update(self, proj_args):
+		self.proj_new(proj_args)
+		
+	def proj_new(self, proj_args):
+		self.proj_args = proj_args
+		(self.c_dir, self.c_opt, self.c_flist) = proj_args
+		self.write_config()
+		self.proj_start()
+
+	def proj_close(self):
+		pass
+
+	def is_ready(self):
+		return True
 
 	@staticmethod
 	def prepare_menu(menubar):
@@ -100,7 +145,7 @@ class QueryDialogBase(QDialog):
 			cmd = str(self.qd_cmd_inp.currentText())
 			cmd_str = self.cmd_qstr2str[cmd]
 			#self.qd_sym_inp.addItem(req)
-			res = self.query_dlg_cb(req, cmd)
+			res = self.query_dlg_cb(req, cmd_str)
 			return res
 		return None
 

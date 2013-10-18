@@ -12,7 +12,7 @@ from PyQt4 import QtGui, QtCore, uic
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import ProjectBase, ConfigBase, QueryBase, QueryDialogBase
 from ..PluginBase import QueryUiBase
 from .. import PluginBase, PluginHelper
 
