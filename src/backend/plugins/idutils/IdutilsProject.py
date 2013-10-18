@@ -223,7 +223,9 @@ class QueryIdutils(QueryBase):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = [ 'mkid', '-s' ]
+		pargs = os.getenv('SEASCOPE_IDUTILS_MKID_CMD', '').strip().split()
+		if not len(pargs):
+			pargs = [ 'mkid', '-s' ]
 		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
 		qsig.connect(self.id_file_list_update)
 		return qsig

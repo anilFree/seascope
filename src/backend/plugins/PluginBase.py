@@ -5,6 +5,7 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4 import uic
 
 import os, re
 
@@ -60,9 +61,51 @@ class QueryBase(QObject):
 		
 	def rebuild():
 		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+
+	def conf_is_open(self):
+		return self.conf != None
+	def conf_is_ready(self):
+		return self.conf.is_ready()
 		
 
 import PluginHelper
+
+
+class QueryDialogBase(QDialog):
+	def __init__(self, title, cmd_qstrlist):
+		QDialog.__init__(self)
+
+		self.ui = uic.loadUi('ui/query.ui', self)
+		self.qd_sym_inp.setAutoCompletion(False)
+		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
+
+		self.setWindowTitle(title)
+		self.qd_cmd_inp.addItems(cmd_qstrlist)
+
+	def run_dialog(self, cmd_str, req):
+		qstr = self.cmd_str2qstr[cmd_str]
+		inx = self.qd_cmd_inp.findText(qstr)
+		self.qd_cmd_inp.setCurrentIndex(inx)
+		if req == None:
+			req = ''
+		self.qd_sym_inp.setFocus()
+		self.qd_sym_inp.setEditText(req)
+		self.qd_sym_inp.lineEdit().selectAll()
+		self.qd_substr_chkbox.setChecked(False)
+		self.qd_icase_chkbox.setChecked(False)
+
+		self.show()
+		if self.exec_() == QDialog.Accepted:
+			req = str(self.qd_sym_inp.currentText())
+			cmd = str(self.qd_cmd_inp.currentText())
+			cmd_str = self.cmd_qstr2str[cmd]
+			#self.qd_sym_inp.addItem(req)
+			res = self.query_dlg_cb(req, cmd)
+			return res
+		return None
+
+	def show_dlg(self, cmd_str, req):
+		return self.run_dialog(cmd_str, req)
 
 class QueryUiBase(QObject):
 	def __init__(self):
@@ -72,6 +115,46 @@ class QueryUiBase(QObject):
 	def menu_cb(self, act):
 		if act.cmd_str != None:
 			self.query_cb(act.cmd_str)
+
+	def query_cb(self, cmd_str):
+		if not self.query.conf_is_open():
+			return
+		if not self.query.conf_is_ready():
+			show_msg_dialog('\nProject has no source files')
+			return
+
+		if cmd_str == 'CLGRAPHD':
+			f = PluginHelper.editor_current_file()
+			if f:
+				d = os.path.dirname(f)
+				self.query_class_graph_dir(d)
+			return
+		if cmd_str == 'FFGRAPH':
+			f = PluginHelper.editor_current_file()
+			if f:
+				self.query_file_func_graph(f)
+			return
+
+		req = PluginHelper.editor_current_word()
+		if (req != None):
+			req = str(req).strip()
+		opt = None
+		if cmd_str not in [ 'QDEF' ]:
+			val = self.query_dlg.show_dlg(cmd_str, req)
+			if val == None:
+				return
+			(cmd_str, req, opt) = val
+		if (req == None or req == ''):
+			return
+
+		if cmd_str == 'QDEF':
+			self.query_qdef(req, opt)
+		elif cmd_str == 'CTREE':
+			self.query_ctree(req, opt)
+		elif cmd_str == 'CLGRAPH':
+			self.query_class_graph(req, opt)
+		else:
+			self.do_query(cmd_str, req, opt)
 
 	def prepare_menu(self):
 		menu = PluginHelper.backend_menu

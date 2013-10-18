@@ -58,49 +58,20 @@ ctree_query_args = [
 	['REF',	'==> F', 'Advanced calling tree'	],
 ]
 		
-class QueryDialog(QDialog):
-	dlg = None
-
+class CscopeQueryDialog(QueryDialogBase):
 	def __init__(self):
-		QDialog.__init__(self)
+		QueryDialogBase.__init__(self, 'Cscope Query', cmd_qstrlist)
+		self.cmd_qstr2str = cmd_qstr2str
+		self.cmd_str2qstr = cmd_str2qstr
 
-		self.ui = uic.loadUi('backend/plugins/cscope/ui/cs_query.ui', self)
-		self.qd_sym_inp.setAutoCompletion(False)
-		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
-		self.qd_cmd_inp.addItems(cmd_qstrlist)
-
-	def run_dialog(self, cmd_str, req):
-		s = cmd_str2qstr[cmd_str]
-		inx = self.qd_cmd_inp.findText(s)
-		self.qd_cmd_inp.setCurrentIndex(inx)
-		if (req == None):
-			req = ''
-		self.qd_sym_inp.setFocus()
-		self.qd_sym_inp.setEditText(req)
-		self.qd_sym_inp.lineEdit().selectAll()
-		self.qd_substr_chkbox.setChecked(False)
-		self.qd_icase_chkbox.setChecked(False)
-
-		self.show()
-		if (self.exec_() == QDialog.Accepted):
-			req = str(self.qd_sym_inp.currentText())
-			s = str(self.qd_cmd_inp.currentText())
-			cmd_str = cmd_qstr2str[s]
-			#self.qd_sym_inp.addItem(req)
-			if (req != '' and self.qd_substr_chkbox.isChecked()):
-				req = '.*' + req + '.*'
-			opt = None
-			if (self.qd_icase_chkbox.isChecked()):
-				opt = '-C'
-			res = (cmd_str, req, opt)
-			return res
-		return None
-
-	@staticmethod
-	def show_dlg(cmd_str, req):
-		if (QueryDialog.dlg == None):
-			QueryDialog.dlg = QueryDialog()
-		return QueryDialog.dlg.run_dialog(cmd_str, req)
+	def query_dlg_cb(self, req, cmd_str):
+		if req != '' and self.qd_substr_chkbox.isChecked():
+			req = '.*' + req + '.*'
+		opt = None
+		if self.qd_icase_chkbox.isChecked():
+			opt = '-C'
+		res = (cmd_str, req, opt)
+		return res
 
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
@@ -122,45 +93,8 @@ class QueryUiCscope(QueryUiBase):
 		self.menu_cmd_list = menu_cmd_list
 		QueryUiBase.__init__(self)
 		self.query = qry
+		self.query_dlg = CscopeQueryDialog()
 		self.ctree_args = ctree_query_args
-
-	def query_cb(self, cmd_str):
-		if (not self.query.cs_is_open()):
-			return
-		if (not self.query.cs_is_ready()):
-			show_msg_dialog('\nProject has no source files')
-			return
-		if cmd_str == 'CLGRAPHD':
-			f = PluginHelper.editor_current_file()
-			if f:
-				d = os.path.dirname(f)
-				self.query_class_graph_dir(d)
-			return
-		if cmd_str == 'FFGRAPH':
-			f = PluginHelper.editor_current_file()
-			if f:
-				self.query_file_func_graph(f)
-			return
-		req = PluginHelper.editor_current_word()
-		if (req != None):
-			req = str(req).strip()
-		opt = None
-		if (cmd_str != 'QDEF'):
-			val = QueryDialog.show_dlg(cmd_str, req)
-			if (val == None):
-				return
-			(cmd_str, req, opt) = val
-		if (req == None or req == ''):
-			return
-
-		if cmd_str == 'QDEF':
-			self.query_qdef(req, opt)
-		elif cmd_str == 'CTREE':
-			self.query_ctree(req, opt)
-		elif cmd_str == 'CLGRAPH':
-			self.query_class_graph(req, opt)
-		else:
-			self.do_query(cmd_str, req, opt)
 
 	def prepare_menu(self):
 		QueryUiBase.prepare_menu(self)
