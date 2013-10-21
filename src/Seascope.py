@@ -21,14 +21,46 @@ try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
 	from PyQt4 import uic
-	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView, DebugView, CodemarkView, CodeContextView
+	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView
+	from view import DebugView, CodemarkView, CodeContextView
+	from view import ProjectUi
 	import backend
-	from backend.plugins import PluginHelper
 	import DialogManager
 	import view
 except ImportError:
 	print "Error: failed to import supporting packages.\nError: program aborted."
 	sys.exit(-1)
+
+class BackendChooserDialog(QDialog):
+	def __init__(self):
+		QDialog.__init__(self)
+		self.ui = uic.loadUi('ui/proj_new.ui', self)
+		self.backend_lw.currentRowChanged.connect(self.currentRowChanged_cb)
+
+		self.backend = backend
+
+	def currentRowChanged_cb(self, row):
+		if row == -1:
+			return
+		bname = str(self.backend_lw.currentItem().text())
+		desc = ''
+		for b in self.backend.plugin_list():
+			if b.name() == bname:
+				desc = b.description()
+		self.descr_te.setText(desc)
+
+	def run_dialog(self):
+		blist = self.backend.plugin_list()
+		if len(blist) == 0:
+			msg_box('No backends are available/usable')
+			return None
+		bi = [ b.name() for b in blist ]
+		self.backend_lw.addItems(bi)
+		self.backend_lw.setCurrentRow(0)
+		if self.exec_() == QDialog.Accepted:
+			bname = str(self.backend_lw.currentItem().text())
+			return bname
+		return None
 
 class QueryUiHelper:
 	def __init__(self):
@@ -38,6 +70,7 @@ class QueryUiHelper:
 		self.class_graph_view = None
 		self.file_func_graph_view = None
 		self.dbg_view = None
+		self.file_view = None
 
 	def editor_current_file(self):
 		(f, l) = self.edit_book.get_current_file_line()
@@ -54,6 +87,9 @@ class QueryUiHelper:
 		sig_res[0].connect(page.add_result)
 		#page.add_result(req, res)
 		self.dbg_view.connect_to_sig(sig_res[1])
+
+	def file_view_update(self, flist):
+		self.file_view.add_files(flist)
 
 	def _quick_def_result(self, req, res):
 		count = len(res)
@@ -151,6 +187,8 @@ class QueryUi(QObject):
 		self.feat = None
 		self.qry_ui = None
 
+	def set_backend_menu(self, menu):
+		self.backend_menu = menu
 		self.backend_menu.triggered.connect(self.menu_cb)
 
 	def setup(self):
@@ -161,6 +199,8 @@ class QueryUi(QObject):
 		self.feat = self.backend.proj_feature()
 		t = backend.proj_type().title() + ' Query'
 		self.qry_ui = QueryDialogUi(t, self.feat)
+
+		self.query_file_list()
 
 	def reset(self):
 		self.backend_menu.clear()
@@ -301,11 +341,21 @@ class QueryUi(QObject):
 		sig_rebuild.connect(dlg.accept)
 		while dlg.exec_() != QDialog.Accepted:
 			pass
+		self.query_file_list()
+
 
 	def rebuild_cb(self):
 		self.do_rebuild()
 
-
+	def query_file_list(self):
+		sig_res = self.backend.proj_query_fl()
+		if sig_res == None:
+			return
+		if isinstance(sig_res , list):
+			fl = sig_res
+			self.qui_h.file_view_update(fl)
+			return
+		sig_res.connect(self.qui_h.file_view_update)
 
 class SeascopeApp(QMainWindow):
 
@@ -670,12 +720,25 @@ class SeascopeApp(QMainWindow):
 		self.update_recent_projects(backend.proj_dir())
 
 	def proj_new_cb(self):
-		if (backend.proj_is_open()):
-			if (not DialogManager.show_proj_close()):
+		if backend.proj_is_open():
+			if not DialogManager.show_proj_close():
 				return
 			self.proj_close_cb()
-		if backend.proj_new():
-			self.proj_new_or_open()
+
+		dlg = BackendChooserDialog()
+		bname = dlg.run_dialog()
+		if bname == None:
+			return
+
+		proj_args = ProjectUi.show_settings_ui(bname, None)
+		if not proj_args:
+			return
+
+		if not backend.proj_new(bname, proj_args):
+			return
+		# XXX FIXIT
+		self.qui.do_rebuild()
+		self.proj_new_or_open()
 
 	def proj_open(self, proj_path):
 		rc = backend.proj_open(proj_path)
@@ -683,6 +746,7 @@ class SeascopeApp(QMainWindow):
 			print 'proj_open', proj_path, 'failed'
 			return
 		self.proj_new_or_open()
+
 	def proj_open_cb(self):
 		proj_path = DialogManager.show_project_open_dialog(self.recent_projects)
 		if (proj_path != None):
@@ -708,7 +772,10 @@ class SeascopeApp(QMainWindow):
 		self.code_ctx_view.clear()
 
 	def proj_settings_cb(self):
-		backend.proj_settings_trigger()
+		proj_args = backend.proj_settings_get()
+		proj_args = ProjectUi.show_settings_ui(backend.proj_type(), proj_args)
+		if proj_args:
+			backend.proj_settings_update(proj_args)
 
 	def editor_tab_changed_cb(self, fname):
 		#title = backend.proj_name()
@@ -841,15 +908,14 @@ class SeascopeApp(QMainWindow):
 		ClassGraphView.ClassGraphWindow.parent = self
 		FileFuncGraphView.FileFuncGraphWindow.parent = self
 
-		self.qui.backend_menu = self.backend_menu
+		self.qui.set_backend_menu(self.backend_menu)
 		self.qui_h.edit_book = self.edit_book
 		self.qui_h.res_book = self.res_book
 		self.qui_h.call_view = CallView
 		self.qui_h.class_graph_view = ClassGraphView
 		self.qui_h.file_func_graph_view = FileFuncGraphView
 		self.qui_h.dbg_view = DebugView
-	
-		PluginHelper.file_view = self.file_view
+		self.qui_h.file_view = self.file_view
 
 	def setup_style_and_font(self):
 		if self.app_style:
