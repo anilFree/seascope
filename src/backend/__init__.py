@@ -13,7 +13,6 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 import DialogManager
-from plugins import PluginHelper
 
 backend_plugins = []
 backend_dict = {}
@@ -43,12 +42,18 @@ def load_plugins():
 
 from plugins.PluginBase import ProjectBase, ConfigBase, QueryBase, QueryUiBase
 
-prj_actions = []
 prj = None
 
+def proj_new_open_app_cb():
+	prj.prj_feature_setup()
+
+def proj_close_app_cb():
+	pass
+
+	
+
 def _proj_new_open():
-	for act in prj_actions:
-		act.setEnabled(True)
+	proj_new_open_app_cb()
 
 class ProjectNewDialog(QDialog):
 	def __init__(self):
@@ -125,13 +130,10 @@ def proj_close():
 	prj.prj_close()
 	prj = None
 	
-	PluginHelper.backend_menu.clear()
-	PluginHelper.backend_menu.setTitle('')
-	for act in prj_actions:
-		act.setEnabled(False)
-
 	from plugins import CtagsCache
 	CtagsCache.flush()
+
+	proj_close_app_cb
 
 def proj_is_open():
 	return prj != None
@@ -150,3 +152,18 @@ def proj_conf():
 
 def proj_settings_trigger():
 	return prj.prj_settings_trigger()
+
+def proj_is_ready():
+	return prj.prj_is_ready()
+
+def proj_query(rquery):
+	return prj.prj_query(rquery)
+
+def proj_rebuild():
+	return prj.prj_rebuild()
+
+def proj_type():
+	return prj.prj_type()
+
+def proj_feature():
+	return prj.prj_feature()

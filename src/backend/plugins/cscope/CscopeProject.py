@@ -8,11 +8,50 @@
 import os, string, re
 from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
 import CscopeProjectUi
 from CscopeProjectUi import QueryUiCscope
 
 from .. import PluginHelper
+
+class CscopeFeature(PluginFeatureBase):
+	def __init__(self):
+		PluginFeatureBase.__init__(self)
+
+		self.feat_desc = [
+			['REF',	'0'],
+			['DEF',	'1'],
+			['<--',	'2'],
+			['-->',	'3'],
+			['TXT',	'4'],
+			['GREP','5'],
+			['FIL',	'7'],
+			['INC',	'8'],
+
+			['QDEF', '11'],
+			['CTREE','12'],
+
+			['CLGRAPH', '13'],
+			['CLGRAPHD', '14'],
+			['FFGRAPH', '14'],
+
+			['UPD', '25'],
+		]
+
+		self.ctree_query_args = [
+			['-->',	'--> F', 'Calling tree'			],
+			['<--',	'F -->', 'Called tree'			],
+			['REF',	'==> F', 'Advanced calling tree'	],
+		]
+				
+	def query_dlg_cb(self, req, cmd_str, in_opt):
+		if req != '' and in_opt['substring']:
+			req = '.*' + req + '.*'
+		opt = None
+		if in_opt['ignorecase']:
+			opt = '-C'
+		res = (cmd_str, req, opt)
+		return res
 
 class ConfigCscope(ConfigBase):
 	def __init__(self):
@@ -85,8 +124,9 @@ class ProjectCscope(ProjectBase):
 	@staticmethod
 	def _prj_new_or_open(conf):
 		prj = ProjectCscope()
+		prj.feat = CscopeFeature()
 		prj.conf = conf
-		prj.qry = QueryCscope(prj.conf)
+		prj.qry = QueryCscope(prj.conf, prj.feat)
 		prj.qryui = QueryUiCscope(prj.qry)
 		
 		PluginHelper.file_view_update(prj.conf.get_proj_src_files())
@@ -119,6 +159,7 @@ class ProjectCscope(ProjectBase):
 		PluginHelper.file_view_update(self.conf.get_proj_src_files())
 		return True
 
+
 from ..PluginBase import PluginProcess
 
 class CsProcess(PluginProcess):
@@ -145,9 +186,10 @@ class CsProcess(PluginProcess):
 		return res
 
 class QueryCscope(QueryBase):
-	def __init__(self, conf):
+	def __init__(self, conf, feat):
 		QueryBase.__init__(self)
 		self.conf = conf
+		self.feat = feat
 
 	def query(self, rquery):
 		if (not self.conf or not self.conf.is_ready()):
@@ -156,7 +198,7 @@ class QueryCscope(QueryBase):
 		cmd_str = rquery['cmd']
 		req     = rquery['req']
 		opt     = rquery['opt']
-		cmd_id = CscopeProjectUi.cmd_str2id[cmd_str]
+		cmd_id = self.feat.cmd_str2id[cmd_str]
 		if opt == None or opt == '':
 			opt = []
 		else:

@@ -8,11 +8,50 @@
 import os, string, re
 from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
 import GtagsProjectUi
 from GtagsProjectUi import QueryUiGtags
 
 from .. import PluginHelper
+
+class GtagsFeature(PluginFeatureBase):
+	def __init__(self):
+		PluginFeatureBase.__init__(self)
+
+		self.feat_desc = [
+			['REF',	'-r'],
+			['DEF',	''],
+			#['<--',	'2'],
+			['-->',	'-r'],
+			#[	['TXT',	'4'],
+			['GREP','-g'],
+			['FIL',	'-P'],
+			['INC',	'-g'],
+
+			['QDEF', ''],
+			['CTREE','12'],
+
+			['CLGRAPH', '13'],
+			['CLGRAPHD', '14'],
+			['FFGRAPH', '14'],
+
+			['UPD', '25'],
+		]
+
+		self.ctree_query_args = [
+			['-->',	'--> F', 'Calling tree'			],
+			#['<--',	'F -->', 'Called tree'			],
+			['REF',	'==> F', 'Advanced calling tree'	],
+		]
+		
+	def query_dlg_cb(self, req, cmd_str, in_opt):
+		if req != '' and in_opt['substring']:
+			req = '.*' + req + '.*'
+		opt = None
+		if in_opt['ignorecase']:
+			opt = '-i'
+		res = (cmd_str, req, opt)
+		return res
 
 class ConfigGtags(ConfigBase):
 	def __init__(self):
@@ -25,8 +64,9 @@ class ProjectGtags(ProjectBase):
 	@staticmethod
 	def _prj_new_or_open(conf):
 		prj = ProjectGtags()
+		prj.feat = GtagsFeature()
 		prj.conf = conf
-		prj.qry = QueryGtags(prj.conf)
+		prj.qry = QueryGtags(prj.conf, prj.feat)
 		prj.qryui = QueryUiGtags(prj.qry)
 
 		return (prj)
@@ -65,6 +105,7 @@ class ProjectGtags(ProjectBase):
 		#self.prj_update_conf(proj_args)
 		#return True
 		return False
+
 
 from ..PluginBase import PluginProcess
 from .. import PluginHelper
@@ -109,9 +150,10 @@ class GtProcess(PluginProcess):
 		return None
 
 class QueryGtags(QueryBase):
-	def __init__(self, conf):
+	def __init__(self, conf, feat):
 		QueryBase.__init__(self)
 		self.conf = conf
+		self.feat = feat
 
 		self.gt_file_list_update()
 
@@ -127,7 +169,7 @@ class QueryGtags(QueryBase):
 			opt = []
 		else:
 			opt = opt.split()
-		cmd_opt = GtagsProjectUi.cmd_str2id[cmd_str]
+		cmd_opt = self.feat.cmd_str2id[cmd_str]
 		pargs = [ 'global', '-a', '--result=cscope', '-x' ] + opt
 		if cmd_opt != '':
 			pargs += [ cmd_opt ]
