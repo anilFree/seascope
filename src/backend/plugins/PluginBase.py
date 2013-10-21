@@ -8,9 +8,68 @@ from PyQt4.QtGui import *
 from PyQt4 import uic
 
 import os, re
+import copy
 
 def msg_box(msg):
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+
+cmd_table_master = [
+	[	'REF',		['&References',		'Ctrl+0'],	['References to'	]	],
+	[	'DEF',		['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
+	[	'<--',		['&Called Functions',	'Ctrl+2'],	['Functions called by'	]	],
+	[	'-->',		['C&alling Functions',	'Ctrl+3'],	['Functions calling'	]	],
+	[	'TXT',		['Find &Text',		'Ctrl+4'],	['Find text'		]	],
+	[	'GREP',		['Find &Egrep',		'Ctrl+5'],	['Find egrep pattern'	]	],
+	[	'FIL',		['Find &File',		'Ctrl+7'],	['Find files'		]	],
+	[	'INC',		['&Include/Import',	'Ctrl+8'],	['Find include/import'	]	],
+	[	'---',		[None,				],	None				],
+	[	'QDEF', 	['&Quick Definition',	'Ctrl+]'],	None				],
+	[	'CTREE',	['Call Tr&ee',		'Ctrl+\\'],	['Call tree'		]	],
+	[	'---',		[None,				],	None				],
+	[	'CLGRAPH',  	['Class &Graph',	'Ctrl+:'],	['Class graph'		]	],
+	[	'CLGRAPHD', 	['Class Graph Dir',	'Ctrl+;'],	['Class graph dir'	]	],
+	[	'FFGRAPH', 	['File Func Graph',	'Ctrl+^'],	['File Func graph dir'	]	],
+	[	'---',		[None,				],	None				],
+	[	'UPD',		['Re&build Database',	None	],	None				],
+]
+class PluginFeatureBase:
+	def __init__(self):
+		self.clgraph_query_args = [
+			['CLGRAPH',	'D', 'Derived classes'			],
+			['CLGRAPH',	'B', 'Base classes'			],
+		]
+		self.clgraph_query_args = [
+			['CLGRAPH',	'D', 'Derived classes'			],
+			['CLGRAPH',	'B', 'Base classes'			],
+		]
+		self.ffgraph_query_args = [
+			['FFGRAPH',    'F',   'File functions graph'],
+			['FFGRAPH_E',  'F+E', 'File functions + external graph'],
+			['FFGRAPH_D',  'D',   'Directory functions graph'],
+			['FFGRAPH_DE', 'D+E', 'Directory functions + external graph']
+		]
+	
+	def setup(self):
+		feat_cmds = [ d[0] for d in self.feat_desc ]
+		ct = copy.deepcopy(cmd_table_master)
+		self.cmd_table = [ t for t in ct if t[0] in feat_cmds or t[0] == '---' ]
+
+		self.menu_cmd_list = [ [c[0]] + c[1] for c in self.cmd_table ]
+
+		self.cmd_str2id = {}
+		self.cmd_str2qstr = {}
+		self.cmd_qstr2str = {}
+		for c in self.feat_desc:
+			self.cmd_str2id[c[0]] = c[1]
+		for c in self.cmd_table:
+			if c[2] != None:
+				self.cmd_str2qstr[c[0]] = c[2][0]
+				self.cmd_qstr2str[c[2][0]] = c[0]
+		# python 2.7
+		#self.cmd_str2id = { c[0]:c[1] for c in self.feat_desc }
+		#self.cmd_str2qstr = { c[0]:c[2][0] for c in self.cmd_table if c[1] }
+		#self.cmd_qstr2str = { c[2][0]:c[0] for c in self.cmd_table if c[1] }
+		self.cmd_qstrlist = [ c[2][0] for c in self.cmd_table if c[2] ]
 
 class ProjectBase(QObject):
 	prj = None
@@ -18,6 +77,7 @@ class ProjectBase(QObject):
 
 	def __init__(self):
 		QObject.__init__(self)
+		self.feat = None
 
 	def prj_close(self):
 		if (self.conf != None):
@@ -35,7 +95,7 @@ class ProjectBase(QObject):
 		return self.conf != None
 	def prj_is_ready(self):
 		return self.conf.is_ready()
-		
+
 	def prj_conf(self):
 		return self.conf.get_proj_conf()
 		
@@ -46,6 +106,21 @@ class ProjectBase(QObject):
 		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
 	def prj_settings(self, proj_args):
 		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+
+	def prj_feature_setup(self):
+		self.feat.setup()
+
+	def prj_query(self, rquery):
+		return self.qry.query(rquery)
+
+	def prj_rebuild(self):
+		return self.qry.rebuild()
+
+	def prj_type(self):
+		return self.conf.prj_type
+
+	def prj_feature(self):
+		return self.feat
 
 class ConfigBase(QObject):
 	def __init__(self, ptype):
@@ -115,164 +190,9 @@ class QueryBase(QObject):
 
 import PluginHelper
 
-
-class QueryDialogBase(QDialog):
-	def __init__(self, title, cmd_qstrlist):
-		QDialog.__init__(self)
-
-		self.ui = uic.loadUi('ui/query.ui', self)
-		self.qd_sym_inp.setAutoCompletion(False)
-		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
-
-		self.setWindowTitle(title)
-		self.qd_cmd_inp.addItems(cmd_qstrlist)
-
-	def run_dialog(self, cmd_str, req):
-		qstr = self.cmd_str2qstr[cmd_str]
-		inx = self.qd_cmd_inp.findText(qstr)
-		self.qd_cmd_inp.setCurrentIndex(inx)
-		if req == None:
-			req = ''
-		self.qd_sym_inp.setFocus()
-		self.qd_sym_inp.setEditText(req)
-		self.qd_sym_inp.lineEdit().selectAll()
-		self.qd_substr_chkbox.setChecked(False)
-		self.qd_icase_chkbox.setChecked(False)
-
-		self.show()
-		if self.exec_() == QDialog.Accepted:
-			req = str(self.qd_sym_inp.currentText())
-			cmd = str(self.qd_cmd_inp.currentText())
-			cmd_str = self.cmd_qstr2str[cmd]
-			#self.qd_sym_inp.addItem(req)
-			res = self.query_dlg_cb(req, cmd_str)
-			return res
-		return None
-
-	def show_dlg(self, cmd_str, req):
-		return self.run_dialog(cmd_str, req)
-
 class QueryUiBase(QObject):
 	def __init__(self):
 		QObject.__init__(self)
-		self.prepare_menu()
-
-	def menu_cb(self, act):
-		if act.cmd_str != None:
-			self.query_cb(act.cmd_str)
-
-	def query_cb(self, cmd_str):
-		if not self.query.conf_is_open():
-			return
-		if not self.query.conf_is_ready():
-			show_msg_dialog('\nProject has no source files')
-			return
-
-		if cmd_str == 'CLGRAPHD':
-			f = PluginHelper.editor_current_file()
-			if f:
-				d = os.path.dirname(f)
-				self.query_class_graph_dir(d)
-			return
-		if cmd_str == 'FFGRAPH':
-			f = PluginHelper.editor_current_file()
-			if f:
-				self.query_file_func_graph(f)
-			return
-
-		req = PluginHelper.editor_current_word()
-		if (req != None):
-			req = str(req).strip()
-		opt = None
-		if cmd_str not in [ 'QDEF' ]:
-			val = self.query_dlg.show_dlg(cmd_str, req)
-			if val == None:
-				return
-			(cmd_str, req, opt) = val
-		if (req == None or req == ''):
-			return
-
-		if cmd_str == 'QDEF':
-			self.query_qdef(req, opt)
-		elif cmd_str == 'CTREE':
-			self.query_ctree(req, opt)
-		elif cmd_str == 'CLGRAPH':
-			self.query_class_graph(req, opt)
-		else:
-			self.do_query(cmd_str, req, opt)
-
-	def prepare_menu(self):
-		menu = PluginHelper.backend_menu
-		menu.triggered.connect(self.menu_cb)
-		for c in self.menu_cmd_list:
-			if c[0] == '---':
-				menu.addSeparator()
-				continue
-			if c[2] == None:
-				if c[0] == 'UPD':
-					func = self.rebuild_cb
-					act = menu.addAction(c[1], func)
-				act.cmd_str = None
-			else:
-				act = menu.addAction(c[1])
-				act.setShortcut(c[2])
-				act.cmd_str = c[0]
-
-	def query_ctree(self, req, opt):
-		PluginHelper.call_view_page_new(req, self.query.query, self.ctree_args, opt)
-
-	def query_class_graph(self, req, opt):
-		(prj_dir, dummy1, dummy2) = self.query.conf.get_proj_conf()
-		prj_type = self.query.conf.prj_type
-		PluginHelper.class_graph_view_page_new(req, prj_dir, prj_type, self.query.query, opt)
-
-	def query_class_graph_dir(self, dname):
-		opt = []
-		PluginHelper.class_graph_view_page_new('', dname, None, self.query.query, opt)
-
-	def query_file_func_graph(self, fname):
-		opt = []
-		PluginHelper.file_func_graph_view_page_new('', fname, '', self.query.query, opt)
-
-	def _prepare_rquery(self, cmd_str, req, opt):
-		rquery = {}
-		rquery['cmd'] = cmd_str
-		rquery['req'] = req
-		rquery['opt'] = opt
-		# add current file info
-		rquery['hint_file'] = PluginHelper.editor_current_file()
-		return rquery
-
-	def query_qdef(self, req, opt):
-		rquery = {}
-		rquery = self._prepare_rquery('DEF', req, opt)
-		sig_res = self.query.query(rquery)
-		PluginHelper.quick_def_page_new(sig_res)
-
-	def do_query(self, cmd_str, req, opt):
-		## create page
-		name = cmd_str + ' ' + req
-		rquery = self._prepare_rquery(cmd_str, req, opt)
-		sig_res = self.query.query(rquery)
-		PluginHelper.result_page_new(name, sig_res)
-
-	def do_rebuild(self):
-		sig_rebuild = self.query.rebuild()
-		if not sig_rebuild:
-			return
-		dlg = QProgressDialog()
-		dlg.setWindowTitle('Seascope rebuild')
-		dlg.setLabelText('Rebuilding database...')
-		dlg.setCancelButton(None)
-		dlg.setMinimum(0)
-		dlg.setMaximum(0)
-		sig_rebuild.connect(dlg.accept)
-		while dlg.exec_() != QDialog.Accepted:
-			pass
-
-	def rebuild_cb(self):
-		self.do_rebuild()
-
 
 from PyQt4.QtGui import QMessageBox
 

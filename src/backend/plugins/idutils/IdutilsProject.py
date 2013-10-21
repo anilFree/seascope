@@ -8,8 +8,54 @@
 import sys, os, string, re
 from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
 from IdutilsProjectUi import QueryUiIdutils
+
+class IdutilsFeature(PluginFeatureBase):
+	def __init__(self):
+		PluginFeatureBase.__init__(self)
+
+		self.feat_desc = [
+			['REF',     ''],
+			['DEF',     ''],
+			#['<--',    '2'],
+			['-->',     '3'],
+			#['TXT',    '4'],
+			['GREP',    ''],
+			['FIL',     ''],
+			['INC',     '8'],
+
+			['QDEF',    ''],
+			['CTREE',   '12'],
+
+			['CLGRAPH', '13'],
+			['CLGRAPHD','14'],
+			['FFGRAPH', '14'],
+
+			['UPD',    '25'],
+		]
+
+		self.ctree_query_args = [
+			['-->',	'--> F', 'Calling tree'			],
+			#['<--',	'F -->', 'Called tree'			],
+			['REF',	'==> F', 'Advanced calling tree'	],
+		]
+
+	def query_dlg_cb(self, req, cmd_str, in_opt):
+		opt = []
+		if cmd_str != 'TXT' and req != '' and in_opt['substring']:
+			opt.append('substring')
+			if cmd_str == 'FIL':
+				req = '*' + req + '*'
+			else:
+				req = '.*' + req + '.*'
+		if in_opt['ignorecase']:
+			opt.append('ignorecase')
+
+		res = (cmd_str, req, opt)
+		return res
+
+
 
 class ConfigIdutils(ConfigBase):
 	def __init__(self):
@@ -25,8 +71,9 @@ class ProjectIdutils(ProjectBase):
 	@staticmethod
 	def _prj_new_or_open(conf):
 		prj = ProjectIdutils()
+		prj.feat = IdutilsFeature()
 		prj.conf = conf
-		prj.qry = QueryIdutils(prj.conf)
+		prj.qry = QueryIdutils(prj.conf, prj.feat)
 		prj.qryui = QueryUiIdutils(prj.qry)
 		return (prj)
 
@@ -64,6 +111,7 @@ class ProjectIdutils(ProjectBase):
 		#self.prj_update_conf(proj_args)
 		#return True
 		return False
+
 
 from ..PluginBase import PluginProcess
 from .. import PluginHelper
@@ -127,9 +175,10 @@ class IdProcess(PluginProcess):
 		return None
 
 class QueryIdutils(QueryBase):
-	def __init__(self, conf):
+	def __init__(self, conf, feat):
 		QueryBase.__init__(self)
 		self.conf = conf
+		self.feat = feat
 
 		self.id_file_list_update()
 
