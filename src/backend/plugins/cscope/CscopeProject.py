@@ -9,10 +9,6 @@ import os, string, re
 from PyQt4.QtCore import *
 
 from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
-import CscopeProjectUi
-from CscopeProjectUi import QueryUiCscope
-
-from .. import PluginHelper
 
 class CscopeFeature(PluginFeatureBase):
 	def __init__(self):
@@ -127,17 +123,11 @@ class ProjectCscope(ProjectBase):
 		prj.feat = CscopeFeature()
 		prj.conf = conf
 		prj.qry = QueryCscope(prj.conf, prj.feat)
-		prj.qryui = QueryUiCscope(prj.qry)
 		
-		PluginHelper.file_view_update(prj.conf.get_proj_src_files())
 		return (prj)
 
 	@staticmethod
-	def prj_new():
-		proj_args = QueryUiCscope.prj_show_settings_ui(None)
-		if (proj_args == None):
-			return None
-
+	def prj_new(proj_args):
 		conf = ConfigCscope()
 		conf.proj_new(proj_args)
 		prj = ProjectCscope._prj_new_or_open(conf)
@@ -150,13 +140,9 @@ class ProjectCscope(ProjectBase):
 		prj = ProjectCscope._prj_new_or_open(conf)
 		return (prj)
 
-	def prj_settings_trigger(self):
-		proj_args = self.prj_conf()
-		proj_args = QueryUiCscope.prj_show_settings_ui(proj_args)
-		if (proj_args == None):
-			return False
+	def prj_settings_update(self, proj_args):
+		assert proj_args
 		self.prj_update_conf(proj_args)
-		PluginHelper.file_view_update(self.conf.get_proj_src_files())
 		return True
 
 
@@ -214,6 +200,10 @@ class QueryCscope(QueryBase):
 		pargs = [ 'cscope' ] + self.conf.c_opt + [ '-L' ]
 		qsig = CsProcess(self.conf.c_dir, None).run_rebuild_process(pargs)
 		return qsig
+
+	def query_fl(self):
+		fl = self.conf.get_proj_src_files()
+		return fl
 
 	def cs_is_open(self):
 		return self.conf != None

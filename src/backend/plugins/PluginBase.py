@@ -116,11 +116,22 @@ class ProjectBase(QObject):
 	def prj_rebuild(self):
 		return self.qry.rebuild()
 
+	def prj_query_fl(self):
+		return self.qry.query_fl()
+
 	def prj_type(self):
 		return self.conf.prj_type
 
 	def prj_feature(self):
 		return self.feat
+
+	def prj_settings_get(self):
+		proj_args = self.prj_conf()
+		return proj_args
+
+	def prj_settings_update(self, proj_args):
+		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		return
 
 class ConfigBase(QObject):
 	def __init__(self, ptype):
@@ -188,8 +199,6 @@ class QueryBase(QObject):
 		return self.conf.is_ready()
 		
 
-import PluginHelper
-
 class QueryUiBase(QObject):
 	def __init__(self):
 		QObject.__init__(self)
@@ -200,6 +209,7 @@ class QuerySignal(QObject):
 	sig_result = pyqtSignal(str, list)
 	sig_result_dbg = pyqtSignal(str, str, str)
 	sig_rebuild = pyqtSignal()
+	sig_query_fl = pyqtSignal(list)
 
 	def __init__(self):
 		QObject.__init__(self)
@@ -278,6 +288,7 @@ class PluginProcess(QObject):
 		
 		PluginProcess.proc_list.append(self)
 		self.is_rebuild = False
+		self.is_query_fl = False
 
 		self.sig = QuerySignal()
 
@@ -318,6 +329,10 @@ class PluginProcess(QObject):
 		if self.is_rebuild:
 			self.res = res
 			self.sig.sig_rebuild.emit()
+		elif self.is_query_fl:
+			self.res = ''
+			res = self.parse_query_fl(res)
+			self.sig.sig_query_fl.emit(res)
 		else:
 			self.res = ''
 			self.sig.sig_result_dbg.emit(self.p_cmd, res, self.err_str)
@@ -354,6 +369,14 @@ class PluginProcess(QObject):
 		self.sig.sig_rebuild.connect(CtagsCache.flush)
 		return self.sig.sig_rebuild
 
+	def run_query_fl(self, pargs):
+		self.is_query_fl = True
+		self.p_cmd = ' '.join(pargs)
+		self.proc.start(pargs[0], pargs[1:])
+		if self.proc.waitForStarted() == False:
+			return None
+		return self.sig.sig_query_fl
+
 	def parse_result(self, text, sig):
 		print 'parse_result not implemented'
 		if text == '':
@@ -361,6 +384,14 @@ class PluginProcess(QObject):
 		else:
 			text = text.strip().split('\n')
 		return text
+
+	def parse_query_fl(self, text):
+		fl = []
+		for f in re.split('\r?\n', text.strip()):
+			if f == '':
+				continue
+			fl.append(os.path.join(self.wdir, f))
+		return fl
 
 if __name__ == '__main__':
 	import sys

@@ -12,11 +12,6 @@ from PyQt4 import QtGui, QtCore, uic
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
-from ..PluginBase import QueryUiBase
-from .. import PluginBase, PluginHelper
-
-
 def show_msg_dialog(msg):
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
@@ -32,20 +27,11 @@ def dir_scan_csope_files(rootdir):
 				file_list.append(f)
 	return file_list
 
-class QueryUiCscope(QueryUiBase):
-	def __init__(self, qry):
-		QueryUiBase.__init__(self)
-
-	@staticmethod
-	def prj_show_settings_ui(proj_args):
-		dlg = ProjectSettingsCscopeDialog()
-		return dlg.run_dialog(proj_args)
-
-class ProjectSettingsCscopeDialog(QDialog):
+class CscopeProjectSettingsDialog(QDialog):
 	def __init__(self):
 		QDialog.__init__(self)
 
-		self.ui = uic.loadUi('backend/plugins/cscope/ui/cs_project_settings.ui', self)
+		self.ui = uic.loadUi('ui/cscope_prj_settings.ui', self)
 		self.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
 
 		self.pd_src_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -128,7 +114,8 @@ class ProjectSettingsCscopeDialog(QDialog):
 			if (opt == '-k'):
 				self.pd_kernel_chkbox.setChecked(True)
 
-	def run_dialog(self, proj_args):
+	def run_dialog(self, prj_type, proj_args):
+		assert prj_type == 'cscope'
 		self.pd_src_list.clear()
 		if (proj_args == None):
 			self.is_new_proj = True
