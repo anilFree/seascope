@@ -3,14 +3,14 @@
 #
 # License: BSD 
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-from PyQt4 import uic
-
 import os, re
 import copy
 
-def msg_box(msg):
+from PyQt4.QtCore import QObject, pyqtSignal, QProcess
+
+def NOT_IMPLEMENTED(n, f):
+	msg = '%s: %s: Not implemeted' % (n, f)
+	from PyQt4.QtGui import QMessageBox
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
 cmd_table_master = [
@@ -103,9 +103,9 @@ class ProjectBase(QObject):
 		self.conf.proj_update(proj_args)
 
 	def prj_show_settings(self, proj_args):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		NOT_IMPLEMENTED(__name__, __func__)
 	def prj_settings(self, proj_args):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		NOT_IMPLEMENTED(__name__, __func__)
 
 	def prj_feature_setup(self):
 		self.feat.setup()
@@ -130,7 +130,7 @@ class ProjectBase(QObject):
 		return proj_args
 
 	def prj_settings_update(self, proj_args):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		NOT_IMPLEMENTED(__name__, __func__)
 		return
 
 class ConfigBase(QObject):
@@ -188,10 +188,10 @@ class QueryBase(QObject):
 		pass
 
 	def query(self, rquery):
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		NOT_IMPLEMENTED(__name__, __func__)
 		
 	def rebuild():
-		msg_box('%s: %s: Not implemeted' % (__name__, __func__))
+		NOT_IMPLEMENTED(__name__, __func__)
 
 	def conf_is_open(self):
 		return self.conf != None
@@ -404,6 +404,7 @@ if __name__ == '__main__':
 	def slot_rebuild():
 		print 'slot_rebuild'
 
+	from PyQt4.QtCore import QCoreApplication
 	app = QCoreApplication(sys.argv)
 
 	qsig = PluginProcess('.').run_query_process(['ls'], 'ls')

@@ -6,9 +6,11 @@
 # License: BSD 
 
 import os, string, re
-from PyQt4.QtCore import *
 
 from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import PluginProcess
+from ..CtagsCache import CtagsThread
+
 
 class GtagsFeature(PluginFeatureBase):
 	def __init__(self):
@@ -79,9 +81,6 @@ class ProjectGtags(ProjectBase):
 		prj = ProjectGtags._prj_new_or_open(conf)
 		return (prj)
 
-
-from ..PluginBase import PluginProcess
-from ..CtagsCache import CtagsThread
 
 class GtCtagsThread(CtagsThread):
 	def __init__(self, sig):

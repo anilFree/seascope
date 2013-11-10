@@ -6,9 +6,10 @@
 # License: BSD 
 
 import os, string, re
-from PyQt4.QtCore import *
 
 from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import PluginProcess
+
 
 class CscopeFeature(PluginFeatureBase):
 	def __init__(self):
@@ -145,8 +146,6 @@ class ProjectCscope(ProjectBase):
 		self.prj_update_conf(proj_args)
 		return True
 
-
-from ..PluginBase import PluginProcess
 
 class CsProcess(PluginProcess):
 	def __init__(self, wdir, rq):

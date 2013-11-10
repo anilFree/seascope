@@ -7,13 +7,6 @@ import os
 import sys
 import re
 
-from PyQt4 import QtGui, QtCore, uic
-
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-
-import DialogManager
-
 backend_plugins = []
 backend_dict = {}
 
@@ -42,7 +35,6 @@ def load_plugins():
 def plugin_list():
 	return backend_plugins
 
-from plugins.PluginBase import ProjectBase, ConfigBase, QueryBase, QueryUiBase
 
 prj = None
 
@@ -57,9 +49,6 @@ def proj_close_app_cb():
 def _proj_new_open():
 	proj_new_open_app_cb()
 
-def msg_box(msg):
-	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
-
 def proj_new(bname, proj_args):
 	b = backend_dict[bname]
 
@@ -71,24 +60,15 @@ def proj_new(bname, proj_args):
 		_proj_new_open()
 	return prj != None
 
-def proj_open(proj_path):
-	be = []
+def plugin_guess(proj_path):
+	bi = []
 	for p in backend_plugins:
 		if p.is_your_prj(proj_path):
-			be.append(p)
-	if len(be) == 0:
-		msg = "Project '%s': No backend is interested" % proj_path
-		msg_box(msg)
-		return
-	if len(be) > 1:
-		msg = "Project '%s': Many backends interested" % proj_path
-		for b in be:
-			msg += '\n\t' + b.name()
-		msg += '\n\nGoing ahead with: ' + be[0].name()
-		msg_box(msg)
+			bi.append(p.name())
+	return bi
 
-	b = be[0]
-	print "Project '%s': using '%s' backend" % (proj_path, b.name())
+def proj_open(proj_path, proj_type):
+	b = backend_dict[proj_type]
 
 	global prj
 	prj = b.project_class().prj_open(proj_path)

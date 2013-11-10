@@ -31,6 +31,9 @@ except ImportError:
 	print "Error: failed to import supporting packages.\nError: program aborted."
 	sys.exit(-1)
 
+def msg_box(msg):
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+
 class BackendChooserDialog(QDialog):
 	def __init__(self):
 		QDialog.__init__(self)
@@ -741,17 +744,33 @@ class SeascopeApp(QMainWindow):
 		self.proj_new_or_open()
 
 	def proj_open(self, proj_path):
-		rc = backend.proj_open(proj_path)
+		bl = backend.plugin_guess(proj_path)
+		if len(bl) == 0:
+			msg = "Project '%s': No backend is interested" % proj_path
+			msg_box(msg)
+			return
+		proj_type = bl[0]
+		if len(bl) > 1:
+			msg = "Project '%s': Many backends interested" % proj_path
+			for b in be:
+				msg += '\n\t' + b.name()
+			msg += '\n\nGoing ahead with: ' + proj_type
+			msg_box(msg)
+		print "Project '%s': using '%s' backend" % (proj_path, proj_type)
+
+		rc = backend.proj_open(proj_path, proj_type)
 		if not rc:
 			print 'proj_open', proj_path, 'failed'
 			return
+
 		self.proj_new_or_open()
 
 	def proj_open_cb(self):
 		proj_path = DialogManager.show_project_open_dialog(self.recent_projects)
-		if (proj_path != None):
+		if proj_path != None:
 			if backend.proj_is_open():
 				self.proj_close_cb()
+
 			self.proj_open(proj_path)
 
 	def proj_close_cb(self):
