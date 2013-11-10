@@ -8,45 +8,57 @@
 import sys, os, string, re
 from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
-from IdutilsProjectUi import QueryUiIdutils
+from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
+
+class IdutilsFeature(PluginFeatureBase):
+	def __init__(self):
+		PluginFeatureBase.__init__(self)
+
+		self.feat_desc = [
+			['REF',     ''],
+			['DEF',     ''],
+			#['<--',    '2'],
+			['-->',     '3'],
+			#['TXT',    '4'],
+			['GREP',    ''],
+			['FIL',     ''],
+			['INC',     '8'],
+
+			['QDEF',    ''],
+			['CTREE',   '12'],
+
+			['CLGRAPH', '13'],
+			['CLGRAPHD','14'],
+			['FFGRAPH', '14'],
+
+			['UPD',    '25'],
+		]
+
+		self.ctree_query_args = [
+			['-->',	'--> F', 'Calling tree'			],
+			#['<--',	'F -->', 'Called tree'			],
+			['REF',	'==> F', 'Advanced calling tree'	],
+		]
+
+	def query_dlg_cb(self, req, cmd_str, in_opt):
+		opt = []
+		if cmd_str != 'TXT' and req != '' and in_opt['substring']:
+			opt.append('substring')
+			if cmd_str == 'FIL':
+				req = '*' + req + '*'
+			else:
+				req = '.*' + req + '.*'
+		if in_opt['ignorecase']:
+			opt.append('ignorecase')
+
+		res = (cmd_str, req, opt)
+		return res
+
+
 
 class ConfigIdutils(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self, 'idutils')
-
-		self.id_dir = ''
-		self.id_opt = ''
-		self.id_list = []
-
-	def get_proj_name(self):
-		return os.path.split(self.id_dir)[1]
-	def get_proj_src_files(self):
-		return []
-
-	def proj_start(self):
-		id_args = string.join(self.id_opt)
-
-	def proj_open(self, proj_path):
-		self.id_dir = proj_path
-		self.proj_start()
-
-	def proj_update(self, proj_args):
-		self.proj_new(proj_args)
-		
-	def proj_new(self, proj_args):
-		self.proj_args = proj_args
-		(self.id_dir, self.id_opt, self.id_list) = proj_args
-		self.proj_start()
-
-	def proj_close(self):
-		pass
-
-	def get_proj_conf(self):
-		return (self.id_dir, self.id_opt, self.id_list)
-
-	def is_ready(self):
-		return True
 
 class ProjectIdutils(ProjectBase):
 	def __init__(self):
@@ -55,29 +67,16 @@ class ProjectIdutils(ProjectBase):
 	@staticmethod
 	def _prj_new_or_open(conf):
 		prj = ProjectIdutils()
+		prj.feat = IdutilsFeature()
 		prj.conf = conf
-		prj.qry = QueryIdutils(prj.conf)
-		prj.qryui = QueryUiIdutils(prj.qry)
+		prj.qry = QueryIdutils(prj.conf, prj.feat)
 		return (prj)
 
 	@staticmethod
-	def prj_new():
-		from PyQt4.QtGui import QFileDialog
-		fdlg = QFileDialog(None, "Choose source code directory")
-		fdlg.setFileMode(QFileDialog.Directory);
-		#fdlg.setDirectory(self.pd_path_inp.text())
-		if fdlg.exec_():
-			d = fdlg.selectedFiles()[0];
-			d = str(d)
-			if not d:
-				return None
-			d = os.path.normpath(d)
-			if d == '' or not os.path.isabs(d):
-				return None
-			prj = ProjectIdutils.prj_open(d)
-			prj.qryui.do_rebuild()
-			return prj
-		return None
+	def prj_new(proj_args):
+		d = proj_args[0]
+		prj = ProjectIdutils.prj_open(d)
+		return prj
 
 	@staticmethod
 	def prj_open(proj_path):
@@ -86,39 +85,8 @@ class ProjectIdutils(ProjectBase):
 		prj = ProjectIdutils._prj_new_or_open(conf)
 		return (prj)
 
-	def prj_close(self):
-		if (self.conf != None):
-			self.conf.proj_close()
-		self.conf = None
-
-	def prj_dir(self):
-		return self.conf.id_dir
-	def prj_name(self):
-		return self.conf.get_proj_name()
-	def prj_src_files(self):
-		return self.conf.get_proj_src_files()
-
-	def prj_is_open(self):
-		return self.conf != None
-	def prj_is_ready(self):
-		return self.conf.is_ready()
-		
-	def prj_conf(self):
-		return self.conf.get_proj_conf()
-		
-	def prj_update_conf(self, proj_args):
-		self.conf.proj_update(proj_args)
-	def prj_settings_trigger(self):
-		proj_args = self.prj_conf()
-		proj_args = QueryUiIdutils.prj_show_settings_ui(proj_args)
-		#if (proj_args == None):
-			#return False
-		#self.prj_update_conf(proj_args)
-		#return True
-		return False
 
 from ..PluginBase import PluginProcess
-from .. import PluginHelper
 from ..CtagsCache import CtagsThread
 
 class IdCtagsThread(CtagsThread):
@@ -179,11 +147,10 @@ class IdProcess(PluginProcess):
 		return None
 
 class QueryIdutils(QueryBase):
-	def __init__(self, conf):
+	def __init__(self, conf, feat):
 		QueryBase.__init__(self)
 		self.conf = conf
-
-		self.id_file_list_update()
+		self.feat = feat
 
 	def query(self, rquery):
 		if (not self.conf):
@@ -215,40 +182,26 @@ class QueryIdutils(QueryBase):
 				pargs += ['-i']
 		pargs += [ '--', req ]
 		if cmd_str == 'GREP':
-			pargs += [self.conf.id_dir]
-		qsig = IdProcess(self.conf.id_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
+			pargs += [self.conf.c_dir]
+		qsig = IdProcess(self.conf.c_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
 	def rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		pargs = [ 'mkid', '-s' ]
-		qsig = IdProcess(self.conf.id_dir, None).run_rebuild_process(pargs)
-		qsig.connect(self.id_file_list_update)
+		pargs = os.getenv('SEASCOPE_IDUTILS_MKID_CMD', '').strip().split()
+		if not len(pargs):
+			pargs = [ 'mkid', '-s' ]
+		qsig = IdProcess(self.conf.c_dir, None).run_rebuild_process(pargs)
 		return qsig
 
-	def id_file_list_update(self):
-		wdir = self.conf.id_dir
-		if not os.path.exists(os.path.join(wdir, 'ID')):
-			return
-		fl = []
-		try:
-			import subprocess
-			pargs = [ 'fnid', '-S', 'newline', '-f', 'ID' ]
-			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=wdir)
-			(out_data, err_data) = proc.communicate()
-			fl = []
-			for f in re.split('\r?\n', out_data.strip()):
-				if f == '':
-					continue
-				fl.append(os.path.join(wdir, f))
-			PluginHelper.file_view_update(fl)
-		except:
-			import sys
-			e = sys.exc_info()[1]
-			print ' '.join(pargs)
-			print e
+	def query_fl(self):
+		if not os.path.exists(os.path.join(self.conf.c_dir, 'ID')):
+			return []
+		pargs = [ 'fnid', '-S', 'newline', '-f', 'ID' ]
+		qsig = IdProcess(self.conf.c_dir, None).run_query_fl(pargs)
+		return qsig
 
 	def id_is_open(self):
 		return self.conf != None

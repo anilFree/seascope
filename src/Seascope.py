@@ -6,6 +6,8 @@
 # License: BSD 
 
 import sys
+sys.dont_write_bytecode = True
+
 import os
 import string
 
@@ -18,14 +20,342 @@ except ImportError:
 try:
 	from PyQt4.QtGui import *
 	from PyQt4.QtCore import *
-	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView, DebugView, CodemarkView, CodeContextView
+	from PyQt4 import uic
+	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView
+	from view import DebugView, CodemarkView, CodeContextView
+	from view import ProjectUi
 	import backend
-	from backend.plugins import PluginHelper
 	import DialogManager
 	import view
 except ImportError:
 	print "Error: failed to import supporting packages.\nError: program aborted."
 	sys.exit(-1)
+
+class BackendChooserDialog(QDialog):
+	def __init__(self):
+		QDialog.__init__(self)
+		self.ui = uic.loadUi('ui/proj_new.ui', self)
+		self.backend_lw.currentRowChanged.connect(self.currentRowChanged_cb)
+
+		self.backend = backend
+
+	def currentRowChanged_cb(self, row):
+		if row == -1:
+			return
+		bname = str(self.backend_lw.currentItem().text())
+		desc = ''
+		for b in self.backend.plugin_list():
+			if b.name() == bname:
+				desc = b.description()
+		self.descr_te.setText(desc)
+
+	def run_dialog(self):
+		blist = self.backend.plugin_list()
+		if len(blist) == 0:
+			msg_box('No backends are available/usable')
+			return None
+		bi = [ b.name() for b in blist ]
+		self.backend_lw.addItems(bi)
+		self.backend_lw.setCurrentRow(0)
+		if self.exec_() == QDialog.Accepted:
+			bname = str(self.backend_lw.currentItem().text())
+			return bname
+		return None
+
+class QueryUiHelper:
+	def __init__(self):
+		self.edit_book = None
+		self.res_book = None
+		self.call_view = None
+		self.class_graph_view = None
+		self.file_func_graph_view = None
+		self.dbg_view = None
+		self.file_view = None
+
+	def editor_current_file(self):
+		(f, l) = self.edit_book.get_current_file_line()
+		return f
+
+	def editor_current_word(self):
+		return self.edit_book.get_current_word()
+
+	def result_page_new(self, name, sig_res):
+		if sig_res == None:
+			return
+		page = self.res_book.create_result_page(name)
+		## add result
+		sig_res[0].connect(page.add_result)
+		#page.add_result(req, res)
+		self.dbg_view.connect_to_sig(sig_res[1])
+
+	def file_view_update(self, flist):
+		self.file_view.add_files(flist)
+
+	def _quick_def_result(self, req, res):
+		count = len(res)
+		if count > 1:
+			page = self.res_book.create_result_page_single()
+			page.add_result(req, res)
+			
+			dlg = QDialog()
+			dlg.setWindowTitle('Quick Definition: ' + req)
+			vlay = QVBoxLayout(dlg)
+			vlay.addWidget(page)
+
+			page.sig_show_file_line.connect(self.edit_book.show_file_line)
+			page.activated.connect(dlg.accept)
+			page.setMinimumWidth(800)
+			page.setMinimumHeight(100)
+
+			dlg.exec_()
+			return
+
+		if (count == 1):
+			filename = res[0][1]
+			try:
+				line = int(res[0][2])
+			except:
+				return
+			self.edit_book.show_file_line(filename, line)
+
+	def quick_def_page_new(self, sig_res):
+		if sig_res == None:
+			return
+		sig_res[0].connect(self._quick_def_result)
+		self.dbg_view.connect_to_sig(sig_res[1])
+
+	def call_view_page_new(self, req, query_func, ctree_query_args, opt):
+		hint_file = self.editor_current_file()
+		self.call_view.create_page(req, query_func, ctree_query_args, opt, hint_file)
+
+	def class_graph_view_page_new(self, req, dname, prj_type, query_func, clgraph_query_args, opt):
+		self.class_graph_view.create_page(req, dname, prj_type, query_func, clgraph_query_args, opt)
+
+	def file_func_graph_view_page_new(self, req, dname, proj_dir, query_func, ffgraph_query_args, opt):
+		self.file_func_graph_view.create_page(req, dname, proj_dir, query_func, ffgraph_query_args, opt)
+
+
+class QueryDialogUi(QDialog):
+	def __init__(self, title, feat):
+		QDialog.__init__(self)
+
+		self.feat = feat
+		self.ui = uic.loadUi('ui/query.ui', self)
+		self.qd_sym_inp.setAutoCompletion(False)
+		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
+
+		self.setWindowTitle(title)
+		self.qd_cmd_inp.addItems(self.feat.cmd_qstrlist)
+
+	def run_dialog(self, cmd_str, req):
+		qstr = self.feat.cmd_str2qstr[cmd_str]
+		inx = self.qd_cmd_inp.findText(qstr)
+		self.qd_cmd_inp.setCurrentIndex(inx)
+		if req == None:
+			req = ''
+		self.qd_sym_inp.setFocus()
+		self.qd_sym_inp.setEditText(req)
+		self.qd_sym_inp.lineEdit().selectAll()
+		self.qd_substr_chkbox.setChecked(False)
+		self.qd_icase_chkbox.setChecked(False)
+
+		self.show()
+		if self.exec_() == QDialog.Accepted:
+			req = str(self.qd_sym_inp.currentText())
+			cmd = str(self.qd_cmd_inp.currentText())
+			cmd_str = self.feat.cmd_qstr2str[cmd]
+			#self.qd_sym_inp.addItem(req)
+			in_opt = {
+				'substring'   : self.qd_substr_chkbox.isChecked(),
+				'ignorecase'  : self.qd_icase_chkbox.isChecked(),
+			}
+			res = self.feat.query_dlg_cb(req, cmd_str, in_opt)
+			return res
+		return None
+
+	def show_dlg(self, cmd_str, req):
+		return self.run_dialog(cmd_str, req)
+
+class QueryUi(QObject):
+	def __init__(self, h):
+		QObject.__init__(self)
+		self.qui_h = h
+		self.backend = backend
+		self.backend_menu = None
+		self.prj_actions = []
+
+		self.feat = None
+		self.qry_ui = None
+
+	def set_backend_menu(self, menu):
+		self.backend_menu = menu
+		self.backend_menu.triggered.connect(self.menu_cb)
+
+	def setup(self):
+		self.prepare_menu()
+		for act in self.prj_actions:
+			act.setEnabled(True)
+
+		self.feat = self.backend.proj_feature()
+		t = backend.proj_type().title() + ' Query'
+		self.qry_ui = QueryDialogUi(t, self.feat)
+
+		self.query_file_list()
+
+	def reset(self):
+		self.backend_menu.clear()
+		self.backend_menu.setTitle('')
+		for act in self.prj_actions:
+			act.setEnabled(False)
+		
+		self.feat = None
+		self.qry_ui = None
+
+	def editor_current_file(self):
+		return self.qui_h.editor_current_file()
+
+	def editor_current_word(self):
+		return self.qui_h.editor_current_word()
+
+	def prepare_menu(self):
+		td = {
+			'idutils' : '&Idutils',
+			'gtags'   : 'G&tags',
+			'cscope'  : '&Cscope',
+		}
+		t = td[self.backend.proj_type()]
+		menu = self.backend_menu
+		menu.setTitle(t)
+		feat = self.backend.proj_feature()
+		for c in feat.menu_cmd_list:
+			if c[0] == '---':
+				menu.addSeparator()
+				continue
+			if c[2] == None:
+				if c[0] == 'UPD':
+					func = self.rebuild_cb
+					act = menu.addAction(c[1], func)
+				act.cmd_str = None
+			else:
+				act = menu.addAction(c[1])
+				act.setShortcut(c[2])
+				act.cmd_str = c[0]
+
+	def menu_cb(self, act):
+		if act.cmd_str != None:
+			self.query_cb(act.cmd_str)
+
+	def query_cb(self, cmd_str):
+		if not backend.proj_conf():
+			return
+		if not backend.proj_is_ready():
+			show_msg_dialog('\nProject has no source files')
+			return
+
+		if cmd_str == 'CLGRAPHD':
+			f = self.editor_current_file()
+			if f:
+				d = os.path.dirname(f)
+				self.query_class_graph_dir(d)
+			return
+		if cmd_str == 'FFGRAPH':
+			f = self.editor_current_file()
+			if f:
+				self.query_file_func_graph(f)
+			return
+
+		req = self.editor_current_word()
+		if (req != None):
+			req = str(req).strip()
+		opt = None
+		if cmd_str not in [ 'QDEF' ]:
+			val = self.qry_ui.show_dlg(cmd_str, req)
+			if val == None:
+				return
+			(cmd_str, req, opt) = val
+		if (req == None or req == ''):
+			return
+
+		if cmd_str == 'QDEF':
+			self.query_qdef(req, opt)
+		elif cmd_str == 'CTREE':
+			self.query_ctree(req, opt)
+		elif cmd_str == 'CLGRAPH':
+			self.query_class_graph(req, opt)
+		else:
+			self.do_query(cmd_str, req, opt)
+
+	def do_proj_query(self, rquery):
+		print 'do_proj_query', rquery
+		sig_res = self.backend.proj_query(rquery)
+		return sig_res
+
+	def query_ctree(self, req, opt):
+		self.qui_h.call_view_page_new(req, self.do_proj_query, self.feat.ctree_query_args, opt)
+
+	def query_class_graph(self, req, opt):
+		prj_type = self.backend.proj_type()
+		prj_dir = self.backend.proj_dir()
+		self.qui_h.class_graph_view_page_new(req, prj_dir, prj_type, self.do_proj_query, self.feat.clgraph_query_args, opt)
+
+	def query_class_graph_dir(self, dname):
+		opt = []
+		self.qui_h.class_graph_view_page_new('', dname, None, self.do_proj_query, self.feat.clgraph_query_args, opt)
+
+	def query_file_func_graph(self, fname):
+		opt = []
+		self.qui_h.file_func_graph_view_page_new('', fname, '', self.do_proj_query, self.feat.ffgraph_query_args, opt)
+
+	def _prepare_rquery(self, cmd_str, req, opt):
+		rquery = {}
+		rquery['cmd'] = cmd_str
+		rquery['req'] = req
+		rquery['opt'] = opt
+		# add current file info
+		rquery['hint_file'] = self.editor_current_file()
+		return rquery
+
+	def query_qdef(self, req, opt):
+		rquery = {}
+		rquery = self._prepare_rquery('DEF', req, opt)
+		sig_res = self.do_proj_query(rquery)
+		self.qui_h.quick_def_page_new(sig_res)
+
+	def do_query(self, cmd_str, req, opt):
+		## create page
+		name = cmd_str + ' ' + req
+		rquery = self._prepare_rquery(cmd_str, req, opt)
+		sig_res = self.do_proj_query(rquery)
+		self.qui_h.result_page_new(name, sig_res)
+
+	def do_rebuild(self):
+		sig_rebuild = self.backend.proj_rebuild()
+		if not sig_rebuild:
+			return
+		dlg = QProgressDialog()
+		dlg.setWindowTitle('Seascope rebuild')
+		dlg.setLabelText('Rebuilding database...')
+		dlg.setCancelButton(None)
+		dlg.setMinimum(0)
+		dlg.setMaximum(0)
+		sig_rebuild.connect(dlg.accept)
+		while dlg.exec_() != QDialog.Accepted:
+			pass
+		self.query_file_list()
+
+
+	def rebuild_cb(self):
+		self.do_rebuild()
+
+	def query_file_list(self):
+		sig_res = self.backend.proj_query_fl()
+		if sig_res == None:
+			return
+		if isinstance(sig_res , list):
+			fl = sig_res
+			self.qui_h.file_view_update(fl)
+			return
+		sig_res.connect(self.qui_h.file_view_update)
 
 class SeascopeApp(QMainWindow):
 
@@ -207,10 +537,10 @@ class SeascopeApp(QMainWindow):
 		
 		act = m_prj.addAction('&Settings', self.proj_settings_cb)
 		act.setDisabled(True)
-		backend.prj_actions.append(act)
+		self.qui.prj_actions.append(act)
 		act = m_prj.addAction('&Close Project', self.proj_close_cb)
 		act.setDisabled(True)
-		backend.prj_actions.append(act)
+		self.qui.prj_actions.append(act)
 
 		self.backend_menu = menubar.addMenu('')
 
@@ -445,18 +775,33 @@ class SeascopeApp(QMainWindow):
 
 	# project menu functions
 	def proj_new_or_open(self):
+		self.qui.setup()
+
 		self.editor_tab_changed_cb(None)
 		proj_path = backend.proj_dir()
 		self.update_recent_projects(proj_path)
 		self.app_gui_state_restore(proj_path)
 
 	def proj_new_cb(self):
-		if (backend.proj_is_open()):
-			if (not DialogManager.show_proj_close()):
+		if backend.proj_is_open():
+			if not DialogManager.show_proj_close():
 				return
 			self.proj_close_cb()
-		if backend.proj_new():
-			self.proj_new_or_open()
+
+		dlg = BackendChooserDialog()
+		bname = dlg.run_dialog()
+		if bname == None:
+			return
+
+		proj_args = ProjectUi.show_settings_ui(bname, None)
+		if not proj_args:
+			return
+
+		if not backend.proj_new(bname, proj_args):
+			return
+		# XXX FIXIT
+		self.qui.do_rebuild()
+		self.proj_new_or_open()
 
 	def proj_open(self, proj_path):
 		rc = backend.proj_open(proj_path)
@@ -464,6 +809,7 @@ class SeascopeApp(QMainWindow):
 			print 'proj_open', proj_path, 'failed'
 			return
 		self.proj_new_or_open()
+
 	def proj_open_cb(self):
 		proj_path = DialogManager.show_project_open_dialog(self.recent_projects)
 		if (proj_path != None):
@@ -478,6 +824,7 @@ class SeascopeApp(QMainWindow):
 		self.setWindowTitle("Seascope")
 
 		backend.proj_close()
+		self.qui.reset()
 
 		if self.inner_editing:
 			self.edit_book.close_all_cb()
@@ -490,7 +837,10 @@ class SeascopeApp(QMainWindow):
 		self.code_ctx_view.clear()
 
 	def proj_settings_cb(self):
-		backend.proj_settings_trigger()
+		proj_args = backend.proj_settings_get()
+		proj_args = ProjectUi.show_settings_ui(backend.proj_type(), proj_args)
+		if proj_args:
+			backend.proj_settings_update(proj_args)
 
 	def editor_tab_changed_cb(self, fname):
 		#title = backend.proj_name()
@@ -593,6 +943,9 @@ class SeascopeApp(QMainWindow):
 		self.show_toolbar.setChecked(self.is_show_toolbar)
 
 	def create_widgets(self):
+		self.qui_h = QueryUiHelper()
+		self.qui = QueryUi(self.qui_h)
+
 		if self.inner_editing:
 			self.edit_book = EdViewRW.EditorBookRW()
 		else:
@@ -620,15 +973,15 @@ class SeascopeApp(QMainWindow):
 		ClassGraphView.ClassGraphWindow.parent = self
 		FileFuncGraphView.FileFuncGraphWindow.parent = self
 
-		PluginHelper.backend_menu = self.backend_menu
-		PluginHelper.edit_book = self.edit_book
-		PluginHelper.res_book = self.res_book
-		PluginHelper.call_view = CallView
-		PluginHelper.class_graph_view = ClassGraphView
-		PluginHelper.file_func_graph_view = FileFuncGraphView
-		PluginHelper.file_view = self.file_view
-		PluginHelper.dbg_view = DebugView
-		
+		self.qui.set_backend_menu(self.backend_menu)
+		self.qui_h.edit_book = self.edit_book
+		self.qui_h.res_book = self.res_book
+		self.qui_h.call_view = CallView
+		self.qui_h.class_graph_view = ClassGraphView
+		self.qui_h.file_func_graph_view = FileFuncGraphView
+		self.qui_h.dbg_view = DebugView
+		self.qui_h.file_view = self.file_view
+
 	def setup_style_and_font(self):
 		if self.app_style:
 			QApplication.setStyle(self.app_style)

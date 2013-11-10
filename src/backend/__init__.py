@@ -13,7 +13,6 @@ from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
 import DialogManager
-from plugins import PluginHelper
 
 backend_plugins = []
 backend_dict = {}
@@ -40,55 +39,33 @@ def load_plugins():
 	global backend_plugins, backend_dict
 	(backend_plugins, backend_dict) = _load_plugins('backend.plugins', 'backend/plugins')
 
+def plugin_list():
+	return backend_plugins
 
 from plugins.PluginBase import ProjectBase, ConfigBase, QueryBase, QueryUiBase
 
-prj_actions = []
 prj = None
 
+def proj_new_open_app_cb():
+	prj.prj_feature_setup()
+
+def proj_close_app_cb():
+	pass
+
+	
+
 def _proj_new_open():
-	for act in prj_actions:
-		act.setEnabled(True)
-
-class ProjectNewDialog(QDialog):
-	def __init__(self):
-		QDialog.__init__(self)
-		self.ui = uic.loadUi('ui/proj_new.ui', self)
-		self.backend_lw.currentRowChanged.connect(self.currentRowChanged_cb)
-
-	def currentRowChanged_cb(self, row):
-		if row == -1:
-			return
-		bname = str(self.backend_lw.currentItem().text())
-		b = backend_dict[bname]
-		try:
-			self.descr_te.setText(b.description())
-		except:
-			self.descr_te.setText('')
-
-	def run_dialog(self):
-		bi = [ b.name() for b in backend_plugins]
-		self.backend_lw.addItems(bi)
-		self.backend_lw.setCurrentRow(0)
-		if self.exec_() == QDialog.Accepted:
-			bname = str(self.backend_lw.currentItem().text())
-			return (backend_dict[bname])
-		return None
+	proj_new_open_app_cb()
 
 def msg_box(msg):
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
-def proj_new():
-	if len(backend_plugins) == 0:
-		msg_box('No backends are available/usable')
-	dlg = ProjectNewDialog()
-	b = dlg.run_dialog()
-	if b == None:
-		return
+def proj_new(bname, proj_args):
+	b = backend_dict[bname]
 
 	global prj
 	assert not prj
-	prj = b.project_class().prj_new()
+	prj = b.project_class().prj_new(proj_args)
 
 	if prj:
 		_proj_new_open()
@@ -125,13 +102,10 @@ def proj_close():
 	prj.prj_close()
 	prj = None
 	
-	PluginHelper.backend_menu.clear()
-	PluginHelper.backend_menu.setTitle('')
-	for act in prj_actions:
-		act.setEnabled(False)
-
 	from plugins import CtagsCache
 	CtagsCache.flush()
+
+	proj_close_app_cb
 
 def proj_is_open():
 	return prj != None
@@ -148,5 +122,26 @@ def proj_src_files():
 def proj_conf():
 	return prj.prj_conf()
 
-def proj_settings_trigger():
-	return prj.prj_settings_trigger()
+def proj_settings_get():
+	return prj.prj_settings_get()
+
+def proj_settings_update(proj_args):
+	return prj.prj_settings_update(proj_args)
+
+def proj_is_ready():
+	return prj.prj_is_ready()
+
+def proj_query(rquery):
+	return prj.prj_query(rquery)
+
+def proj_rebuild():
+	return prj.prj_rebuild()
+
+def proj_query_fl():
+	return prj.prj_query_fl()
+
+def proj_type():
+	return prj.prj_type()
+
+def proj_feature():
+	return prj.prj_feature()
