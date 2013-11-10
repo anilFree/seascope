@@ -392,6 +392,8 @@ class SeascopeApp(QMainWindow):
 			self.edit_book.close_all_cb()
 
 		self.app_write_config()
+		if backend.proj_is_open():
+			self.app_gui_state_save(backend.proj_dir())
 		ev.accept()
 	def file_restart_cb(self):
 		if not DialogManager.show_yes_no('Restart ?'):
@@ -414,7 +416,6 @@ class SeascopeApp(QMainWindow):
 					self.edit_book.show_file_line(f, l, hist=False)
 				except Exception as e:
 					print e
-					pass
 		except:
 			pass
 
@@ -703,6 +704,66 @@ class SeascopeApp(QMainWindow):
 		if (self.edit_ext_cmd):
 			cf.write('edit_ext_cmd' + '=' + self.edit_ext_cmd + '\n')
 		cf.close()
+
+	def app_gui_state_file(self):
+		return os.path.expanduser('~/.seascopeguirc')
+
+	def app_gui_state_read(self):
+		f = self.app_gui_state_file()
+		data = None
+		try:
+			if os.path.exists(f):
+				with open(f, 'rb') as fp:
+					import json
+					data = json.load(fp)
+		except Exception as e:
+			print 'app_gui_state_read:', e
+		return data
+
+	def app_gui_state_write(self, data):
+		f = self.app_gui_state_file()
+		try:
+			with open(f, 'wb') as fp:
+				import json
+				json.dump(data, fp)
+		except Exception as e:
+			print 'app_gui_state_write:', e
+
+	def app_gui_state_save(self, proj_path):
+		pd = {}
+		pd ['file_line_list'] = self.edit_book.get_file_line_list()
+		pd ['dir_view_list']  = self.file_view.get_dir_view_list()
+		try:
+			data = self.app_gui_state_read()
+			if data == None:
+				data = {}
+			if 'proj_gui_state' not in data:
+				data['proj_gui_state'] = {}
+			data['proj_gui_state'][proj_path] = pd
+			self.app_gui_state_write(data)
+		except Exception as e:
+			print 'app_gui_state_save:', e
+		
+	def app_gui_state_restore(self, proj_path):
+		try:
+			data = self.app_gui_state_read()
+			if data == None:
+				return
+			pgs = data.pop('proj_gui_state', {})
+			pd = pgs.pop(proj_path, {})
+			for fl in pd.pop('file_line_list', []):
+				try:
+					(f, l) = fl.rsplit(':', 1)
+					l = int(l)
+					if os.path.isabs(f) and f.startswith(proj_path) and os.path.isfile(f):
+						self.edit_book.show_file_line(f, l, hist=False)
+				except:
+					pass
+			for d in pd.pop('dir_view_list', []):
+				if os.path.isabs(f) and f.startswith(proj_path) and os.path.isdir(d):
+					self.file_view.open_dir_view(d)
+		except Exception as e:
+			print 'app_gui_state_restore:', e
 		
 	def update_recent_projects(self, path):
 		if (path == None or path == ""):
@@ -720,7 +781,9 @@ class SeascopeApp(QMainWindow):
 		self.qui.setup()
 
 		self.editor_tab_changed_cb(None)
-		self.update_recent_projects(backend.proj_dir())
+		proj_path = backend.proj_dir()
+		self.update_recent_projects(proj_path)
+		self.app_gui_state_restore(proj_path)
 
 	def proj_new_cb(self):
 		if backend.proj_is_open():
@@ -774,7 +837,9 @@ class SeascopeApp(QMainWindow):
 			self.proj_open(proj_path)
 
 	def proj_close_cb(self):
-		self.update_recent_projects(backend.proj_dir())
+		proj_path = backend.proj_dir()
+		self.update_recent_projects(proj_path)
+		self.app_gui_state_save(proj_path)
 		self.setWindowTitle("Seascope")
 
 		backend.proj_close()
