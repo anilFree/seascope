@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Idutils Query</string>
+   <string>Query</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
