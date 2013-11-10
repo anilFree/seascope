@@ -19,6 +19,7 @@ class DirTab(QWidget):
 		QWidget.__init__(self)
 
 		self.is_ft = False
+		self.d = None
 
 		# Tree view
 		self.tmodel = QFileSystemModel()
@@ -58,6 +59,9 @@ class DirTab(QWidget):
 
 		self.hide_view_columns(self.tview)
 
+	def dir_name(self):
+		return self.d
+
 	def hide_view_columns(self, view):
 		header = view.header()
 		for col in range(header.count()):
@@ -85,6 +89,7 @@ class DirTab(QWidget):
 
 	def dir_reset(self, dirstr):
 		self.set_tab_name(dirstr)
+		self.d = dirstr
 		self.tview.setRootIndex(self.tmodel.index(dirstr))
 		self.ted.setText(dirstr)
 		
@@ -238,8 +243,18 @@ class FileTree(QTabWidget):
 		# Always have atleast one dir view
 		self.new_dir_tab_cb()
 
+	def get_dir_view_list(self):
+		dv_list = []
+		for t in self.dlist:
+			d = t.dir_name()
+			if d != dir_prefix:
+				dv_list.append(d)
+		return dv_list
+
 	def open_dir_view(self, filename):
-		d = os.path.dirname(str(filename))
+		d = filename
+		if not os.path.isdir(filename):
+			d = os.path.dirname(str(filename))
 		self.new_dir_tab_cb(d)
 
 	def close_active_dir_tab_cb(self):
