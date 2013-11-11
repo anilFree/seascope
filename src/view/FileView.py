@@ -223,17 +223,20 @@ class FileTree(QTabWidget):
 		self.pmenu.addAction("&New Dir View", self.new_dir_tab_cb)
 		self.pmenu.addAction("&Close Active Dir View", self.close_active_dir_tab_cb)
 		self.pmenu.addAction("&Close All Dir View", self.close_all_dir_tab_cb)
-	
+
+	def set_tab_dir(self, t, d):
+		if d == None or d == dir_prefix:
+			t.reset_btn_cb()
+		else:
+			t.dir_reset(d)
+
 	def new_dir_tab_cb(self, d=None):
 		t = DirTab()
 		t.parent = self
 		self.dlist.append(t)
 		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
 		self.addTab(t, icon, '')
-		if d:
-			t.dir_reset(d)
-		else:
-			t.reset_btn_cb()
+		self.set_tab_dir(t, d)
 
 	def close_all_dir_tab_cb(self):
 		for t in self.dlist:
@@ -293,6 +296,10 @@ class FileTree(QTabWidget):
 		self.close_all_dir_tab_cb()
 
 	def add_files(self, flist):
+		old_dir_prefix = dir_prefix
 		self.ft.add_files(flist)
 		for t in self.dlist:
-			t.reset_btn_cb()
+			d = t.dir_name()
+			if d == old_dir_prefix:
+				d = dir_prefix
+			self.set_tab_dir(t, d)
