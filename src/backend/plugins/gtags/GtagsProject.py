@@ -82,26 +82,10 @@ class ProjectGtags(ProjectBase):
 		return (prj)
 
 
-class GtCtagsThread(CtagsThread):
-	def __init__(self, sig):
-		CtagsThread.__init__(self, sig)
-
-	def ctags_bsearch(self, ct, n):
-		m = CtagsThread.ctags_bsearch(self, ct, n)
-		return m
-
-	def parse_result(self, res, sig):
-		res = self._filter_res(res, sig)
-		return res
-
 class GtProcess(PluginProcess):
 	def __init__(self, wdir, rq):
-		PluginProcess.__init__(self, wdir)
+		PluginProcess.__init__(self, wdir, rq)
 		self.name = 'gtags process'
-		if rq == None:
-			rq = ['', '']
-		self.cmd_str = rq[0]
-		self.req = rq[1]
 
 	def parse_result(self, text, sig):
 		text = re.split('\r?\n', text)
@@ -116,7 +100,7 @@ class GtProcess(PluginProcess):
 			line = ['<unknown>', line[0], line[2], line[3]]
 			res.append(line)
 
-		GtCtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
+		CtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
 
 		return None
 

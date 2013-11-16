@@ -276,6 +276,10 @@ class CtagsThread(QThread):
 			return out_res
 		return res
 
+	def parse_result(self, res, sig):
+		res = self._filter_res(res, sig)
+		return res
+
 ct_cache = {}
 
 def flush():

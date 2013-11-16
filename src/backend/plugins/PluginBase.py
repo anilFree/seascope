@@ -13,6 +13,8 @@ def NOT_IMPLEMENTED(n, f):
 	from PyQt4.QtGui import QMessageBox
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
+import CtagsCache
+
 cmd_table_master = [
 	[	'REF',		['&References',		'Ctrl+0'],	['References to'	]	],
 	[	'DEF',		['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
@@ -188,7 +190,22 @@ class QueryBase(QObject):
 		pass
 
 	def query(self, rquery):
-		NOT_IMPLEMENTED(__name__, __func__)
+		cmd_str = rquery['cmd']
+		req     = rquery['req']
+		opt     = rquery['opt']
+		if opt == None:
+			opt = []
+
+		pargs = []
+		if cmd_str == 'GREP':
+			pargs = ['grep', '-E', '-R', '-n', '-I']
+			pargs += [ '--', req ]
+			pargs += [self.conf.c_dir]
+		else:
+			assert(false)
+			return None
+		qsig = PluginProcess(self.conf.c_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
+		return qsig
 		
 	def rebuild():
 		NOT_IMPLEMENTED(__name__, __func__)
@@ -280,7 +297,7 @@ class QuerySignal(QObject):
 		res = self.relevancy_sort(res)
 		self.sig_result.emit(self.sym, res)
 
-class PluginProcess(QObject):
+class PluginProcessBase(QObject):
 	proc_list = []
 
 	def __init__(self, wdir):
@@ -365,7 +382,6 @@ class PluginProcess(QObject):
 		if self.proc.waitForStarted() == False:
 			return None
 		#print 'cmd:', pargs
-		import CtagsCache
 		self.sig.sig_rebuild.connect(CtagsCache.flush)
 		return self.sig.sig_rebuild
 
@@ -377,14 +393,6 @@ class PluginProcess(QObject):
 			return None
 		return self.sig.sig_query_fl
 
-	def parse_result(self, text, sig):
-		print 'parse_result not implemented'
-		if text == '':
-			text = ['Empty output']
-		else:
-			text = text.strip().split('\n')
-		return text
-
 	def parse_query_fl(self, text):
 		fl = []
 		for f in re.split('\r?\n', text.strip()):
@@ -392,6 +400,32 @@ class PluginProcess(QObject):
 				continue
 			fl.append(os.path.join(self.wdir, f))
 		return fl
+
+class PluginProcess(PluginProcessBase):
+	def __init__(self, wdir, rq):
+		PluginProcessBase.__init__(self, wdir)
+		if rq == None:
+			rq = ['', '']
+		self.cmd_str = rq[0]
+		self.req = rq[1]
+
+	def parse_result(self, text, sig):
+		text = re.split('\r?\n', text)
+
+		res = []
+		if self.cmd_str == 'GREP':
+			for line in text:
+				if line == '':
+					continue
+				line = ['<unknown>'] + line.split(':', 2)
+				res.append(line)
+		else:
+			assert(false)
+			res.append(['', '', '', 'PluginProcess.parse_result: FAILED'])
+			return res
+
+		CtagsCache.CtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
+		return res
 
 if __name__ == '__main__':
 	import sys
