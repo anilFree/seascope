@@ -23,12 +23,8 @@ from backend.plugins.PluginBase import PluginProcess
 
 class ClassGraphProcess(PluginProcess):
 	def __init__(self, wdir, rq):
-		PluginProcess.__init__(self, wdir)
+		PluginProcess.__init__(self, wdir, rq)
 		self.name = 'call graph process'
-		if rq == None:
-			rq = ['', '']
-		self.cmd_str = rq[0]
-		self.req = rq[1]
 
 	def parse_result(self, text, sig):
 		return [text]

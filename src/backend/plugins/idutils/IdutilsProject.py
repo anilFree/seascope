@@ -88,29 +88,15 @@ class ProjectIdutils(ProjectBase):
 		return (prj)
 
 
-class IdCtagsThread(CtagsThread):
-	def __init__(self, sig):
-		CtagsThread.__init__(self, sig)
-
-	def ctags_bsearch(self, ct, n):
-		m = CtagsThread.ctags_bsearch(self, ct, n)
-		return m
-
-	def parse_result(self, res, sig):
-		res = self._filter_res(res, sig)
-		return res
-
 class IdProcess(PluginProcess):
 	def __init__(self, wdir, rq):
-		PluginProcess.__init__(self, wdir)
+		PluginProcess.__init__(self, wdir, rq)
 		self.name = 'idutils process'
-		if rq == None:
-			rq = ['', '']
-		self.cmd_str = rq[0]
-		self.req = rq[1]
-
 
 	def parse_result(self, text, sig):
+		if self.cmd_str in ['GREP']:
+			return PluginProcess.parse_result(self, text, sig)
+
 		#from datetime import datetime
 		#t1 = datetime.now()
 
@@ -124,24 +110,17 @@ class IdProcess(PluginProcess):
 			return res
 
 		res = []
-		if self.cmd_str == 'GREP':
-			for line in text:
-				if line == '':
-					continue
-				line = ['<unknown>'] + line.split(':', 2)
-				res.append(line)
-		else:
-			for line in text:
-				if line == '':
-					continue
-				line = line.split(':', 2)
-				line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
-				res.append(line)
+		for line in text:
+			if line == '':
+				continue
+			line = line.split(':', 2)
+			line = ['<unknown>', os.path.join(self.wdir, line[0]), line[1], line[2]]
+			res.append(line)
 
 		#t3 = datetime.now()
 		#print 'parse-loop', t3 - t2
 
-		IdCtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
+		CtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
 
 		return None
 
@@ -156,17 +135,18 @@ class QueryIdutils(QueryBase):
 		#or not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
+
 		cmd_str = rquery['cmd']
+		if cmd_str in ['GREP']:
+			return QueryBase.query(self, rquery)
 		req     = rquery['req']
 		opt     = rquery['opt']
 		if opt == None:
 			opt = []
-		
+
 		pargs = ['lid', '-R', 'grep']
 		if cmd_str == 'FIL':
 			pargs = ['fnid', '-S', 'newline']
-		elif cmd_str == 'GREP':
-			pargs = ['grep', '-E', '-R', '-n', '-I']
 		#elif cmd_str == 'TXT':
 			#pargs += ['-l']
 		elif 'substring' in opt:
@@ -180,8 +160,6 @@ class QueryIdutils(QueryBase):
 			if 'ignorecase' in opt:
 				pargs += ['-i']
 		pargs += [ '--', req ]
-		if cmd_str == 'GREP':
-			pargs += [self.conf.c_dir]
 		qsig = IdProcess(self.conf.c_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
