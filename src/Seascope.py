@@ -529,6 +529,7 @@ class SeascopeApp(QMainWindow):
 		self.toggle_folds = m_edit.addAction('Toggle folds', self.edit_book.toggle_folds_cb)
 		
 		m_edit.addSeparator()
+                m_edit.addAction('Refresh file', self.edit_book.refresh_file_cb, 'F5')
 		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
 		m_edit.addAction('Goto line', self.edit_book.goto_line_cb, 'Ctrl+G')
 		m_edit.addAction('External editor', self.external_editor_cb, 'Ctrl+E');
