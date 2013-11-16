@@ -760,7 +760,7 @@ class SeascopeApp(QMainWindow):
 				except:
 					pass
 			for d in pd.pop('dir_view_list', []):
-				if os.path.isabs(f) and f.startswith(proj_path) and os.path.isdir(d):
+				if os.path.isabs(d) and f.startswith(proj_path) and os.path.isdir(d):
 					self.file_view.open_dir_view(d)
 		except Exception as e:
 			print 'app_gui_state_restore:', e
