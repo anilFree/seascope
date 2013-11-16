@@ -6,51 +6,54 @@
 # License: BSD 
 
 import os, string, re
-from PyQt4.QtCore import *
 
-from ..PluginBase import ProjectBase, ConfigBase, QueryBase
-import GtagsProjectUi
-from GtagsProjectUi import QueryUiGtags
+from ..PluginBase import PluginFeatureBase, ProjectBase, ConfigBase, QueryBase
+from ..PluginBase import PluginProcess
+from ..CtagsCache import CtagsThread
 
-from .. import PluginHelper
+
+class GtagsFeature(PluginFeatureBase):
+	def __init__(self):
+		PluginFeatureBase.__init__(self)
+
+		self.feat_desc = [
+			['REF',	'-r'],
+			['DEF',	''],
+			#['<--',	'2'],
+			['-->',	'-r'],
+			#[	['TXT',	'4'],
+			['GREP','-g'],
+			['FIL',	'-P'],
+			['INC',	'-g'],
+
+			['QDEF', ''],
+			['CTREE','12'],
+
+			['CLGRAPH', '13'],
+			['CLGRAPHD', '14'],
+			['FFGRAPH', '14'],
+
+			['UPD', '25'],
+		]
+
+		self.ctree_query_args = [
+			['-->',	'--> F', 'Calling tree'			],
+			#['<--',	'F -->', 'Called tree'			],
+			['REF',	'==> F', 'Advanced calling tree'	],
+		]
+		
+	def query_dlg_cb(self, req, cmd_str, in_opt):
+		if req != '' and in_opt['substring']:
+			req = '.*' + req + '.*'
+		opt = None
+		if in_opt['ignorecase']:
+			opt = '-i'
+		res = (cmd_str, req, opt)
+		return res
 
 class ConfigGtags(ConfigBase):
 	def __init__(self):
 		ConfigBase.__init__(self, 'gtags')
-
-		self.gt_dir = ''
-		self.gt_opt = ''
-		self.gt_list = []
-
-	def get_proj_name(self):
-		return os.path.split(self.gt_dir)[1]
-	def get_proj_src_files(self):
-		fl = self.gt_list
-		return fl
-
-	def proj_start(self):
-		gt_args = string.join(self.gt_opt)
-
-	def proj_open(self, proj_path):
-		self.gt_dir = proj_path
-		self.proj_start()
-
-	def proj_update(self, proj_args):
-		self.proj_new(proj_args)
-		
-	def proj_new(self, proj_args):
-		self.proj_args = proj_args
-		(self.gt_dir, self.gt_opt, self.gt_list) = proj_args
-		self.proj_start()
-
-	def proj_close(self):
-		pass
-
-	def get_proj_conf(self):
-		return (self.gt_dir, self.gt_opt, self.gt_list)
-
-	def is_ready(self):
-		return True
 
 class ProjectGtags(ProjectBase):
 	def __init__(self):
@@ -59,29 +62,16 @@ class ProjectGtags(ProjectBase):
 	@staticmethod
 	def _prj_new_or_open(conf):
 		prj = ProjectGtags()
+		prj.feat = GtagsFeature()
 		prj.conf = conf
-		prj.qry = QueryGtags(prj.conf)
-		prj.qryui = QueryUiGtags(prj.qry)
+		prj.qry = QueryGtags(prj.conf, prj.feat)
 
 		return (prj)
 
 	@staticmethod
-	def prj_new():
-		from PyQt4.QtGui import QFileDialog
-		fdlg = QFileDialog(None, "Choose source code directory")
-		fdlg.setFileMode(QFileDialog.Directory);
-		#fdlg.setDirectory(self.pd_path_inp.text())
-		if fdlg.exec_():
-			d = fdlg.selectedFiles()[0];
-			d = str(d)
-			if not d:
-				return None
-			d = os.path.normpath(d)
-			if d == '' or not os.path.isabs(d):
-				return None
-			prj = ProjectGtags.prj_open(d)
-			prj.qryui.do_rebuild()
-			return prj
+	def prj_new(proj_args):
+		d = proj_args[0]
+		prj = ProjectGtags.prj_open(d)
 		return None
 
 	@staticmethod
@@ -91,40 +81,6 @@ class ProjectGtags(ProjectBase):
 		prj = ProjectGtags._prj_new_or_open(conf)
 		return (prj)
 
-	def prj_close(self):
-		if (self.conf != None):
-			self.conf.proj_close()
-		self.conf = None
-
-	def prj_dir(self):
-		return self.conf.gt_dir
-	def prj_name(self):
-		return self.conf.get_proj_name()
-	def prj_src_files(self):
-		return self.conf.get_proj_src_files()
-
-	def prj_is_open(self):
-		return self.conf != None
-	def prj_is_ready(self):
-		return self.conf.is_ready()
-		
-	def prj_conf(self):
-		return self.conf.get_proj_conf()
-		
-	def prj_update_conf(self, proj_args):
-		self.conf.proj_update(proj_args)
-	def prj_settings_trigger(self):
-		proj_args = self.prj_conf()
-		proj_args = QueryUiGtags.prj_show_settings_ui(proj_args)
-		#if (proj_args == None):
-			#return False
-		#self.prj_update_conf(proj_args)
-		#return True
-		return False
-
-from ..PluginBase import PluginProcess
-from .. import PluginHelper
-from ..CtagsCache import CtagsThread
 
 class GtCtagsThread(CtagsThread):
 	def __init__(self, sig):
@@ -165,11 +121,10 @@ class GtProcess(PluginProcess):
 		return None
 
 class QueryGtags(QueryBase):
-	def __init__(self, conf):
+	def __init__(self, conf, feat):
 		QueryBase.__init__(self)
 		self.conf = conf
-
-		self.gt_file_list_update()
+		self.feat = feat
 
 	def query(self, rquery):
 		if (not self.conf):
@@ -183,44 +138,32 @@ class QueryGtags(QueryBase):
 			opt = []
 		else:
 			opt = opt.split()
-		cmd_opt = GtagsProjectUi.cmd_str2id[cmd_str]
+		cmd_opt = self.feat.cmd_str2id[cmd_str]
 		pargs = [ 'global', '-a', '--result=cscope', '-x' ] + opt
 		if cmd_opt != '':
 			pargs += [ cmd_opt ]
 		pargs += [ '--', req ]
 		
-		qsig = GtProcess(self.conf.gt_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
+		qsig = GtProcess(self.conf.c_dir, [cmd_str, req]).run_query_process(pargs, req, rquery)
 		return qsig
 
 	def rebuild(self):
 		if (not self.conf.is_ready()):
 			print "pm_query not is_ready"
 			return None
-		if (os.path.exists(os.path.join(self.conf.gt_dir, 'GTAGS'))):
+		if (os.path.exists(os.path.join(self.conf.c_dir, 'GTAGS'))):
 			pargs = [ 'global', '-u' ]
 		else:
 			pargs = [ 'gtags', '-i' ]
-		qsig = GtProcess(self.conf.gt_dir, None).run_rebuild_process(pargs)
-		qsig.connect(self.gt_file_list_update)
+		qsig = GtProcess(self.conf.c_dir, None).run_rebuild_process(pargs)
 		return qsig
 
-	def gt_file_list_update(self):
-		wdir = self.conf.gt_dir
-		if not os.path.exists(os.path.join(wdir, 'GTAGS')):
-			return
-		fl = []
-		try:
-			import subprocess
-			pargs = [ 'global', '-P', '-a' ]
-			proc = subprocess.Popen(pargs, stdin=subprocess.PIPE, stdout=subprocess.PIPE, cwd=wdir)
-			(out_data, err_data) = proc.communicate()
-			fl = re.split('\r?\n', out_data.strip())
-			PluginHelper.file_view_update(fl)
-		except:
-			import sys
-			e = sys.exc_info()[1]
-			print ' '.join(pargs)
-			print e
+	def query_fl(self):
+		if not os.path.exists(os.path.join(self.conf.c_dir, 'GTAGS')):
+			return []
+		pargs = [ 'global', '-P', '-a' ]
+		qsig = GtProcess(self.conf.c_dir, None).run_query_fl(pargs)
+		return qsig
 
 	def gt_is_open(self):
 		return self.conf != None

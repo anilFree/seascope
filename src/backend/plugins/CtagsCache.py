@@ -3,9 +3,10 @@
 #
 # License: BSD 
 
-from PyQt4.QtCore import *
-from datetime import datetime
 import os, re, subprocess
+from datetime import datetime
+
+from PyQt4.QtCore import QThread
 
 #class CtagsInfo:
 	#def __init__(self):
