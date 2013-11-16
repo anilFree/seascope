@@ -232,6 +232,13 @@ class EditorView(EditorViewBase):
 
 		self.open_file_end()
 
+	def refresh_file(self, filename):
+		assert filename == self.filename
+		pos = self.getCursorPosition()
+		self.open_file(filename)
+		self.setCursorPosition(*pos)
+		self.cursorPositionChanged.emit(*pos)
+
 	def goto_line(self, line):
 		line = line - 1
 		self.setCursorPosition(line, 0)
@@ -270,8 +277,13 @@ class EditorPage(QSplitter):
 		return EditorView(self)
 
 	def open_file(self, filename):
-		self.ev.open_file(filename);
-		self.fcv.run(filename);
+		self.ev.open_file(filename)
+		self.fcv.run(filename)
+
+	def refresh_file(self):
+		filename = self.get_filename()
+		self.fcv.rerun(filename)
+		self.ev.refresh_file(filename)
 
 	def get_filename(self):
 		return self.ev.get_filename()
@@ -494,6 +506,12 @@ class EditorBook(QTabWidget):
 		if not ed:
 			return
 		ed.ev.goto_line(line)
+
+	def refresh_file_cb(self):
+		ed = self.currentWidget()
+		if not ed:
+			return
+		ed.refresh_file()
 
 	def find_cb(self):
 		ed = self.currentWidget()
