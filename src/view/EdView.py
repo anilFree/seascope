@@ -43,6 +43,12 @@ try:
 		[['Makefile', 'makefile', 'Makefile.am', 'makefile.am', 'Makefile.in', 'makefile.in'], QsciLexerMakefile],
 	]
 
+	seascope_editor_tab_width = None
+	try:
+		seascope_editor_tab_width = int(os.getenv('SEASCOPE_EDITOR_TAB_WIDTH'))
+	except:
+		pass
+
 except ImportError as e:
 	print e
 	print "Error: required qscintilla-python package not found"
@@ -164,6 +170,10 @@ class EditorView(EditorViewBase):
 		## Editing line color
 		self.setCaretLineVisible(True)
 		self.setCaretLineBackgroundColor(QtGui.QColor("#CDA869"))
+
+		## set tab width
+		if seascope_editor_tab_width:
+			self.setTabWidth(seascope_editor_tab_width)
 
 	def show_line_number_cb(self, val):
 		if (val):
