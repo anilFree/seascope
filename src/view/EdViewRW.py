@@ -41,7 +41,13 @@ class EditorViewRW(EditorView):
 		self.setReadOnly(False)
 
 		self.open_file_end()
-		
+
+	def refresh_file(self, filename):
+		if self.isModified():
+			msg = 'Save changes before refresh ?'
+			if DialogManager.show_yes_no(msg):
+				self.save_file(self.filename)
+		EditorView.refresh_file(self, filename)
 
 	def modifiedChanged(self):
 		self.sig_file_modified.emit(self.isModified())

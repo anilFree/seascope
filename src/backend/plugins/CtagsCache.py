@@ -3,9 +3,10 @@
 #
 # License: BSD 
 
-from PyQt4.QtCore import *
-from datetime import datetime
 import os, re, subprocess
+from datetime import datetime
+
+from PyQt4.QtCore import QThread
 
 #class CtagsInfo:
 	#def __init__(self):
@@ -273,6 +274,10 @@ class CtagsThread(QThread):
 					continue
 				out_res.append(line)
 			return out_res
+		return res
+
+	def parse_result(self, res, sig):
+		res = self._filter_res(res, sig)
 		return res
 
 ct_cache = {}
