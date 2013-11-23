@@ -14,7 +14,7 @@ dir_prefix = None
 
 class DirTab(QWidget):
 	sig_show_file = pyqtSignal(str)
-	
+
 	def __init__(self, parent=None):
 		QWidget.__init__(self)
 
@@ -23,9 +23,14 @@ class DirTab(QWidget):
 
 		# Tree view
 		self.tmodel = QFileSystemModel()
+		self.tmodel.directoryLoaded.connect(self.tmodel_dir_loaded)
 		self.tmodel.setRootPath(QDir.rootPath())
 		self.tview = QTreeView()
 		self.tview.setHeaderHidden(True)
+		# For proper horizaontal scroll bar
+		self.tview.setTextElideMode(Qt.ElideNone)
+		self.tview.expanded.connect(self.tview_expanded_or_collapsed)
+		self.tview.collapsed.connect(self.tview_expanded_or_collapsed)
 
 		self.ted = QLineEdit()
 		self.completer = QCompleter()
@@ -58,6 +63,12 @@ class DirTab(QWidget):
 		self.trbtn.clicked.connect(self.reset_btn_cb)
 
 		self.hide_view_columns(self.tview)
+
+	def tmodel_dir_loaded(self, path):
+		self.tview.resizeColumnToContents(0)
+
+	def tview_expanded_or_collapsed(self, inx):
+		self.tview.resizeColumnToContents(0)
 
 	def dir_name(self):
 		return self.d
