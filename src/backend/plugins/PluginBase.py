@@ -424,8 +424,8 @@ class PluginProcess(PluginProcessBase):
 			res.append(['', '', '', 'PluginProcess.parse_result: FAILED'])
 			return res
 
-		CtagsCache.CtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
-		return res
+		qsig = CtagsCache.CtagsThread(sig).apply_fix(self.cmd_str, res, ['<unknown>'])
+		return qsig
 
 if __name__ == '__main__':
 	import sys
