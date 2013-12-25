@@ -124,6 +124,8 @@ class IdProcess(PluginProcess):
 
 		return res
 
+idutils_lid_cmd = os.getenv('SEASCOPE_IDUTILS_LID_CMD', 'lid')
+
 class QueryIdutils(QueryBase):
 	def __init__(self, conf, feat):
 		QueryBase.__init__(self)
@@ -144,7 +146,7 @@ class QueryIdutils(QueryBase):
 		if opt == None:
 			opt = []
 
-		pargs = ['lid', '-R', 'grep']
+		pargs = [idutils_lid_cmd, '-R', 'grep']
 		if cmd_str == 'FIL':
 			pargs = ['fnid', '-S', 'newline']
 		#elif cmd_str == 'TXT':
