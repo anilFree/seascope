@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="http://yui.yahooapis.com/3.14.0/build/yui/yui-min.js"></script>
+    <script src="http://d1n0x3qji82z53.cloudfront.net/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="//www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load('visualization', '1', {packages: ['table']});
+    </script>
+
+
+    <script src="js/server_conf.js" type="text/javascript"></script>
+    <script src="js/first.js" type="text/javascript"></script>
+
+    <script src="js/qry_dlg.js" type="text/javascript"></script>
+    <script src="js/res_filt_dlg.js" type="text/javascript"></script>
+    <script src="js/flist_filt_dlg.js" type="text/javascript"></script>
+    <script src="js/pop_dlg.js" type="text/javascript"></script>
+
+    <script src="js/ed_tabs.js" type="text/javascript"></script>
+    <script src="js/res_tabs.js" type="text/javascript"></script> 
+    <script src="js/fv_tabs.js" type="text/javascript"></script>
+
+    <script src="js/prj_list.js" type="text/javascript"></script>
+    <script src="js/about_dlg.js" type="text/javascript"></script>
+
+    <script src="js/lay_main.js" type="text/javascript"></script>
+
+</head>
+
+<body class="yui3-skin-sam">
+    <div id="top1">
+        <table  style="width:100%;">
+            <tr>
+                <td style="width:85%;" align="center">
+                    <button type="button" onclick="qry_dlg_show(start_query, 'REF');">References to</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'DEF');">Definition of</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, '-->');">Calling Functions</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'GREP');">Egrep</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'FIL');">Find File</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'INC');">Include/Import</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'CTREE');"    disabled style="border-style:none;" >Call Tree</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'CLGRAPH');"  disabled style="border-style:none;" >Class Graph</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'CLGRAPHD');" disabled style="border-style:none;" >Class Graph Dir</button>
+                    <button type="button" onclick="qry_dlg_show(start_query, 'FFGRAPH');"  disabled style="border-style:none;" >File Func Graph</button>
+                    <button type="button" onclick="about_dlg_show();">About</button>
+                </td>
+                <td style="width:15%;" align="right">
+                    <span style="font-weight:bold">
+                        <label id="project_name"><strong></strong></label>
+                    </span>
+                </td>
+                </div>
+            </tr>
+        </table>
+    </div>
+    <div id="edTabs"></div>
+    <div id="fvTabs"></div>
+    <div id="resTabs"></div>
+</body>
+
+</html>
