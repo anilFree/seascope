@@ -5,6 +5,7 @@
 #
 # License: BSD
 
+import sys
 import os
 import subprocess
 import threading
@@ -29,7 +30,7 @@ def setup_srvr_conf_js(host, port):
 			}''' % (host, port)
 
 class ThreadingServer(ThreadingMixIn, HTTPServer):
-    pass
+	allow_reuse_address = True
 
 class RequestHandler(SimpleHTTPRequestHandler):
 	def parse_path(self):
@@ -91,8 +92,10 @@ def start_server(host, port):
 	print 'starting server at http://%s:%s' % (host, port)
 	try:
 		ts = ThreadingServer((host, port), RequestHandler)
+		print 'ts', ts
 		ts.serve_forever()
 	except Exception as e:
 		print e
+		sys.exit(-1)
 
 	print 'exiting'

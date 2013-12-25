@@ -14,6 +14,8 @@ def NOT_IMPLEMENTED(n, f):
 
 import CtagsCache
 
+is_seascope_debug = os.getenv('SEASCOPE_DEBUG')
+
 cmd_table_master = [
 	[	'REF',		['&References',		'Ctrl+0'],	['References to'	]	],
 	[	'DEF',		['&Definitions',	'Ctrl+1'],	['Definition of'	]	],
@@ -313,7 +315,7 @@ class PluginProcessBase:
 			print 's'
 
 	def run_process(self, pargs):
-		if os.getenv('SEASCOPE_DEBUG'):
+		if is_seascope_debug:
 			print self.p_cmd
 		try:
 			self.proc = subprocess.Popen(pargs, cwd=self.wdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
