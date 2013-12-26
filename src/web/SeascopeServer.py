@@ -32,17 +32,21 @@ def setup_srvr_conf_js(host, port):
 class ThreadingServer(ThreadingMixIn, HTTPServer):
 	allow_reuse_address = True
 
+is_debug = os.getenv('SEASCOPE_WEB_DEBUG')
+
 class RequestHandler(SimpleHTTPRequestHandler):
 	def parse_path(self):
 		import urlparse
 		p = urlparse.urlparse(self.path)
-		print 'path', p.path
+		if is_debug:
+			print 'path', p.path
 		if p.path.startswith('/'):
 			path = p.path
 			if path == '/':
 				path = '/h.html'
 			if path == '/js/server_conf.js':
 				self.reply_to_GET(server_conf_js, 'text/javascript');
+				return None
 			wp = 'www' + path
 			if os.path.exists(wp):
 				data = open(wp).read()
@@ -52,19 +56,20 @@ class RequestHandler(SimpleHTTPRequestHandler):
 				self.reply_to_GET(data, cont_type);
 				return None
 		if p.path != '/q':
-			print 'not /q instead', p.path
+			if is_debug:
+				print 'not /q instead', p.path
 			return
-		print 'p.query', p.query
+		if is_debug:
+			print 'p.query', p.query
 		qd = urlparse.parse_qs(p.query)
 		for k in qd.keys():
 			v = qd[k]
 			if len(v) == 0:
-				assert false
+				print 'len(v) == 0', k, v
+				continue
 			qd[k] = v[-1]
-		print 'qd', qd
-		#import json
-		#d = json.loads(qd)
-		#print 'd', d
+		if is_debug:
+			print 'qd', qd
 		return qd
 
 	def reply_to_GET(self, qres, cont_type):
@@ -81,10 +86,17 @@ class RequestHandler(SimpleHTTPRequestHandler):
 		if not qd:
 			return
 		outd = BackendTool.run_op(qd)
-		data = json.dumps(outd)
-		if 'callback' in qd:
-			data = '%s(%s);' % (qd['callback'], data)
-		self.reply_to_GET(data, 'application/json')
+		try:
+			data = json.dumps(outd, ensure_ascii=False)
+			if 'callback' in qd:
+				data = '%s(%s);' % (qd['callback'], data)
+			self.reply_to_GET(data, 'application/json')
+		except Exception as e:
+			print 'qd', qd
+			print 'outd', outd
+			print e
+			data = e
+			return
 
 def start_server(host, port):
 	setup_srvr_conf_js(host, port)

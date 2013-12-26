@@ -10,6 +10,7 @@ sys.dont_write_bytecode = True
 
 import os
 import socket
+import signal
 
 import BackendTool
 import SeascopeServer
@@ -20,6 +21,8 @@ def start(plist, host, port):
 
 	SeascopeServer.start_server(host, port)
 
+def signal_handler(signal, frame):
+	os._exit(0)
 
 if __name__ == '__main__':
 	import optparse
@@ -40,12 +43,7 @@ if __name__ == '__main__':
 			sys.exit(-2)
 		plist.append(os.path.abspath(p))
 
-	plist2 = [
-		'/e/prj/ss1',
-		#'/e/sw/n2',
-		#'/root/ss/e1',
-		'/root/p/co.boulder-dev/src',
-	]
+	signal.signal(signal.SIGINT, signal_handler)
 
 	#options.host = socket.gethostname()
 	start(plist, options.host, options.port)
