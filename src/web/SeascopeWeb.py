@@ -22,6 +22,7 @@ def start(plist, host, port):
 	SeascopeServer.start_server(host, port)
 
 def signal_handler(signal, frame):
+	print 'got signal %s, exiting' % signal
 	os._exit(0)
 
 if __name__ == '__main__':
@@ -44,6 +45,7 @@ if __name__ == '__main__':
 		plist.append(os.path.abspath(p))
 
 	signal.signal(signal.SIGINT, signal_handler)
+	signal.signal(signal.SIGTERM, signal_handler)
 
 	#options.host = socket.gethostname()
 	start(plist, options.host, options.port)
