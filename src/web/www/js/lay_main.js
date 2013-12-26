@@ -28,13 +28,13 @@ YUI().use('node',
         document['lay_main'] = layout;
 
         function cu_size_change(e) {
-            var x = 15;
+            var x = 25;
             var node = layout.getUnitByPosition('center');
             var h = node.get('height');
             var w = node.get('width');
             var ed_tv = document['ed_tv'];
             ed_tv.set('height', h - x);
-            ed_tv.set('width',  w - x);
+            ed_tv.set('width',  w - x - 2);
 
         }
         function bu_size_change(e) {
@@ -81,12 +81,12 @@ YUI().use('node',
 
             flist_query();
 
-            var qargs = {
-            qtype  : 'REF',
-            symbol : 'query',
-            opt    : [],
-            };
-            start_query(qargs);
+//             var qargs = {
+//             qtype  : 'REF',
+//             symbol : 'query',
+//             opt    : [],
+//             };
+//             start_query(qargs);
         });
 
     });

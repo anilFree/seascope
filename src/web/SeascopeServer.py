@@ -92,7 +92,7 @@ def start_server(host, port):
 	print 'starting server at http://%s:%s' % (host, port)
 	try:
 		ts = ThreadingServer((host, port), RequestHandler)
-		print 'ts', ts
+		#print 'ts', ts
 		ts.serve_forever()
 	except Exception as e:
 		print e

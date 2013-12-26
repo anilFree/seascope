@@ -2,9 +2,10 @@ function ed_ct_resize(t, is_sel) {
     var cbox = t.get('panelNode');
 
     var ed_tv = document['ed_tv'];
-    var w = ed_tv.get('width') - 2;
+    var w = ed_tv.get('width');
+    w = Math.floor(w * 0.25);
     var lh = cbox.ancestor().ancestor().one('.yui3-tabview-list').get('clientHeight');
-    var h = ed_tv.get('height') - lh - 10;
+    var h = ed_tv.get('height') - lh;
 
     if (is_sel) {
         if (cbox['g_table_h'] == h && cbox['g_table_w'] == w) {
@@ -17,7 +18,7 @@ function ed_ct_resize(t, is_sel) {
     var table = cbox['g_table'];
     var dv = cbox['g_dv'];
     table.draw(dv, {
-        //width: w,
+        width: w,
         height: h,
         page : 'enable',
         pageSize : 200,
@@ -28,8 +29,9 @@ function ed_ace_resize(t, is_sel) {
     var cbox = t.get('panelNode');
     var ed_tv = document['ed_tv'];
 
-    var w = ed_tv.get('width') - 2;
-    var h = ed_tv.get('height') - 49;
+//     var w = ed_tv.get('width') - 15;
+//     var lh = cbox.ancestor().ancestor().one('.yui3-tabview-list').get('clientHeight');
+//     var h = ed_tv.get('height') - lh - 20;
 
     var editor = cbox['a_ed'];
     editor.resize();
@@ -358,13 +360,24 @@ function ed_show_file_line_new(file, line) {
     var ed_tv = document['ed_tv'];
     var fp = file.split('/');
     var fname = fp[fp.length - 1];
-    var content =
+    var content2 =
                  '<table style="position:relative; width: 100%; height: 85%;">' +
                  '<tr style="vertical-align: top;">' +
                  '<td style="position:relative; width: 10%;">' +
                  '              <div id="ctTbl" style="position:relative; width: 100%; "> </div>' +
                  '</td>' +
                  '<td style="position:relative; width: 80%; height: 100%;">' +
+                 '      <div id="aceEditor" style="background-color: white; position:relative; width: 100%; height: 100%;"> </div>' +
+                 '</td>' +
+                 '</tr>' +
+                 '</table>';
+    var content =
+                 '<table style="position:relative; width: 100%; height: 85%;">' +
+                 '<tr style="vertical-align: top;">' +
+                 '<td style="position:relative; width: 25%;">' +
+                 '              <div id="ctTbl"> </div>' +
+                 '</td>' +
+                 '<td style="position:relative; width: 75%; height: 100%;">' +
                  '      <div id="aceEditor" style="background-color: white; position:relative; width: 100%; height: 100%;"> </div>' +
                  '</td>' +
                  '</tr>' +
