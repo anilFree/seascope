@@ -10,6 +10,8 @@ import backend
 import CtagsManager
 from collections import OrderedDict
 
+is_debug = os.getenv('SEASCOPE_WEB_DEBUG')
+
 g_proj_d = OrderedDict()
 
 def p_open(proj_path):
@@ -54,7 +56,8 @@ def validate_op(rd):
 	return True
 
 def _run_op(rd):
-	print 'rd', rd
+	if is_debug:
+		print 'rd', rd
 
 	if not validate_op:
 		return { 'err_data' : 'invalid request: validate_op failed' }
@@ -106,26 +109,18 @@ def _run_op(rd):
 			'hint_file' : rd.get('hint_file', ''),
 		}
 		outd = p_query(bp, rquery)
-		print 'rquery', rquery
-		if 'res2' in outd:
-                        res = []
-                        for r in outd['res']:
-                                d = {
-                                        'tag'  : r[0],
-                                        'file' : r[1],
-                                        'line' : r[2],
-                                        'text' : r[3],
-                                }
-                                res.append(d)
-                        outd['res'] = res
+		if is_debug:
+			print 'rquery', rquery
                 return outd
 
 	return { 'err_data' : 'invalid request: unknown cmd_type=%s' % cmd_type }
 
 def run_op(rd):
-	print '-' * 80
+	if is_debug:
+		print '-' * 80
 	outd = _run_op(rd)
-	print '-' * 80
+	if is_debug:
+		print '-' * 80
 
 	if ('err_data' in outd) and outd['err_data']:
 		print '==> ERR_DATA:', outd['err_data']
@@ -135,7 +130,8 @@ def run_op(rd):
 	#if not rd['cmd_str'] == 'FDATA':
 		#for r in res:
 			#print r
-	print '-' * 80
+	if is_debug:
+		print '-' * 80
 	return outd
 
 def load_projects(plist):
@@ -148,7 +144,6 @@ def load_projects(plist):
 		global g_proj_d
 		pdir = bp.proj_dir()
 		g_proj_d[pdir] = bp
-		print 'project++:', pdir
 
 	if not len(g_proj_d):
 		print 'No projects'
