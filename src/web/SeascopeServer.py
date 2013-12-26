@@ -13,6 +13,7 @@ import time
 
 import json
 import socket
+import signal
 
 import BackendTool
 
@@ -31,6 +32,7 @@ def setup_srvr_conf_js(host, port):
 
 class ThreadingServer(ThreadingMixIn, HTTPServer):
 	allow_reuse_address = True
+	daemon_threads = True
 
 is_debug = os.getenv('SEASCOPE_WEB_DEBUG')
 
@@ -104,7 +106,14 @@ def start_server(host, port):
 	print 'starting server at http://%s:%s' % (host, port)
 	try:
 		ts = ThreadingServer((host, port), RequestHandler)
-		#print 'ts', ts
+
+		def signal_handler(signal, frame):
+			ts.socket.close()
+			print 'got signal %s, exiting' % signal
+			os._exit(0)
+		signal.signal(signal.SIGINT, signal_handler)
+		signal.signal(signal.SIGTERM, signal_handler)
+
 		ts.serve_forever()
 	except Exception as e:
 		print e

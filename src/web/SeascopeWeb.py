@@ -10,7 +10,6 @@ sys.dont_write_bytecode = True
 
 import os
 import socket
-import signal
 
 import BackendTool
 import SeascopeServer
@@ -20,10 +19,6 @@ def start(plist, host, port):
 		sys.exit(-1)
 
 	SeascopeServer.start_server(host, port)
-
-def signal_handler(signal, frame):
-	print 'got signal %s, exiting' % signal
-	os._exit(0)
 
 if __name__ == '__main__':
 	import optparse
@@ -43,9 +38,6 @@ if __name__ == '__main__':
 			print '%p is not a directory'
 			sys.exit(-2)
 		plist.append(os.path.abspath(p))
-
-	signal.signal(signal.SIGINT, signal_handler)
-	signal.signal(signal.SIGTERM, signal_handler)
 
 	#options.host = socket.gethostname()
 	start(plist, options.host, options.port)
