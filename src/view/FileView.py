@@ -209,6 +209,7 @@ class FileTab(QWidget):
 				#self.lview.resizeColumnToContents(0)
 				#self.lview.resizeColumnToContents(1)
 		self.lview.sortByColumn(0, Qt.AscendingOrder)
+		self.lview.resizeColumnToContents(0)
 
 class FileTree(QTabWidget):
 	sig_show_file = pyqtSignal(str)
