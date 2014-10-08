@@ -730,10 +730,23 @@ class SeascopeApp(QMainWindow):
 		except Exception as e:
 			print 'app_gui_state_write:', e
 
+	def app_gui_get_geometry(self):
+		rect = self.geometry()
+		return (rect.x(), rect.y(), rect.width(), rect.height())
+	
+	def app_gui_set_geometry(self, geometry):
+		x = geometry[0]
+		y = geometry[1]
+		w = geometry[2]
+		h = geometry[3]
+		self.setGeometry(x, y, w, h)
+
 	def app_gui_state_save(self, proj_path):
-		pd = {}
+		pd                    = {}
 		pd ['file_line_list'] = self.edit_book.get_file_line_list()
 		pd ['dir_view_list']  = self.file_view.get_dir_view_list()
+		pd ['geometry']       = self.app_gui_get_geometry()
+
 		try:
 			data = self.app_gui_state_read()
 			if data == None:
@@ -744,7 +757,7 @@ class SeascopeApp(QMainWindow):
 			self.app_gui_state_write(data)
 		except Exception as e:
 			print 'app_gui_state_save:', e
-		
+
 	def app_gui_state_restore(self, proj_path):
 		try:
 			data = self.app_gui_state_read()
@@ -763,6 +776,11 @@ class SeascopeApp(QMainWindow):
 			for d in pd.pop('dir_view_list', []):
 				if os.path.isabs(d) and f.startswith(proj_path) and os.path.isdir(d):
 					self.file_view.open_dir_view(d)
+			try:
+				self.app_gui_set_geometry(pd ['geometry'])
+			except Exception as e:
+				print 'Geometry configuration not restored'
+				
 		except Exception as e:
 			print 'app_gui_state_restore:', e
 		
