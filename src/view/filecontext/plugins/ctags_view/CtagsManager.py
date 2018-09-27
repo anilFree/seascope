@@ -16,14 +16,19 @@ def _eintr_retry_call(func, *args):
 			raise
 
 def cmdForFile(f):
+	#args = 'ctags -n -u --fields=+K -f - --extra=+q'
+	#args = 'ctags -n -u --fields=+Ki -f -'
+        args = 'ctags -n -u --fields=+K -f -'
+
+        opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+        if opt_I_file and os.path.isfile(opt_I_file):
+            args += ' -I ' + opt_I_file
+
 	suffix_cmd_map = []
 	custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
 	if custom_map:
 		custom_map = eval(custom_map)
 		suffix_cmd_map += custom_map
-	#args = 'ctags -n -u --fields=+K -f - --extra=+q'
-	#args = 'ctags -n -u --fields=+Ki -f -'
-	args = 'ctags -n -u --fields=+K -f -'
 	suffix_cmd_map.append( ['', args] )
 	for (suffix, cmd) in suffix_cmd_map:
 		if f.endswith(suffix):
@@ -73,14 +78,19 @@ class CtagsTreeBuilder:
 		self.symTree = emptyOrderedDict()
 
 	def cmdForFile(self, f):
+		#args = 'ctags -n -u --fields=+K -f - --extra=+q'
+		#args = 'ctags -n -u --fields=+Ki -f -'
+                args = 'ctags -n -u --fields=+K-f-t -f -'
+
+		opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+                if opt_I_file and os.path.isfile(opt_I_file):
+                    args += ' -I ' + opt_I_file
+
 		suffix_cmd_map = []
 		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
 		if custom_map:
 			custom_map = eval(custom_map)
 			suffix_cmd_map += custom_map
-		#args = 'ctags -n -u --fields=+K -f - --extra=+q'
-		#args = 'ctags -n -u --fields=+Ki -f -'
-		args = 'ctags -n -u --fields=+K-f-t -f -'
 		suffix_cmd_map.append( ['', args] )
 		for (suffix, cmd) in suffix_cmd_map:
 			if f.endswith(suffix):

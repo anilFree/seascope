@@ -20,6 +20,9 @@ def ct_cmdForFile(f):
 	#ct_args = 'ctags -n -u --fields=+K -f - --extra=+q'
 	#ct_args = 'ctags -n -u --fields=+Ki -f -'
 	ct_args = 'ctags -n -u --fields=+K -f -'
+        opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+        if opt_I_file and os.path.isfile(opt_I_file):
+            ct_args += ' -I ' + opt_I_file
 	if os.path.isdir(f):
 		cmd = ct_args + ' -R'
 		return cmd

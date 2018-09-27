@@ -143,6 +143,9 @@ class CtagsThread:
 
 	def _run_ctags(self):
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
+                opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+                if opt_I_file and os.path.isfile(opt_I_file):
+                    cmd += ' -I ' + opt_I_file
 		args = cmd.split()
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(self.file_list))

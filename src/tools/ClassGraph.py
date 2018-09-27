@@ -17,6 +17,11 @@ class CtagsInhCache:
 		self.is_fq     = is_fq
 		self.is_debug  = False
 
+                self.ct_opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+                if self.ct_opt_I_file:
+                    if not os.path.isfile(self.ct_opt_I_file):
+                        self.ct_opt_I_file = None
+
 		map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP', 0)
 		if map:
 			try:
@@ -25,6 +30,7 @@ class CtagsInhCache:
 				print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
 				map = None
 		self.ct_custom_map = map
+
 
 	def _filterCtInherits(self, data, sym=None):
 		res = {}
@@ -74,6 +80,8 @@ class CtagsInhCache:
 
 	def _runCtags(self, fl):
 		cmd = 'ctags -n -u --fields=+i -L - -f -'
+                if self.ct_opt_I_file:
+                    cmd += ' -I ' + self.ct_opt_I_file
 		args = cmd.split()
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(fl))
