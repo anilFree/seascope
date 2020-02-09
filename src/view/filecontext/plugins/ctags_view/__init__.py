@@ -9,7 +9,7 @@ def name():
 	return 'ctags'
 
 def run_plugin(filename, parent):
-	import CtagsView
+	from . import CtagsView
 	CtagsView.run(filename, parent)
 
 def description():

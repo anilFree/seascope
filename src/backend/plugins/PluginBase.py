@@ -13,7 +13,7 @@ def NOT_IMPLEMENTED(n, f):
 	from PyQt4.QtGui import QMessageBox
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
-import CtagsCache
+from . import CtagsCache
 
 cmd_table_master = [
 	[	'REF',		['&References',		'Ctrl+0'],	['References to'	]	],
@@ -287,7 +287,7 @@ class QuerySignal(QObject):
 		if not hint_file:
 			return res
 		if not os.path.isabs(hint_file):
-			print 'BUG: relevancy_sort: not abs path:', hint_file
+			print('BUG: relevancy_sort: not abs path:', hint_file)
 			return res
 		if len(res) > 10000:
 			return res
@@ -356,7 +356,7 @@ class PluginProcessBase(QObject):
 			try:
 				res = self.parse_result(res, self.sig)
 			except Exception as e:
-				print e
+				print(e)
 				res = [['', '', '', 'error while parsing output of: ' + self.p_cmd]]
 			if res != None:
 				self.sig.emit_result(res)
@@ -368,7 +368,7 @@ class PluginProcessBase(QObject):
 		self.sig.rquery = rquery
 		self.p_cmd = ' '.join(pargs)
 		if os.getenv('SEASCOPE_DEBUG'):
-			print self.p_cmd
+			print(self.p_cmd)
 		self.proc.start(pargs[0], pargs[1:])
 		if self.proc.waitForStarted() == False:
 			return None
@@ -431,12 +431,12 @@ if __name__ == '__main__':
 	import sys
 
 	def slot_result(sym, res):
-		print 'slot_result:    ', [str(sym), res]
+		print('slot_result:    ', [str(sym), res])
 		sys.exit(0)
 	def slot_result_dbg(cmd, res, err_str):
-		print 'slot_result_dbg:', [str(cmd), str(res).strip().split('\n'), str(err_str)]
+		print('slot_result_dbg:', [str(cmd), str(res).strip().split('\n'), str(err_str)])
 	def slot_rebuild():
-		print 'slot_rebuild'
+		print('slot_rebuild')
 
 	from PyQt4.QtCore import QCoreApplication
 	app = QCoreApplication(sys.argv)

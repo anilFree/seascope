@@ -12,7 +12,7 @@ backend_dict = {}
 
 def _load_plugins(module, directory):
 	pluginImports = __import__(module, globals(), locals())
-	print 'Scanning for backend plugins...'
+	print('Scanning for backend plugins...')
 	plist = []
 	pdict = {}
 	for i in sorted(os.listdir(directory)):
@@ -25,7 +25,7 @@ def _load_plugins(module, directory):
 				p.priority = 0 
 	plist = sorted(plist, key=lambda p: p.priority, reverse=True)
 	for p in plist:
-		print '\t', p.name()
+		print('\t', p.name())
 	return (plist, pdict)
 
 def load_plugins():
@@ -79,7 +79,7 @@ class BProject:
 		self.prj.prj_close()
 		self.prj = None
 		
-		from plugins import CtagsCache
+		from .plugins import CtagsCache
 		CtagsCache.flush()
 
 		self.proj_close_app_cb()

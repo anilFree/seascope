@@ -131,7 +131,7 @@ class CtagsThread(QThread):
 		try:
 			custom_map = eval(custom_map)
 		except:
-			print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
+			print('SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors')
 			return []
 
 		cmd_list = []

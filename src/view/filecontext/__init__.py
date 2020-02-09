@@ -15,7 +15,7 @@ fc_dict = {}
 
 def _load_plugins(module, directory):
 	pluginImports = __import__(module, globals(), locals())
-	print 'Scanning for view plugins...'
+	print('Scanning for view plugins...')
 	plist = []
 	pdict = {}
 	for i in sorted(os.listdir(directory)):
@@ -28,7 +28,7 @@ def _load_plugins(module, directory):
 				p.priority = 0 
 	plist = sorted(plist, key=lambda p: p.priority, reverse=True)
 	for p in plist:
-		print '\t', p.name()
+		print('\t', p.name())
 	return (plist, pdict)
 
 def load_plugins():

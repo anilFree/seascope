@@ -8,7 +8,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-import filecontext
+from . import filecontext
 
 class FileContextView(QTabWidget):
 	sig_goto_line = pyqtSignal(int)

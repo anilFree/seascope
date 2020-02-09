@@ -13,7 +13,7 @@ def is_your_prj(path):
 	return os.path.exists(f)
 
 def project_class():
-	from CscopeProject import ProjectCscope
+	from .CscopeProject import ProjectCscope
 	return ProjectCscope
 
 def description():

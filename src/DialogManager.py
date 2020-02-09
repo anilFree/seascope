@@ -89,7 +89,7 @@ class FilePreferencesDialog(QObject):
 		QObject.__init__(self)
 
 		self.dlg = uic.loadUi('ui/preferences.ui')
-		self.dlg.prd_style_lw.addItems(QStyleFactory.keys())
+		self.dlg.prd_style_lw.addItems(list(QStyleFactory.keys()))
 		self.dlg.prd_style_lw.itemSelectionChanged.connect(self.style_changed_cb)
 		self.dlg.prd_font_app_btn.clicked.connect(self.font_app_btn_cb)
 		self.dlg.prd_font_ev_btn.clicked.connect(self.font_ev_btn_cb)

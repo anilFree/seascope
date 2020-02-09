@@ -50,12 +50,12 @@ try:
 		pass
 
 except ImportError as e:
-	print e
-	print "Error: required qscintilla-python package not found"
+	print(e)
+	print("Error: required qscintilla-python package not found")
 	raise ImportError
 
 import DialogManager
-from FileContextView import *
+from .FileContextView import *
 
 class EditorViewBase(QsciScintilla):
 	def __init__(self, parent=None):
@@ -83,7 +83,7 @@ class EditorViewBase(QsciScintilla):
 		self.setLexer(self.lexer)
 
 	def lpropChanged(self, prop, val):
-		print 'lpropChanged', prop, val
+		print('lpropChanged', prop, val)
 
 	def setProperty(self, name, val):
 		name_buff = array.array('c', name + "\0")
@@ -107,10 +107,10 @@ class EditorViewBase(QsciScintilla):
 		val_buff = array.array("c", (' ' * sz) + "\0")
 		address_val_buffer = val_buff.buffer_info()[0]
 		self.SendScintilla(QsciScintillaBase.SCI_PROPERTYNAMES, 0, address_val_buffer)
-		print '###>'
+		print('###>')
 		for p in ''.join(val_buff).splitlines():
 			v = self.getProperty(p)
-			print '    %s = %s' % (p, v)
+			print('    %s = %s' % (p, v))
 
 	def lexer_for_file(self, filename):
 		(prefix, ext) = os.path.splitext(filename)
@@ -306,7 +306,7 @@ class EditorBook(QTabWidget):
 	sig_editor_text_selected = pyqtSignal(str)
 
 	def __init__(self, *args):
-		apply(QTabWidget.__init__,(self, ) + args)
+		QTabWidget.__init__(*(self, ) + args)
 
 		self.setMovable(True)
 		self.setTabsClosable(True)
@@ -354,11 +354,11 @@ class EditorBook(QTabWidget):
 	def tab_list(self, inx, type):
 		inx_list = []
 		if type == 'all' or type == 'files':
-			return range(self.count())
+			return list(range(self.count()))
 		if type == 'left':
-			return range(inx)
+			return list(range(inx))
 		if type == 'right':
-			return range(inx + 1, self.count())
+			return list(range(inx + 1, self.count()))
 		if type == 'other':
 			return self.tab_list(inx, 'left') + self.tab_list(inx, 'right')
 		assert 0
@@ -409,7 +409,7 @@ class EditorBook(QTabWidget):
 		return (ed.ev.filename, line + 1)
 	def get_file_line_list(self):
 		fl_list = []
-		tlist = range(self.count())
+		tlist = list(range(self.count()))
 		inx = self.currentIndex()
 		if inx >= 0:
 			tlist.append(inx)

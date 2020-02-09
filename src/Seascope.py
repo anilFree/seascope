@@ -14,7 +14,7 @@ import string
 try:
 	from PyQt4 import QtGui, QtCore
 except ImportError:
-	print 'Error: PyQt4 package not found\nError: required packages: PyQt4 (>4.5) and qscintilla-python\nError: program aborted.'
+	print('Error: PyQt4 package not found\nError: required packages: PyQt4 (>4.5) and qscintilla-python\nError: program aborted.')
 	sys.exit(-1)
 
 try:
@@ -28,7 +28,7 @@ try:
 	import DialogManager
 	import view
 except ImportError:
-	print "Error: failed to import supporting packages.\nError: program aborted."
+	print("Error: failed to import supporting packages.\nError: program aborted.")
 	sys.exit(-1)
 
 def msg_box(msg):
@@ -289,7 +289,7 @@ class QueryUi(QObject):
 			self.do_query(cmd_str, req, opt)
 
 	def do_proj_query(self, rquery):
-		print 'do_proj_query', rquery
+		print('do_proj_query', rquery)
 		sig_res = self.backend.proj_query(rquery)
 		return sig_res
 
@@ -415,7 +415,7 @@ class SeascopeApp(QMainWindow):
 					l = int(l)
 					self.edit_book.show_file_line(f, l, hist=False)
 				except Exception as e:
-					print e
+					print(e)
 		except:
 			pass
 
@@ -718,7 +718,7 @@ class SeascopeApp(QMainWindow):
 					import json
 					data = json.load(fp)
 		except Exception as e:
-			print 'app_gui_state_read:', e
+			print('app_gui_state_read:', e)
 		return data
 
 	def app_gui_state_write(self, data):
@@ -728,7 +728,7 @@ class SeascopeApp(QMainWindow):
 				import json
 				json.dump(data, fp)
 		except Exception as e:
-			print 'app_gui_state_write:', e
+			print('app_gui_state_write:', e)
 
 	def app_gui_get_geometry(self):
 		rect = self.geometry()
@@ -756,7 +756,7 @@ class SeascopeApp(QMainWindow):
 			data['proj_gui_state'][proj_path] = pd
 			self.app_gui_state_write(data)
 		except Exception as e:
-			print 'app_gui_state_save:', e
+			print('app_gui_state_save:', e)
 
 	def app_gui_state_restore(self, proj_path):
 		try:
@@ -779,10 +779,10 @@ class SeascopeApp(QMainWindow):
 			try:
 				self.app_gui_set_geometry(pd ['geometry'])
 			except Exception as e:
-				print 'Geometry configuration not restored'
+				print('Geometry configuration not restored')
 				
 		except Exception as e:
-			print 'app_gui_state_restore:', e
+			print('app_gui_state_restore:', e)
 		
 	def update_recent_projects(self, path):
 		if (path == None or path == ""):
@@ -838,11 +838,11 @@ class SeascopeApp(QMainWindow):
 				msg += '\n\t' + b.name()
 			msg += '\n\nGoing ahead with: ' + proj_type
 			msg_box(msg)
-		print "Project '%s': using '%s' backend" % (proj_path, proj_type)
+		print("Project '%s': using '%s' backend" % (proj_path, proj_type))
 
 		rc = backend.proj_open(proj_path, proj_type)
 		if not rc:
-			print 'proj_open', proj_path, 'failed'
+			print('proj_open', proj_path, 'failed')
 			return
 
 		self.proj_new_or_open()
@@ -1062,7 +1062,7 @@ if __name__ == "__main__":
 	# pyqt version 4.5 is required
 	pyqt_required_version = 0x40500 
 	if not QtCore.PYQT_VERSION >= pyqt_required_version:
-		print 'Needs pyqt version > 4.5'
+		print('Needs pyqt version > 4.5')
 		sys.exit(-1)
 
 	# change working dir to the script dir so that we can run this script anywhere else

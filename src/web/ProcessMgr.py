@@ -26,6 +26,6 @@ class PluginProcess:
 			self.res['out_data'] = out_data
 			self.res['err_data'] = err_data
 		except Exception as e:
-			print 'PluginProcess.run():', e
+			print('PluginProcess.run():', e)
 			self.res['err_data'] = str(e)
 		return self.res

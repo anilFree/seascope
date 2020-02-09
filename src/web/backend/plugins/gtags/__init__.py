@@ -13,7 +13,7 @@ def is_your_prj(path):
 	return os.path.exists(f)
 
 def project_class():
-	from GtagsProject import ProjectGtags
+	from .GtagsProject import ProjectGtags
 	return ProjectGtags
 
 def description():

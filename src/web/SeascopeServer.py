@@ -17,9 +17,9 @@ import signal
 
 import BackendTool
 
-from SocketServer import ThreadingMixIn
-from BaseHTTPServer import HTTPServer
-from SimpleHTTPServer import SimpleHTTPRequestHandler
+from socketserver import ThreadingMixIn
+from http.server import HTTPServer
+from http.server import SimpleHTTPRequestHandler
 
 server_conf_js = None
 
@@ -38,10 +38,10 @@ is_debug = os.getenv('SEASCOPE_WEB_DEBUG')
 
 class RequestHandler(SimpleHTTPRequestHandler):
 	def parse_path(self):
-		import urlparse
-		p = urlparse.urlparse(self.path)
+		import urllib.parse
+		p = urllib.parse.urlparse(self.path)
 		if is_debug:
-			print 'path', p.path
+			print('path', p.path)
 		if p.path.startswith('/'):
 			path = p.path
 			if path == '/':
@@ -59,19 +59,19 @@ class RequestHandler(SimpleHTTPRequestHandler):
 				return None
 		if p.path != '/q':
 			if is_debug:
-				print 'not /q instead', p.path
+				print('not /q instead', p.path)
 			return
 		if is_debug:
-			print 'p.query', p.query
-		qd = urlparse.parse_qs(p.query)
-		for k in qd.keys():
+			print('p.query', p.query)
+		qd = urllib.parse.parse_qs(p.query)
+		for k in list(qd.keys()):
 			v = qd[k]
 			if len(v) == 0:
-				print 'len(v) == 0', k, v
+				print('len(v) == 0', k, v)
 				continue
 			qd[k] = v[-1]
 		if is_debug:
-			print 'qd', qd
+			print('qd', qd)
 		return qd
 
 	def reply_to_GET(self, qres, cont_type):
@@ -94,29 +94,29 @@ class RequestHandler(SimpleHTTPRequestHandler):
 				data = '%s(%s);' % (qd['callback'], data)
 			self.reply_to_GET(data, 'application/json')
 		except Exception as e:
-			print 'qd', qd
-			print 'outd', outd
-			print e
+			print('qd', qd)
+			print('outd', outd)
+			print(e)
 			data = e
 			return
 
 def start_server(host, port):
 	setup_srvr_conf_js(host, port)
 
-	print 'starting server at http://%s:%s' % (host, port)
+	print('starting server at http://%s:%s' % (host, port))
 	try:
 		ts = ThreadingServer((host, port), RequestHandler)
 
 		def signal_handler(signal, frame):
 			ts.socket.close()
-			print 'got signal %s, exiting' % signal
+			print('got signal %s, exiting' % signal)
 			os._exit(0)
 		signal.signal(signal.SIGINT, signal_handler)
 		signal.signal(signal.SIGTERM, signal_handler)
 
 		ts.serve_forever()
 	except Exception as e:
-		print e
+		print(e)
 		sys.exit(-1)
 
-	print 'exiting'
+	print('exiting')

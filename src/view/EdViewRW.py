@@ -12,7 +12,7 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from EdView import *
+from .EdView import *
 
 # inherit from EditView, add editing support.
 class EditorViewRW(EditorView):
@@ -90,7 +90,7 @@ class EditorBookRW(EditorBook):
 			self.save_file_at_inx(inx)
 
 	def save_all_file(self):
-		inx_list = range(self.count())
+		inx_list = list(range(self.count()))
 		self.save_tab_list(inx_list)
 
 	def page_modified_cb(self, isModifiled):

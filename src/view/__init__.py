@@ -6,5 +6,5 @@
 __all__ = ["CallView", "ClassGraphView", "FileFuncGraphView", "EdView", "FileView", "ResView", "ProjectUi"]
 
 def load_plugins():
-	import filecontext
+	from . import filecontext
 	filecontext.load_plugins()

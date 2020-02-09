@@ -79,22 +79,22 @@ class ClassGraphWidget(QWidget):
 		#self.btn[inx].setChecked(True)
 		#print 'inx clicked', inx
 		if inx == 0:
-			print self.svgw.renderer().defaultSize()
+			print(self.svgw.renderer().defaultSize())
 			self.svgw.setMinimumSize(0, 0)
 			self.svgw.setMinimumSize(self.svgw.sizeHint())
 			#self.svgw.setMaximumSize(self.svgw.sizeHint())
-			print self.scrolla.sizeHint()
+			print(self.scrolla.sizeHint())
 		if inx == 1:
-			print self.svgw.renderer().defaultSize()
+			print(self.svgw.renderer().defaultSize())
 			self.svgw.setMinimumSize(0, 0)
 			#self.svgw.setMaximumSize(self.svgw.sizeHint())
-			print self.scrolla.sizeHint()
+			print(self.scrolla.sizeHint())
 		if inx == 2:
-			print self.svgw.renderer().defaultSize()
+			print(self.svgw.renderer().defaultSize())
 			self.svgw.setMinimumSize(0, 0)
 			self.svgw.resize(self.scrolla.size())
 			#self.svgw.setMaximumSize(self.svgw.sizeHint())
-			print self.scrolla.sizeHint()
+			print(self.scrolla.sizeHint())
 
 	def add_buttons(self, hlay):
 		self.bgrp = QButtonGroup()
@@ -111,7 +111,7 @@ class ClassGraphWidget(QWidget):
 
 	def clgraph_add_result(self, req, res):
 		if self.is_debug:
-			print res
+			print(res)
 		self.is_busy = False
 		self.is_done = True
 		self.remove_progress_bar()
@@ -221,11 +221,11 @@ if __name__ == '__main__':
 
 	# dname
 	if not options.code_dir:
-		print >> sys.stderr, 'Specify -d'
+		print('Specify -d', file=sys.stderr)
 		sys.exit(-1)
 	dname = options.code_dir
 	if not os.path.exists(dname):
-		print >> sys.stderr, '"%s": does not exist' %  dname
+		print('"%s": does not exist' %  dname, file=sys.stderr)
 		sys.exit(-2)
 	wdir = dname
 	if not os.path.isdir(wdir):
@@ -235,7 +235,7 @@ if __name__ == '__main__':
 	sym = None
 	if len(args):
 		if len(args) != 1:
-			print >> sys.stderr, 'Please specify only one symbol'
+			print('Please specify only one symbol', file=sys.stderr)
 			sys.exit(-3)
 		sym = args[0]
 
@@ -243,10 +243,10 @@ if __name__ == '__main__':
 	ptype = options.prj_type
 	if ptype:
 		if not sym:
-			print >> sys.stderr, '-t option needs sepficfying symbol'
+			print('-t option needs sepficfying symbol', file=sys.stderr)
 			sys.exit(-4)
 		if not os.path.isdir(dname):
-			print >> sys.stderr, '-t option needs codedir to be a directory'
+			print('-t option needs codedir to be a directory', file=sys.stderr)
 			sys.exit(-5)
 	pcmd = None
 	if ptype and os.path.isdir(dname):
@@ -259,7 +259,7 @@ if __name__ == '__main__':
 		for p in prj_list:
 			if p[0] == ptype:
 				if not os.path.exists(os.path.join(dname, p[1])):
-					print >> sys.stderr, 'Failed to find "%s" in directory "%s"' % (p[1], dname)
+					print('Failed to find "%s" in directory "%s"' % (p[1], dname), file=sys.stderr)
 					sys.exit(-6)
 					
 	app = QApplication(sys.argv)

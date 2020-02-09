@@ -13,7 +13,7 @@ from PyQt4 import QtGui
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-from EdView import EditorView
+from .EdView import EditorView
 
 # code context view
 class ContextEditorView(EditorView):
@@ -129,7 +129,7 @@ class CodeContextViewPage(QFrame):
 class CodeContextViewManager(QTabWidget):
 	sig_codecontext_showfile = pyqtSignal(str, int)
 	def __init__(self, *args):
-		apply(QTabWidget.__init__,(self, ) + args)
+		QTabWidget.__init__(*(self, ) + args)
 		self.setMovable(True)
 		self.setTabsClosable(True)
 		self.newContextViewPage()

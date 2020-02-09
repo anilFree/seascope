@@ -174,7 +174,7 @@ class QueryCscope(QueryBase):
 
 	def query(self, rquery):
 		if (not self.conf or not self.conf.is_ready()):
-			print "pm_query not is_ready"
+			print("pm_query not is_ready")
 			return None
 		cmd_str = rquery['cmd']
 		req     = rquery['req']
@@ -190,7 +190,7 @@ class QueryCscope(QueryBase):
 
 	def rebuild(self):
 		if (not self.conf.is_ready()):
-			print "pm_query not is_ready"
+			print("pm_query not is_ready")
 			return None
 		pargs = [ 'cscope' ] + self.conf.c_opt + [ '-L' ]
 		qsig = CsProcess(self.conf.c_dir, None).run_rebuild_process(pargs)

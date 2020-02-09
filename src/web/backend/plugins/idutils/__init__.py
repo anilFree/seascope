@@ -13,7 +13,7 @@ def is_your_prj(path):
 	return os.path.exists(f)
 
 def project_class():
-	from IdutilsProject import ProjectIdutils
+	from .IdutilsProject import ProjectIdutils
 	return ProjectIdutils
 
 def description():

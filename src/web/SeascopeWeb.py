@@ -29,13 +29,13 @@ if __name__ == '__main__':
 	(options, args) = op.parse_args()
 
 	if options.port > 65535:
-		print 'options.port > 65535'
+		print('options.port > 65535')
 		sys.exit(-1)
 
 	plist = []
 	for p in args:
 		if not os.path.isdir(p):
-			print '%p is not a directory'
+			print('%p is not a directory')
 			sys.exit(-2)
 		plist.append(os.path.abspath(p))
 

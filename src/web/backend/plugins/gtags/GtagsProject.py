@@ -104,7 +104,7 @@ class QueryGtags(QueryBase):
 	def query(self, rquery):
 		if (not self.conf):
 		#or not self.conf.is_ready()):
-			print "pm_query not is_ready"
+			print("pm_query not is_ready")
 			return None
 		cmd_str = rquery['cmd']
 		req     = rquery['req']
@@ -129,7 +129,7 @@ class QueryGtags(QueryBase):
 
 	def rebuild(self):
 		if (not self.conf.is_ready()):
-			print "pm_query not is_ready"
+			print("pm_query not is_ready")
 			return None
 		if (os.path.exists(os.path.join(self.conf.c_dir, 'GTAGS'))):
 			pargs = [ 'global', '-u' ]

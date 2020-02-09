@@ -135,7 +135,7 @@ class QueryIdutils(QueryBase):
 	def query(self, rquery):
 		if (not self.conf):
 		#or not self.conf.is_ready()):
-			print "pm_query not is_ready"
+			print("pm_query not is_ready")
 			return None
 
 		cmd_str = rquery['cmd']
@@ -172,7 +172,7 @@ class QueryIdutils(QueryBase):
 
 	def rebuild(self):
 		if (not self.conf.is_ready()):
-			print "pm_query not is_ready"
+			print("pm_query not is_ready")
 			return None
 		pargs = os.getenv('SEASCOPE_IDUTILS_MKID_CMD', '').strip().split()
 		if not len(pargs):

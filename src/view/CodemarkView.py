@@ -60,7 +60,7 @@ class CodemarkManager():
 
 	def dump(self):
 		for i in range(len(self.haystack)):
-			print >> sys.stderr, "cm index ", i, " ", self.haystack[i]
+			print("cm index ", i, " ", self.haystack[i], file=sys.stderr)
 
 #############################################################################
 #
@@ -76,27 +76,27 @@ if __name__ == '__main__':
 	# case 1, basic add, delete
 	#
 	
-	print >> sys.stderr, "Initial empty"
+	print("Initial empty", file=sys.stderr)
 	
-	print >> sys.stderr, "cm has ", cm.count(), "items (0)"
+	print("cm has ", cm.count(), "items (0)", file=sys.stderr)
 
 	cm.append("file1", 100)
 	cm.append("file2", 200)
 	cm.append("file3", 300)
 
-	print >> sys.stderr, "cm has " , cm.count(), "items (3) "
+	print("cm has " , cm.count(), "items (3) ", file=sys.stderr)
 	
 	cm.delete("file1", 100)
 
-	print >> sys.stderr, "cm has " , cm.count(), "items (2)"
+	print("cm has " , cm.count(), "items (2)", file=sys.stderr)
 	
 	cm.delete("file2", 100) # not existed
 
-	print >> sys.stderr, "cm has " , cm.count(), "items (2)"
+	print("cm has " , cm.count(), "items (2)", file=sys.stderr)
 
 	cm.delete_index(1)
 
-	print >> sys.stderr, "cm has " , cm.count(), "items (1)"
+	print("cm has " , cm.count(), "items (1)", file=sys.stderr)
 
 	#
 	# case 2, dump
@@ -104,24 +104,24 @@ if __name__ == '__main__':
 
 	for i in range(cm.count()):
 		(f, l) = cm.get(i)
-		print >> sys.stderr, f, " (#", l, ")"
+		print(f, " (#", l, ")", file=sys.stderr)
 
 	#
 	# case 3, duplicate
 	#
 
 	index = cm.append("file4", 400)
-	print >> sys.stderr, "index for file4 #400 is " , index
+	print("index for file4 #400 is " , index, file=sys.stderr)
 	
 	index = cm.append("file4", 400)
-	print >> sys.stderr, "index for file4 #400 is " , index, " (again)"
+	print("index for file4 #400 is " , index, " (again)", file=sys.stderr)
 	
-	print >> sys.stderr, "cm has " , cm.count(), "items (2) "
+	print("cm has " , cm.count(), "items (2) ", file=sys.stderr)
 
 	#
 	# case 4, dump for eye examine
 	#
 
-	print >> sys.stderr, "cm dump for final check"
+	print("cm dump for final check", file=sys.stderr)
 
 	cm.dump()

@@ -43,7 +43,7 @@ class ProjectSettingsDialog(QDialog):
 def show_settings_ui(prj_type, proj_args):
 	dlg = None
 	if prj_type == 'cscope':
-		import CscopeProjectUi
+		from . import CscopeProjectUi
 		dlg = CscopeProjectUi.CscopeProjectSettingsDialog()
 	else:
 		dlg = ProjectSettingsDialog()

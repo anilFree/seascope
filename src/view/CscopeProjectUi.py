@@ -18,7 +18,7 @@ def show_msg_dialog(msg):
 def dir_scan_csope_files(rootdir):
 	file_list = []
 	if (not os.path.isdir(rootdir)):
-		print "Not a directory:", rootdir
+		print("Not a directory:", rootdir)
 		return file_list
 	for root, subFolders, files in os.walk(rootdir):
 		for f in files:

@@ -8,12 +8,12 @@ if __name__ == '__main__':
 	(options, args) = op.parse_args()
 
 	if len(args) != 1:
-		print >> sys.stderr, 'Please specify a filename'
+		print('Please specify a filename', file=sys.stderr)
 		sys.exit(-1)
 	filename = args[0]
 	filename = os.path.abspath(filename)
 	if not os.access(filename, os.R_OK):
-		print 'Failed to read the file:', filename
+		print('Failed to read the file:', filename)
 		sys.exit(-2)
 
 

@@ -11,7 +11,7 @@ def _eintr_retry_call(func, *args):
 	while True:
 		try:
 			return func(*args)
-		except OSError, e:
+		except OSError as e:
 			if e.errno == errno.EINTR:
 				continue
 			raise
@@ -92,7 +92,7 @@ class FFgraph:
 			res = self.parse_cs_result(output)
 			res = set([ e[0] for e in res ])
 		except Exception as e:
-			print >> sys.stderr, 'failed cmd:', cmd, ':', e
+			print('failed cmd:', cmd, ':', e, file=sys.stderr)
 			res = []
 		return res
 
@@ -160,10 +160,10 @@ class FFgraph:
 			res = self.getCallerCalleeInfo(f, is_extern)
 			dotInput = self.generateDotInput(f, res, is_extern)
 		except Exception as e:
-			print >> sys.stderr, e
+			print(e, file=sys.stderr)
 		
 		if not gOut:
-			print dotInput
+			print(dotInput)
 			return None
 
 		args = ['dot', '-Tsvg']
@@ -171,19 +171,19 @@ class FFgraph:
 			p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			(svg_data, err_data) = p.communicate(dotInput)
 			if err_data and err_data != '':
-				print >> sys.stderr, err_data, '\n'
+				print(err_data, '\n', file=sys.stderr)
 			#self.saveSvgFile(sym, svg_data)
 			return svg_data
 		except Exception as e:
-			print >> sys.stderr, 'Failed to run:', ' '.join(args), '\n'
-			print >> sys.stderr, 'dotInput:', dotInput, '\n'
-			print >> sys.stderr, e, '\n'
+			print('Failed to run:', ' '.join(args), '\n', file=sys.stderr)
+			print('dotInput:', dotInput, '\n', file=sys.stderr)
+			print(e, '\n', file=sys.stderr)
 		
 
 	def generateDotGraph(self, f, is_extern, gOut):
 		tmp_cs_dir = tempfile.mkdtemp(prefix='ffgraph_')
 		if not tmp_cs_dir:
-			print 'generateDotGraph: failed to create tmp dir'
+			print('generateDotGraph: failed to create tmp dir')
 			return
 		self.cs_cmd_base = [ 'cscope', '-L', '-f', os.path.join(tmp_cs_dir, 'cscope.out') ]
 
@@ -192,7 +192,7 @@ class FFgraph:
 		try:
 			svg_data = self._generateDotGraph(f, is_extern, gOut)
 		except:
-			print 'generateDotGraph: failed'
+			print('generateDotGraph: failed')
 
 		shutil.rmtree(tmp_cs_dir)
 		
@@ -249,7 +249,7 @@ if __name__ == '__main__':
 
 	if (not any([options.code_dir, options.id_path]) or
                all([options.code_dir, options.id_path])):
-		print >> sys.stderr, 'Specify one among -d or -p'
+		print('Specify one among -d or -p', file=sys.stderr)
 		sys.exit(-1)
 
 	sym = None
@@ -259,7 +259,7 @@ if __name__ == '__main__':
 		is_extern = True
 	if len(args):
 		if len(args) != 1:
-			print >> sys.stderr, 'Please specify only one symbol'
+			print('Please specify only one symbol', file=sys.stderr)
 			sys.exit(-2)
 		sym = args[0]
 
@@ -267,8 +267,8 @@ if __name__ == '__main__':
 	if options.code_dir:
 		dname = options.code_dir
 		if not os.path.exists(dname):
-			print >> sys.stderr, '"%s": does not exist' %  dname
+			print('"%s": does not exist' %  dname, file=sys.stderr)
 			sys.exit(-3)
 		svg_data = ff_graph(dname, is_extern=is_extern)
-	print svg_data
+	print(svg_data)
 

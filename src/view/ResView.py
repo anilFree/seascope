@@ -200,7 +200,7 @@ class ResultManager(QTabWidget):
 	sig_show_file_line = pyqtSignal(str, int)
 
 	def __init__(self, *args):
-		apply(QTabWidget.__init__,(self, ) + args)
+		QTabWidget.__init__(*(self, ) + args)
 
 		self.setMovable(True)
 		self.setTabsClosable(True)
@@ -229,9 +229,9 @@ class ResultManager(QTabWidget):
 			self.setCurrentWidget(self.h_page)
 
 	def new_cb(self):
-		print "new_cb"
+		print("new_cb")
 	def refresh_cb(self):
-		print "refresh_cb"
+		print("refresh_cb")
 	def close_cb(self, inx):
 		if (self.widget(inx) == self.h_page):
 			self.h_page = None

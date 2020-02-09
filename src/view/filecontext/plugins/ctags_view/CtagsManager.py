@@ -10,7 +10,7 @@ def _eintr_retry_call(func, *args):
 	while True:
 		try:
 			return func(*args)
-		except OSError, e:
+		except OSError as e:
 			if e.errno == errno.EINTR:
 				continue
 			raise
@@ -118,7 +118,7 @@ class CtagsTreeBuilder:
 				line = line.split('\t', 4)
 				res.append(line)
 			except:
-				print 'bad line:', line
+				print('bad line:', line)
 		return res
 
 
@@ -158,7 +158,7 @@ class CtagsTreeBuilder:
 			try:
 				sd = dict([ x.split(':', 1) for x in line[4].split('\t')])
 			except:
-				print 'bad line', line
+				print('bad line', line)
 				continue
 			line[4] = sd
 			count = 0
@@ -167,9 +167,9 @@ class CtagsTreeBuilder:
 					self.addToSymLayout(sd[t])
 					count = count + 1
 			if count != 1:
-				print '******** count == 1 *********'
-				print data
-				print line
+				print('******** count == 1 *********')
+				print(data)
+				print(line)
 			#assert count == 1
 		
 		if len(self.symTree) == 0:
@@ -186,9 +186,9 @@ class CtagsTreeBuilder:
 					self.addToSymTree(sd[t], line)
 					count = count + 1
 			if count != 1:
-				print '******** count == 1 *********'
-				print data
-				print line
+				print('******** count == 1 *********')
+				print(data)
+				print(line)
 			#assert count == 1
 
 		return (self.symTree, True)
@@ -199,7 +199,7 @@ class CtagsTreeBuilder:
 			output = self.parseCtagsOutput(output)
 			output = self.buildTree(output)
 		except Exception as e:
-			print str(e)
+			print(str(e))
 			output = [None, False]
 		return output
 
@@ -215,17 +215,17 @@ if __name__ == '__main__':
 	depth = 0
 	def recursePrint(t):
 		global depth
-		for k, v in t.items():
+		for k, v in list(t.items()):
 			if k == '*':
 				for line in v:
-					print '%s%s' % (' ' * depth, line)
+					print('%s%s' % (' ' * depth, line))
 				continue
 			if k == '+':
 				continue
 
 			if '+' in v:
 				k = v['+']
-			print '%s%s' % (' ' * depth, k)
+			print('%s%s' % (' ' * depth, k))
 				
 			depth = depth + 4
 			recursePrint(v)
@@ -234,7 +234,7 @@ if __name__ == '__main__':
 	op = optparse.OptionParser()
 	(options, args) = op.parse_args()
 	if len(args) != 1:
-		print 'Please specify a file'
+		print('Please specify a file')
 		sys.exit(-1)
 
 	(output, isTree) = ct_tree_query(args[0])
@@ -242,5 +242,5 @@ if __name__ == '__main__':
 		recursePrint(output)
 	else:
 		for line in output:
-			print line
+			print(line)
 

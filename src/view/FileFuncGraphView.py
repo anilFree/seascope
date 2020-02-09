@@ -93,22 +93,22 @@ class FileFuncGraphWidget(QWidget):
 		#self.btn[inx].setChecked(True)
 		#print 'inx clicked', inx
 		if inx == 0:
-			print self.svgw.renderer().defaultSize()
+			print(self.svgw.renderer().defaultSize())
 			self.svgw.setMinimumSize(0, 0)
 			self.svgw.setMinimumSize(self.svgw.sizeHint())
 			#self.svgw.setMaximumSize(self.svgw.sizeHint())
-			print self.scrolla.sizeHint()
+			print(self.scrolla.sizeHint())
 		if inx == 1:
-			print self.svgw.renderer().defaultSize()
+			print(self.svgw.renderer().defaultSize())
 			self.svgw.setMinimumSize(0, 0)
 			#self.svgw.setMaximumSize(self.svgw.sizeHint())
-			print self.scrolla.sizeHint()
+			print(self.scrolla.sizeHint())
 		if inx == 2:
-			print self.svgw.renderer().defaultSize()
+			print(self.svgw.renderer().defaultSize())
 			self.svgw.setMinimumSize(0, 0)
 			self.svgw.resize(self.scrolla.size())
 			#self.svgw.setMaximumSize(self.svgw.sizeHint())
-			print self.scrolla.sizeHint()
+			print(self.scrolla.sizeHint())
 
 	def add_buttons(self, hlay):
 		self.bgrp = QButtonGroup()
@@ -125,7 +125,7 @@ class FileFuncGraphWidget(QWidget):
 
 	def clgraph_add_result(self, req, res):
 		if self.is_debug:
-			print res
+			print(res)
 		self.is_busy = False
 		self.is_done = True
 		self.remove_progress_bar()
@@ -239,27 +239,27 @@ if __name__ == '__main__':
 
 	if (not any([options.code_dir, options.id_path]) or
                all([options.code_dir, options.id_path])):
-		print >> sys.stderr, 'Specify one among -d or -p'
+		print('Specify one among -d or -p', file=sys.stderr)
 		sys.exit(-1)
 
 	if len(args):
 		if len(args) != 1:
-			print >> sys.stderr, 'Please specify a symbol'
+			print('Please specify a symbol', file=sys.stderr)
 			sys.exit(-4)
 		sym = args[0]
 
 	if options.code_dir:
 		dname = options.code_dir
 		if not os.path.exists(dname):
-			print >> sys.stderr, '"%s": does not exist' %  dname
+			print('"%s": does not exist' %  dname, file=sys.stderr)
 			sys.exit(-2)
 	if options.id_path:
 		if not sym:
-			print >> sys.stderr, '-p option needs a symbol'
+			print('-p option needs a symbol', file=sys.stderr)
 			sys.exit(-3)
 		id_path = os.path.normpath(options.id_path)
 		if not os.path.exists(os.path.join(id_path, 'ID')):
-			print >> sys.stderr, 'idutils project path does not exist'
+			print('idutils project path does not exist', file=sys.stderr)
 			sys.exit(-4)
 
 	app = QApplication(sys.argv)

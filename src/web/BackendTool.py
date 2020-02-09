@@ -18,7 +18,7 @@ def p_open(proj_path):
 	bl = backend.plugin_guess(proj_path)
 	if len(bl) == 0:
 		msg = "Project '%s': No backend is interested" % proj_path
-		print msg
+		print(msg)
 		return None
 	proj_type = bl[0]
 	if len(bl) > 1:
@@ -26,8 +26,8 @@ def p_open(proj_path):
 		for b in be:
 			msg += '\n\t' + b.name()
 		msg += '\n\nGoing ahead with: ' + proj_type
-		print msg
-	print "Project '%s': using '%s' backend" % (proj_path, proj_type)
+		print(msg)
+	print("Project '%s': using '%s' backend" % (proj_path, proj_type))
 
 	bp = backend.BProject()
 	rc = bp.proj_open(proj_path, proj_type)
@@ -57,7 +57,7 @@ def validate_op(rd):
 
 def _run_op(rd):
 	if is_debug:
-		print 'rd', rd
+		print('rd', rd)
 
 	if not validate_op:
 		return { 'err_data' : 'invalid request: validate_op failed' }
@@ -65,7 +65,7 @@ def _run_op(rd):
 	cmd_type = rd['cmd_type']
 
 	if cmd_type == 'project_list':
-		res = g_proj_d.keys()
+		res = list(g_proj_d.keys())
 		outd = { 'res' : res }
 		return outd
 	if cmd_type == 'query':
@@ -110,20 +110,20 @@ def _run_op(rd):
 		}
 		outd = p_query(bp, rquery)
 		if is_debug:
-			print 'rquery', rquery
+			print('rquery', rquery)
                 return outd
 
 	return { 'err_data' : 'invalid request: unknown cmd_type=%s' % cmd_type }
 
 def run_op(rd):
 	if is_debug:
-		print '-' * 80
+		print('-' * 80)
 	outd = _run_op(rd)
 	if is_debug:
-		print '-' * 80
+		print('-' * 80)
 
 	if ('err_data' in outd) and outd['err_data']:
-		print '==> ERR_DATA:', outd['err_data']
+		print('==> ERR_DATA:', outd['err_data'])
 	res = outd.get('res', None)
 	if not res and 'out_data' in outd:
 		res = outd['out_data'].splitlines()
@@ -131,7 +131,7 @@ def run_op(rd):
 		#for r in res:
 			#print r
 	if is_debug:
-		print '-' * 80
+		print('-' * 80)
 	return outd
 
 def load_projects(plist):
@@ -146,7 +146,7 @@ def load_projects(plist):
 		g_proj_d[pdir] = bp
 
 	if not len(g_proj_d):
-		print 'No projects'
+		print('No projects')
 		return False
 
 	return True

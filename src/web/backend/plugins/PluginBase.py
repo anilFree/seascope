@@ -9,10 +9,10 @@ import subprocess
 
 def NOT_IMPLEMENTED(n, f):
 	msg = '%s: %s: Not implemeted' % (n, f)
-	print msg
+	print(msg)
 	assert false
 
-import CtagsCache
+from . import CtagsCache
 
 is_seascope_debug = os.getenv('SEASCOPE_DEBUG')
 
@@ -283,7 +283,7 @@ class QuerySignal:
 		if not hint_file:
 			return res
 		if not os.path.isabs(hint_file):
-			print 'BUG: relevancy_sort: not abs path:', hint_file
+			print('BUG: relevancy_sort: not abs path:', hint_file)
 			return res
 		if len(res) > 10000:
 			return res
@@ -308,15 +308,15 @@ class PluginProcessBase:
 		e = self.outd['err_data']
 		if e:
 			s = '<b>' + self.p_cmd + '</b><p>' + '<p>'.join(e.splitlines())
-			print 's'
+			print('s')
 		r = self.outd['err_data']
 		if r:
 			s = '<b>' + self.p_cmd + '</b><p>Summary<p>' + r
-			print 's'
+			print('s')
 
 	def run_process(self, pargs):
 		if is_seascope_debug:
-			print self.p_cmd
+			print(self.p_cmd)
 		try:
 			self.proc = subprocess.Popen(pargs, cwd=self.wdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			(out_data, err_data) = self.proc.communicate()
@@ -329,7 +329,7 @@ class PluginProcessBase:
 				#self.outd['out_data'] = None
 				#self.outd['err_data'] = str(pargs), 'exited with returncode %s' % rc
 		except Exception as e:
-			print 'PluginProcess.run():', e
+			print('PluginProcess.run():', e)
 			self.outd['out_data'] = None
 			self.outd['err_data'] = str(e)
 
@@ -360,7 +360,7 @@ class PluginProcessBase:
 					res = self.parse_result(res, self.sig)
 					res = self.sig.relevancy_sort(res);
 				except Exception as e:
-					print e
+					print(e)
 					res = [['', '', '', 'error while parsing output of: ' + self.p_cmd]]
 
 			self.outd['res'] = res
@@ -417,13 +417,13 @@ if __name__ == '__main__':
 	import sys
 
 	def slot_result(sym, res):
-		print 'slot_result:    ', [str(sym), res]
+		print('slot_result:    ', [str(sym), res])
 		sys.exit(0)
 	def slot_result_dbg(cmd, res, err_str):
-		print 'slot_result_dbg:', [str(cmd), str(res).strip().split('\n'), str(err_str)]
+		print('slot_result_dbg:', [str(cmd), str(res).strip().split('\n'), str(err_str)])
 	def slot_rebuild():
-		print 'slot_rebuild'
+		print('slot_rebuild')
 
 	res = PluginProcess('.').run_query_process(['ls'], 'ls')
 	#res = PluginProcess('/home/anil/prj/ss/lin').run_query_process(['cscope', '-q', '-k', '-L', '-d', '-0', 'vdso'], 'ls')
-	print 'res', res
+	print('res', res)

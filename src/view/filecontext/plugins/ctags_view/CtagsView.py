@@ -8,7 +8,7 @@
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 
-import CtagsManager
+from . import CtagsManager
 
 # Search Result
 class SR:
@@ -76,7 +76,7 @@ class CtagsList(QTreeWidget):
 		self.resizeColumnToContents(2)
 
 	def recurseTreeAdd(self, t, p):
-		for k, v in t.items():
+		for k, v in list(t.items()):
 			if k == '+':
 				continue
 			if k == '*':

@@ -27,7 +27,7 @@ class CtagsInhCache:
 			try:
 				map = eval(map)
 			except:
-				print 'SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors'
+				print('SEASCOPE_CTAGS_SUFFIX_CMD_MAP has errors')
 				map = None
 		self.ct_custom_map = map
 
@@ -54,7 +54,7 @@ class CtagsInhCache:
 				res[line[1]] = []
 			res[line[1]].append([line[0], sd, cls])
 			if self.is_debug:
-				print line[0], line[1], sd, cls
+				print(line[0], line[1], sd, cls)
 		return res
 
 	def _runCtagsCustom(self, fl):
@@ -144,7 +144,7 @@ class ClassGraphGenerator:
 			(output, err_data) = proc.communicate()
 			output = re.split('\r?\n', output)
 		except Exception as e:
-			print >> sys.stderr, 'dir:', self.wdir, ':cmd:', args, ':', e, '\n'
+			print('dir:', self.wdir, ':cmd:', args, ':', e, '\n', file=sys.stderr)
 			sys.exit(-1)
 		res = set()
 		for line in output:
@@ -191,7 +191,7 @@ class ClassGraphGenerator:
 						res.append(line[0])
 		if self.is_debug:
 			if sym:
-				print sym, res
+				print(sym, res)
 		return res
 
 
@@ -230,7 +230,7 @@ class ClassGraphGenerator:
 						s = 'base'
 					else:
 						s= 'derived'
-					print >> sys.stderr, 'num %s classes(%s) = %d, truncating to %d.\n' % (s, sym, len(dclasses), self.width_limit)
+					print('num %s classes(%s) = %d, truncating to %d.\n' % (s, sym, len(dclasses), self.width_limit), file=sys.stderr)
 					dclasses = dclasses[0:self.width_limit]
 					self.addGraphRule(sym, '...(%s)' % sym)
 				for d in dclasses:
@@ -249,7 +249,7 @@ class ClassGraphGenerator:
 				s = 'base'
 			else:
 				s= 'derived'
-			print >> sys.stderr, 'No %s classes for %s\n' % (s, sym_or_dname)
+			print('No %s classes for %s\n' % (s, sym_or_dname), file=sys.stderr)
 			sys.exit(0)
 		dotInput = 'digraph "%s" {\n' % sym_or_dname
 		if not sym_or_dname:
@@ -273,7 +273,7 @@ class ClassGraphGenerator:
 		f.write(svg_data)
 		f.close()
 
-		print >> sys.stderr, 'saved', dot_svg, '\n'
+		print('saved', dot_svg, '\n', file=sys.stderr)
 
 	def generateGraph(self, dname, sym=None):
 		if not self.pcmd:
@@ -292,7 +292,7 @@ class ClassGraphGenerator:
 			dotInput = self.prepareDotInput(dname)
 
 		if self.is_debug:
-			print dotInput
+			print(dotInput)
 			return ''
 		#self.saveDotFile(sym, dotInput)
 
@@ -301,12 +301,12 @@ class ClassGraphGenerator:
 			p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			(svg_data, err_data) = p.communicate(dotInput)
 			if err_data and err_data != '':
-				print >> sys.stderr, err_data, '\n'
+				print(err_data, '\n', file=sys.stderr)
 			#self.saveSvgFile(sym, svg_data)
 			return svg_data
 		except Exception as e:
-			print >> sys.stderr, 'Failed to run:', ' '.join(args), '\n'
-			print >> sys.stderr, e, '\n'
+			print('Failed to run:', ' '.join(args), '\n', file=sys.stderr)
+			print(e, '\n', file=sys.stderr)
 
 
 if __name__ == '__main__':
@@ -320,11 +320,11 @@ if __name__ == '__main__':
 
 	# dname
 	if not options.code_dir:
-		print >> sys.stderr, 'Specify -d'
+		print('Specify -d', file=sys.stderr)
 		sys.exit(-1)
 	dname = options.code_dir
 	if not os.path.exists(dname):
-		print >> sys.stderr, '"%s": does not exist' %  dname
+		print('"%s": does not exist' %  dname, file=sys.stderr)
 		sys.exit(-2)
 	wdir = dname
 	if not os.path.isdir(wdir):
@@ -334,7 +334,7 @@ if __name__ == '__main__':
 	sym = None
 	if len(args):
 		if len(args) != 1:
-			print >> sys.stderr, 'Please specify only one symbol'
+			print('Please specify only one symbol', file=sys.stderr)
 			sys.exit(-3)
 		sym = args[0]
 
@@ -342,10 +342,10 @@ if __name__ == '__main__':
 	ptype = options.prj_type
 	if ptype:
 		if not sym:
-			print >> sys.stderr, '-t option needs sepficfying symbol'
+			print('-t option needs sepficfying symbol', file=sys.stderr)
 			sys.exit(-4)
 		if not os.path.isdir(dname):
-			print >> sys.stderr, '-t option needs codedir to be a directory'
+			print('-t option needs codedir to be a directory', file=sys.stderr)
 			sys.exit(-5)
 	pcmd = None
 	if ptype and os.path.isdir(dname):
@@ -367,4 +367,4 @@ if __name__ == '__main__':
 	cgg = ClassGraphGenerator(wdir, pcmd=pcmd, is_base=is_base)
 	svg_data = cgg.generateGraph(dname, sym)
 
-	print svg_data
+	print(svg_data)
