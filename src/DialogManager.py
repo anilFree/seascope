@@ -36,9 +36,9 @@ class ProjectOpenDialog(QObject):
 		self.dlg = uic.loadUi('ui/proj_open.ui')
 		self.dlg.pod_open_btn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
 
-		QObject.connect(self.dlg.pod_open_btn, SIGNAL("clicked()"), self.open_btn_cb)
-		QObject.connect(self.dlg, SIGNAL("accepted()"), self.ok_btn_cb)
-		QObject.connect(self.dlg.pod_proj_list, SIGNAL("itemSelectionChanged()"), self.proj_list_change_cb)
+		self.dlg.pod_open_btn.clicked.connect(self.open_btn_cb)
+		self.dlg.accepted.connect(self.ok_btn_cb)
+		self.dlg.pod_proj_list.itemSelectionChanged.connect(self.proj_list_change_cb)
 
 	def proj_list_change_cb(self):
 		item = self.dlg.pod_proj_list.selectedItems()[0]

@@ -37,10 +37,10 @@ class CscopeProjectSettingsDialog(QDialog):
 
 		self.pd_src_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-		QObject.connect(self.pd_path_tbtn, SIGNAL("clicked()"), self.path_open_cb)
-		QObject.connect(self.pd_add_btn, SIGNAL("clicked()"), self.src_add_cb)
-		QObject.connect(self.pd_rem_btn, SIGNAL("clicked()"), self.src_rem_cb)
-		QObject.connect(self, SIGNAL("accepted()"), self.ok_btn_cb)
+		self.pd_path_tbtn.clicked.connect(self.path_open_cb)
+		self.pd_add_btn.clicked.connect(self.src_add_cb)
+		self.pd_rem_btn.clicked.connect(self.src_rem_cb)
+		self.accepted.connect(self.ok_btn_cb)
 
 	def path_open_cb(self):
 		fdlg = QFileDialog(None, "Choose directory")
