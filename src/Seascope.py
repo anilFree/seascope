@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (c) 2010 Anil Kumar
 # All rights reserved.
@@ -12,22 +12,24 @@ import os
 import string
 
 try:
-	from PyQt4 import QtGui, QtCore
+	from PyQt5 import QtWidgets, QtGui, QtCore
 except ImportError:
-	print('Error: PyQt4 package not found\nError: required packages: PyQt4 (>4.5) and qscintilla-python\nError: program aborted.')
+	print('Error: PyQt5 package not found\nError: required packages: PyQt5 and python3-pyqt5.qsci\nError: program aborted.')
 	sys.exit(-1)
 
 try:
-	from PyQt4.QtGui import *
-	from PyQt4.QtCore import *
-	from PyQt4 import uic
+	from PyQt5.QtWidgets import *
+	from PyQt5.QtGui import *
+	from PyQt5.QtCore import *
+	from PyQt5 import uic
 	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView
 	from view import DebugView, CodemarkView, CodeContextView
 	from view import ProjectUi
 	import backend
 	import DialogManager
 	import view
-except ImportError:
+except ImportError as e:
+	print(str(e))
 	print("Error: failed to import supporting packages.\nError: program aborted.")
 	sys.exit(-1)
 
@@ -144,7 +146,7 @@ class QueryDialogUi(QDialog):
 
 		self.feat = feat
 		self.ui = uic.loadUi('ui/query.ui', self)
-		self.qd_sym_inp.setAutoCompletion(False)
+		self.qd_sym_inp.setCompleter(None)
 		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
 
 		self.setWindowTitle(title)
@@ -529,7 +531,7 @@ class SeascopeApp(QMainWindow):
 		self.toggle_folds = m_edit.addAction('Toggle folds', self.edit_book.toggle_folds_cb)
 		
 		m_edit.addSeparator()
-                m_edit.addAction('Refresh file', self.edit_book.refresh_file_cb, 'F5')
+		m_edit.addAction('Refresh file', self.edit_book.refresh_file_cb, 'F5')
 		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
 		m_edit.addAction('Goto line', self.edit_book.goto_line_cb, 'Ctrl+G')
 		m_edit.addAction('External editor', self.external_editor_cb, 'Ctrl+E');
@@ -685,7 +687,7 @@ class SeascopeApp(QMainWindow):
 
 	def app_write_config(self):
 		cf = open(self.app_get_config_file(), 'w')
-		cf.write('recent_projects' + '=' + string.join(self.recent_projects, ',')+ '\n')
+		cf.write('recent_projects' + '=' + ','.join(self.recent_projects)+ '\n')
 		if (self.app_style):
 			cf.write('app_style' + '=' + self.app_style + '\n')
 		if (self.app_font):

@@ -1,13 +1,14 @@
-#!/usr/bin/python
+#!#!/usr/bin/env python3
 
 # Copyright (c) 2010 Anil Kumar
 # All rights reserved.
 #
 # License: BSD 
 
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-from PyQt4.QtSvg import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtSvg import *
 import os
 import sys
 

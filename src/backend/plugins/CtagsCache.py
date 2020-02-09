@@ -6,7 +6,7 @@
 import os, re, subprocess
 from datetime import datetime
 
-from PyQt4.QtCore import QThread
+from PyQt5.QtCore import QThread
 
 #class CtagsInfo:
 	#def __init__(self):
@@ -154,8 +154,8 @@ class CtagsThread(QThread):
 
 	def _run_ctags(self):
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
-                opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
-                if opt_I_file and os.path.isfile(opt_I_file):
+		opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+		if opt_I_file and os.path.isfile(opt_I_file):
                     cmd += ' -I ' + opt_I_file
 		args = cmd.split()
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)

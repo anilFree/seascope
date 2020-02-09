@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (c) 2010 Anil Kumar
 # All rights reserved.
@@ -41,7 +41,7 @@ setup(name='Seascope',
           'Programming Language :: Python',
           'Topic :: Software Development',
           ],
-	options= {'bdist_rpm':{'requires': 'PyQt4,qscintilla-python,idutils,cscope,global,ctags,graphviz',
+	options= {'bdist_rpm':{'requires': 'PyQt5,python3-pyqt5.qsci,idutils,cscope,global,ctags,graphviz',
 				'group': 'Development Tools',
 				'vendor': 'The Seascope Team'}}
 	)

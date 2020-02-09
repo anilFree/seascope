@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!#!/usr/bin/env python3
 
 if __name__ == '__main__':
 	import sys, os, optparse
@@ -20,9 +20,10 @@ if __name__ == '__main__':
 	app_dir = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(app_dir)
 
-	from PyQt4 import QtGui, QtCore
-	from PyQt4.QtGui import *
-	from PyQt4.QtCore import *
+	from PyQt5 import QtWidgets, QtGui, QtCore
+	from PyQt5.QtWidgets import *
+	from PyQt5.QtGui import *
+	from PyQt5.QtCore import *
 	from view import EdView, EdViewRW
 	import view
 	

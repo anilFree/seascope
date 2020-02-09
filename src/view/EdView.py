@@ -9,18 +9,19 @@ import os
 import re
 import array
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 try:
-	from PyQt4.Qsci import QsciScintilla, QsciScintillaBase
-	from PyQt4.Qsci import QsciLexerCPP, QsciLexerJava
-	from PyQt4.Qsci import QsciLexerPython, QsciLexerRuby
-	from PyQt4.Qsci import QsciLexerBash, QsciLexerDiff, QsciLexerMakefile
-	from PyQt4.Qsci import QsciLexerLua, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX
-	from PyQt4.Qsci import QsciLexerHTML, QsciLexerCSS
-	from PyQt4.Qsci import QsciLexerPerl, QsciLexerVHDL
+	from PyQt5.Qsci import QsciScintilla, QsciScintillaBase
+	from PyQt5.Qsci import QsciLexerCPP, QsciLexerJava
+	from PyQt5.Qsci import QsciLexerPython, QsciLexerRuby
+	from PyQt5.Qsci import QsciLexerBash, QsciLexerDiff, QsciLexerMakefile
+	from PyQt5.Qsci import QsciLexerLua, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX
+	from PyQt5.Qsci import QsciLexerHTML, QsciLexerCSS
+	from PyQt5.Qsci import QsciLexerPerl, QsciLexerVHDL
 
 	suffix_to_lexer = [
 		[['c', 'h', 'cpp', 'hpp', 'cc', 'hh', 'cxx', 'hxx', 'C', 'H', 'h++'], QsciLexerCPP],

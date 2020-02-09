@@ -9,9 +9,10 @@ import os
 import re
 import array
 
-from PyQt4 import QtGui
-from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from PyQt5 import QtWidgets, QtGui
+from PyQt5.QtWidgets import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 from .EdView import EditorView
 

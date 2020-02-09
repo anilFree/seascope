@@ -6,11 +6,11 @@
 import os, re
 import copy
 
-from PyQt4.QtCore import QObject, pyqtSignal, QProcess
+from PyQt5.QtCore import QObject, pyqtSignal, QProcess
 
 def NOT_IMPLEMENTED(n, f):
 	msg = '%s: %s: Not implemeted' % (n, f)
-	from PyQt4.QtGui import QMessageBox
+	from PyQt5.QtWidgets import QMessageBox
 	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
 
 from . import CtagsCache
@@ -220,7 +220,7 @@ class QueryUiBase(QObject):
 	def __init__(self):
 		QObject.__init__(self)
 
-from PyQt4.QtGui import QMessageBox
+from PyQt5.QtWidgets import QMessageBox
 
 class QuerySignal(QObject):
 	sig_result = pyqtSignal(str, list)
@@ -438,7 +438,7 @@ if __name__ == '__main__':
 	def slot_rebuild():
 		print('slot_rebuild')
 
-	from PyQt4.QtCore import QCoreApplication
+	from PyQt5.QtCore import QCoreApplication
 	app = QCoreApplication(sys.argv)
 
 	qsig = PluginProcess('.').run_query_process(['ls'], 'ls')
