@@ -119,7 +119,7 @@ class ClassGraphWidget(QWidget):
 		
 		self.svgw = QSvgWidget()
 		self.scrolla.setWidget(self.svgw)
-		self.svgw.load(QByteArray(res[0]))
+		self.svgw.load(QByteArray(res[0].encode()))
 		
 		#print self.svgw.renderer().defaultSize()
 		sz = self.svgw.sizeHint()

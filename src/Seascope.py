@@ -726,9 +726,12 @@ class SeascopeApp(QMainWindow):
 	def app_gui_state_write(self, data):
 		f = self.app_gui_state_file()
 		try:
+			import io
+			import json
+			sp = io.StringIO()
+			json.dump(data, sp)
 			with open(f, 'wb') as fp:
-				import json
-				json.dump(data, fp)
+				fp.write(sp.getvalue().encode())
 		except Exception as e:
 			print('app_gui_state_write:', e)
 

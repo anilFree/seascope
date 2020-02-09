@@ -41,7 +41,7 @@ class CtagsListItem(QTreeWidgetItem):
 		f.setBold(True)
 		self.setFont(0, f)
 	def column_val(self, col):
-		return str(self.data(col, Qt.DisplayRole).toString())
+		return str(self.data(col, Qt.DisplayRole))
 	def line_val(self):
 		return (int(self.column_val(1)))
 
@@ -91,7 +91,7 @@ class CtagsList(QTreeWidget):
 				item = CtagsListItem([k, '', '', ''])
 			p.addChild(item)
 			self.recurseTreeAdd(v, item)
-		self.setItemExpanded(p, True)
+		p.setExpanded(True)
 
 	def add_ctree_result(self, res):
 		p = self.invisibleRootItem()
@@ -148,7 +148,7 @@ class CtagsList(QTreeWidget):
 			return SR.MATCH
 		if val < sr.right:
 			sr.right = val
-                        if not sr.item:
+			if not sr.item:
 				sr.item = item
 			return SR.RUPD
 		return SR.RSKIP
@@ -222,7 +222,7 @@ class CtagsListPage(QWidget):
 
 	def ct_itemActivated(self, item):
 		try:
-			line = int(str(item.data(1, Qt.DisplayRole).toString()))
+			line = int(str(item.data(1, Qt.DisplayRole)))
 		except:
 			return
 		self.sig_goto_line.emit(line)
@@ -255,7 +255,7 @@ class CtagsTreePage(QWidget):
 
 	def ct_itemActivated(self, item):
 		try:
-			line = int(str(item.data(1, Qt.DisplayRole).toString()))
+			line = int(str(item.data(1, Qt.DisplayRole)))
 		except:
 			return
 		self.sig_goto_line.emit(line)

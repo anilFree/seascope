@@ -71,6 +71,7 @@ class GenericFileCmdPage(QWidget):
 		try:
 			proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 			(res, err_data) = proc.communicate()
+			res = res.decode()
 		except Exception as e:
 			res = '%s\n%s' % (' '.join(args), str(e))
 		import re

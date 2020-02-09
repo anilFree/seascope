@@ -133,7 +133,7 @@ class FileFuncGraphWidget(QWidget):
 		
 		self.svgw = QSvgWidget()
 		self.scrolla.setWidget(self.svgw)
-		self.svgw.load(QByteArray(res[0]))
+		self.svgw.load(QByteArray(res[0].encode()))
 		
 		#print self.svgw.renderer().defaultSize()
 		sz = self.svgw.sizeHint()
@@ -239,7 +239,7 @@ if __name__ == '__main__':
 	id_path = None
 
 	if (not any([options.code_dir, options.id_path]) or
-               all([options.code_dir, options.id_path])):
+		all([options.code_dir, options.id_path])):
 		print('Specify one among -d or -p', file=sys.stderr)
 		sys.exit(-1)
 

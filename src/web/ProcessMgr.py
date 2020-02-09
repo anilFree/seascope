@@ -23,8 +23,8 @@ class PluginProcess:
 		try:
 			self.proc = subprocess.Popen(self.pargs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			(out_data, err_data) = self.proc.communicate()
-			self.res['out_data'] = out_data
-			self.res['err_data'] = err_data
+			self.res['out_data'] = out_data.decode()
+			self.res['err_data'] = err_data.decode()
 		except Exception as e:
 			print('PluginProcess.run():', e)
 			self.res['err_data'] = str(e)

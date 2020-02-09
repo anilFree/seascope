@@ -17,10 +17,10 @@ class CtagsInhCache:
 		self.is_fq     = is_fq
 		self.is_debug  = False
 
-                self.ct_opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
-                if self.ct_opt_I_file:
-                    if not os.path.isfile(self.ct_opt_I_file):
-                        self.ct_opt_I_file = None
+		self.ct_opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+		if self.ct_opt_I_file:
+			if not os.path.isfile(self.ct_opt_I_file):
+				self.ct_opt_I_file = None
 
 		map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP', 0)
 		if map:
@@ -73,18 +73,20 @@ class CtagsInhCache:
 		out_data_all = []
 		for args in cmd_list:
 			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-			(out_data, err_data) = proc.communicate('\n'.join(fl))
+			(out_data, err_data) = proc.communicate('\n'.join(fl).encode())
+			out_data = out_data.decode()
 			out_data = re.split('\r?\n', out_data)
 			out_data_all += out_data
 		return out_data_all
 
 	def _runCtags(self, fl):
 		cmd = 'ctags -n -u --fields=+i -L - -f -'
-                if self.ct_opt_I_file:
-                    cmd += ' -I ' + self.ct_opt_I_file
+		if self.ct_opt_I_file:
+			cmd += ' -I ' + self.ct_opt_I_file
 		args = cmd.split()
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-		(out_data, err_data) = proc.communicate('\n'.join(fl))
+		(out_data, err_data) = proc.communicate('\n'.join(fl).encode())
+		out_data = out_data.decode()
 		out_data = re.split('\r?\n', out_data)
 		out_data += self._runCtagsCustom(fl)
 		return out_data
@@ -142,6 +144,7 @@ class ClassGraphGenerator:
 			# output = subprocess.check_output(args, cwd=self.wdir)
 			proc = subprocess.Popen(args, cwd=self.wdir, stdout=subprocess.PIPE)
 			(output, err_data) = proc.communicate()
+			output = output.decode()
 			output = re.split('\r?\n', output)
 		except Exception as e:
 			print('dir:', self.wdir, ':cmd:', args, ':', e, '\n', file=sys.stderr)
@@ -299,8 +302,9 @@ class ClassGraphGenerator:
 		args = ['dot', '-Tsvg']
 		try:
 			p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-			(svg_data, err_data) = p.communicate(dotInput)
-			if err_data and err_data != '':
+			(svg_data, err_data) = p.communicate(dotInput.encode())
+			svg_data = svg_data.decode()
+			if err_data and err_data.decode() != '':
 				print(err_data, '\n', file=sys.stderr)
 			#self.saveSvgFile(sym, svg_data)
 			return svg_data

@@ -174,7 +174,7 @@ class FileTab(QWidget):
 		self.lview.itemActivated.emit(items[0], 0)
 
 	def lview_itemActivated(self, item):
-		filename = str(item.data(1, Qt.DisplayRole).toString())
+		filename = str(item.data(1, Qt.DisplayRole))
 		if self.is_rel_path:
 			filename = filename.replace("...", dir_prefix, 1)
 		self.sig_show_file.emit(filename)

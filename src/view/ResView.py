@@ -18,7 +18,7 @@ class ResultPageItem(QTreeWidgetItem):
 		QTreeWidgetItem.__init__(self, li)
 	def column_val(self, col):
 		try:
-			val = str(self.data(col, Qt.DisplayRole).toString())
+			val = str(self.data(col, Qt.DisplayRole))
 		except:
 			return None
 		return val
@@ -137,9 +137,9 @@ class ResultPage(QTreeWidget):
 		row = minx.row()
 		if (not model):
 			return (None, None)
-		filename = str(model.data(model.index(row, 1)).toString())
+		filename = str(model.data(model.index(row, 1)))
 		try:
-			line = model.data(model.index(row, 2)).toString()
+			line = model.data(model.index(row, 2))
 			line = int(line)
 		except:
 			line = 0

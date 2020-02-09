@@ -23,7 +23,7 @@ class CallTreeWidgetItem(QTreeWidgetItem):
 		self.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
 
 	def column_val(self, col):
-		return str(self.data(col, Qt.DisplayRole).toString())
+		return str(self.data(col, Qt.DisplayRole))
 
 	def add_result(self, res):
 		self.is_done = True
@@ -99,8 +99,8 @@ class CallTreeWidget(QTreeWidget):
 	def ctree_itemExpanded(self, item):
 		if (item.is_done):
 			return
-		tag = str(item.data(0, Qt.DisplayRole).toString())
-		if str(item.data(1, Qt.DisplayRole).toString()) == '':
+		tag = str(item.data(0, Qt.DisplayRole))
+		if str(item.data(1, Qt.DisplayRole)) == '':
 			opt = self.cmd_opt
 		else:
 			opt = None
@@ -117,7 +117,7 @@ class CallTreeWidget(QTreeWidget):
 		rquery['cmd'] = self.cmd_id
 		rquery['req'] = tag
 		rquery['opt'] = opt
-		hfile = str(item.data(1, Qt.DisplayRole).toString())
+		hfile = str(item.data(1, Qt.DisplayRole))
 		if hfile == '':
 			hfile = self.hint_file
 		rquery['hint_file'] = hfile

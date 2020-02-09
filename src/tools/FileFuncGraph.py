@@ -20,9 +20,9 @@ def ct_cmdForFile(f):
 	#ct_args = 'ctags -n -u --fields=+K -f - --extra=+q'
 	#ct_args = 'ctags -n -u --fields=+Ki -f -'
 	ct_args = 'ctags -n -u --fields=+K -f -'
-        opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
-        if opt_I_file and os.path.isfile(opt_I_file):
-            ct_args += ' -I ' + opt_I_file
+	opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+	if opt_I_file and os.path.isfile(opt_I_file):
+		ct_args += ' -I ' + opt_I_file
 	if os.path.isdir(f):
 		cmd = ct_args + ' -R'
 		return cmd
@@ -44,6 +44,7 @@ def ct_query(filename):
 	try:
 		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 		(out_data, err_data) = _eintr_retry_call(proc.communicate)
+		out_data = out_data.decode()
 		out_data = out_data.split('\n')
 	except Exception as e:
 		out_data =  [
@@ -87,6 +88,7 @@ class FFgraph:
 			# output = subprocess.check_output(cmd)
 			proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 			(output, err_data) = proc.communicate()
+			output = output.decode()
 			#print 'cmd =', cmd
 			#print 'output =', output
 			res = self.parse_cs_result(output)
@@ -169,8 +171,9 @@ class FFgraph:
 		args = ['dot', '-Tsvg']
 		try:
 			p = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-			(svg_data, err_data) = p.communicate(dotInput)
-			if err_data and err_data != '':
+			(svg_data, err_data) = p.communicate(dotInput.encode())
+			svg_data = svg_data.decode()
+			if err_data and err_data.decode() != '':
 				print(err_data, '\n', file=sys.stderr)
 			#self.saveSvgFile(sym, svg_data)
 			return svg_data
@@ -248,7 +251,7 @@ if __name__ == '__main__':
 	(options, args) = op.parse_args()
 
 	if (not any([options.code_dir, options.id_path]) or
-               all([options.code_dir, options.id_path])):
+		all([options.code_dir, options.id_path])):
 		print('Specify one among -d or -p', file=sys.stderr)
 		sys.exit(-1)
 

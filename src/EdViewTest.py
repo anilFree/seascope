@@ -42,7 +42,7 @@ if __name__ == '__main__':
                 [ book.find_next_cb, 'F3' ],
                 [ book.find_prev_cb, 'Shift+F3' ],
         ]
-        for ad in actDescr:
+	for ad in actDescr:
 		act = QAction(w)
 		act.setShortcut(ad[1])
 		act.triggered.connect(ad[0])

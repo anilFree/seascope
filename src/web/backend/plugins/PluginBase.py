@@ -320,8 +320,10 @@ class PluginProcessBase:
 		try:
 			self.proc = subprocess.Popen(pargs, cwd=self.wdir, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 			(out_data, err_data) = self.proc.communicate()
-			self.outd['out_data'] = out_data
-			self.outd['err_data'] = err_data
+			print('ANIL2 %s' % out_data.decode())
+			print('ANIL %s' % out_data)
+			self.outd['out_data'] = out_data.decode()
+			self.outd['err_data'] = err_data.decode()
 
 			#rc = self.proc.returncode
 			#if rc:

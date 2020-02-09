@@ -111,7 +111,7 @@ def _run_op(rd):
 		outd = p_query(bp, rquery)
 		if is_debug:
 			print('rquery', rquery)
-                return outd
+		return outd
 
 	return { 'err_data' : 'invalid request: unknown cmd_type=%s' % cmd_type }
 

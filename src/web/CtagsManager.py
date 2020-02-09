@@ -20,9 +20,9 @@ def cmdForFile(f):
 	#args = 'ctags -n -u --fields=+Ki -f -'
 	args = 'ctags -n -u --fields=+K -f -'
 
-        opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
-        if opt_I_file and os.path.isfile(opt_I_file):
-            args += ' -I ' + opt_I_file
+	opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+	if opt_I_file and os.path.isfile(opt_I_file):
+		args += ' -I ' + opt_I_file
 
 	suffix_cmd_map = []
 	custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
@@ -42,6 +42,7 @@ def ct_query(filename):
 	try:
 		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 		(out_data, err_data) = _eintr_retry_call(proc.communicate)
+		err_data = err_data.decode()
 		out_data = out_data.split('\n')
 	except Exception as e:
 		out_data =  [
@@ -82,9 +83,9 @@ class CtagsTreeBuilder:
 		#args = 'ctags -n -u --fields=+Ki -f -'
 		args = 'ctags -n -u --fields=+K-f-t -f -'
 
-                opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
-                if opt_I_file and os.path.isfile(opt_I_file):
-                    args += ' -I ' + opt_I_file
+		opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+		if opt_I_file and os.path.isfile(opt_I_file):
+			args += ' -I ' + opt_I_file
 
 		suffix_cmd_map = []
 		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
@@ -106,6 +107,7 @@ class CtagsTreeBuilder:
 		# return output
 		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate()
+		out_data = out_data.decode()
 		return out_data
 
 	def parseCtagsOutput(self, data):

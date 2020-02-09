@@ -24,7 +24,14 @@ def show_yes_no(msg):
 	return ret == QMessageBox.Yes
 
 def show_yes_no_dontask(msg):
-	return QMessageBox.question(None, "Seascope", msg, "Yes", "No", "Yes, Don't ask again")
+	mb = QMessageBox(None)
+	mb.setIcon(QMessageBox.Question)
+	mb.setWindowTitle("Seascope")
+	mb.setText(msg)
+	mb.addButton('Yes', QMessageBox.YesRole)
+	mb.addButton('No', QMessageBox.NoRole)
+	mb.addButton("Yes, Don't ask again", QMessageBox.YesRole)
+	return mb.exec()
 
 def show_proj_close():
 	return show_yes_no("\nClose current project?")
@@ -165,6 +172,7 @@ def show_goto_line_dialog(line, max_line):
 	d.gl_hslider.setMaximum(max_line)
 	d.gl_spinbox.setValue(line)
 	d.gl_spinbox.lineEdit().selectAll()
+	d.gl_spinbox.lineEdit().setFocus()
 	if (d.exec_() == QDialog.Accepted):
 		return d.gl_spinbox.value()
 	return None
@@ -173,7 +181,7 @@ class FindDialog:
 	dlg = None
 	def __init__(self):
 		self.dlg = uic.loadUi('ui/find.ui')
-		self.dlg.ft_text_inp.setAutoCompletion(False)
+		self.dlg.ft_text_inp.setCompleter(None)
 		self.dlg.ft_text_inp.setInsertPolicy(QComboBox.InsertAtTop)
 
 	def run_dlg(self, text):

@@ -87,15 +87,15 @@ class EditorViewBase(QsciScintilla):
 		print('lpropChanged', prop, val)
 
 	def setProperty(self, name, val):
-		name_buff = array.array('c', name + "\0")
-		val_buff = array.array("c", str(val) + "\0")
+		name_buff = array.array('b', (name + "\0").encode())
+		val_buff = array.array("b", (str(val) + "\0").encode())
 		address_name_buffer = name_buff.buffer_info()[0]
 		address_val_buffer = val_buff.buffer_info()[0]
 		self.SendScintilla(QsciScintillaBase.SCI_SETPROPERTY, address_name_buffer, address_val_buffer)
 
 	def getProperty(self, name):
-		name_buff = array.array('c', name + "\0")
-		val_buff = array.array("c", str(0) + "\0")
+		name_buff = array.array('b', (name + "\0").encode())
+		val_buff = array.array("b", (str(0) + "\0").encode())
 		address_name_buffer = name_buff.buffer_info()[0]
 		address_val_buffer = val_buff.buffer_info()[0]
 		self.SendScintilla(QsciScintillaBase.SCI_GETPROPERTY, address_name_buffer, address_val_buffer)
@@ -105,7 +105,7 @@ class EditorViewBase(QsciScintilla):
 		sz = self.SendScintilla(QsciScintillaBase.SCI_PROPERTYNAMES, 0, 0)
 		if not sz:
 			return
-		val_buff = array.array("c", (' ' * sz) + "\0")
+		val_buff = array.array("b", ((' ' * sz) + "\0").encode())
 		address_val_buffer = val_buff.buffer_info()[0]
 		self.SendScintilla(QsciScintillaBase.SCI_PROPERTYNAMES, 0, address_val_buffer)
 		print('###>')

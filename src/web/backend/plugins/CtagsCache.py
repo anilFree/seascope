@@ -17,6 +17,7 @@ from datetime import datetime
 		#import subprocess
 		#proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		#(out_data, err_data) = proc.communicate()
+		#out_data = out_data.decode()
 		#res = re.split('\r?\n', out_data)
 		# res = out_data
 		#res = [ line.split(None, 1) for line in res if line != '' ]
@@ -51,7 +52,7 @@ class CtagsThread:
 
 		#print f, n
 		while x < y:
-			m = (x + y + 1) / 2
+			m = (x + y + 1) // 2
 			#print '(', x, y, m, ')'
 			if ct[m][1] > n:
 				#print 'y: m -1', ct[m][1]
@@ -136,19 +137,21 @@ class CtagsThread:
 		out_data_all = []
 		for args in cmd_list:
 			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-			(out_data, err_data) = proc.communicate('\n'.join(fl))
+			(out_data, err_data) = proc.communicate('\n'.join(fl).encode())
+			out_data = out_data.decode()
 			out_data = re.split('\r?\n', out_data)
 			out_data_all += out_data
 		return out_data_all
 
 	def _run_ctags(self):
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
-                opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
-                if opt_I_file and os.path.isfile(opt_I_file):
-                    cmd += ' -I ' + opt_I_file
+		opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
+		if opt_I_file and os.path.isfile(opt_I_file):
+			cmd += ' -I ' + opt_I_file
 		args = cmd.split()
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-		(out_data, err_data) = proc.communicate('\n'.join(self.file_list))
+		(out_data, err_data) = proc.communicate('\n'.join(self.file_list).encode())
+		out_data = out_data.decode()
 		out_data = re.split('\r?\n', out_data)
 		out_data += self.runCtagsCustom(self.file_list)
 
