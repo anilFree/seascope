@@ -109,7 +109,7 @@ class ResultPage(QTreeWidget):
 			if (is_negate):
 				matched = not matched
 			if not matched:
-				self.setItemHidden(item, True)
+				item.setHidden(True)
 				filtered = True
 		if filtered:
 			self.mark_tab_filtered(True)
@@ -120,16 +120,17 @@ class ResultPage(QTreeWidget):
 		if mark and label[0] != "*":
 			self.parent.setTabText(tabIndex, "*" + label)
 		elif not mark and label[0] == "*":
-			self.parent.setTabText(tabIndex, label.remove(0,1))
+			self.parent.setTabText(tabIndex, label[1:])
 
 	def show_all_cb(self):
 		for inx in range(self.topLevelItemCount()):
 			item = self.topLevelItem(inx)
-			self.setItemHidden(item, False)
+			item.setHidden(False)
 		self.mark_tab_filtered(False)
 
 	def remove_item_cb(self):
-		self.setItemHidden(self.itemFromIndex(self.last_minx), True)
+		item = self.itemFromIndex(self.last_minx)
+		item.setHidden(True)
 		self.mark_tab_filtered(True)
 
 	def get_file_line(self, minx):

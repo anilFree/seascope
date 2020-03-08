@@ -183,6 +183,7 @@ class FindDialog:
 		self.dlg = uic.loadUi('ui/find.ui')
 		self.dlg.ft_text_inp.setCompleter(None)
 		self.dlg.ft_text_inp.setInsertPolicy(QComboBox.InsertAtTop)
+		self.dlg.ft_text_inp.setFocus()
 
 	def run_dlg(self, text):
 		if (text == None):
@@ -219,6 +220,7 @@ class FilterDialog:
 		self.dlg = uic.loadUi('ui/filter.ui')
 		self.dlg.fd_cmd_inp.addItems(cmd_items)
 		self.dlg.fd_cmd_inp.setCurrentIndex(cmd_items.index(cmd_sel))
+		self.dlg.fd_filter_inp.setFocus()
 		self.dlg.fd_regex_err_lbl.setVisible(False)
 
 	def run_dialog(self):
