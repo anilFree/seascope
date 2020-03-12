@@ -58,7 +58,7 @@ class EditorViewRW(EditorView):
 		if(self.isModified()):
 			fobj = open(filename, 'w')
 			if (not fobj.closed):
-				fobj.write(str(self.text().toUtf8()))
+				fobj.write(self.text())
 				fobj.flush()
 				fobj.close()
 				self.setModified(False)
