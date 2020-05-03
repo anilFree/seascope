@@ -207,10 +207,11 @@ class EditorView(EditorViewBase):
 
 	def goto_marker(self, is_next):
 		(eline, inx) = self.getCursorPosition()
+		u32max = 0xFFFFFFFF
 		if is_next:
-			val = self.markerFindNext(eline + 1, -1)
+			val = self.markerFindNext(eline + 1, u32max)
 		else:
-			val = self.markerFindPrevious(eline - 1, -1)
+			val = self.markerFindPrevious(eline - 1, u32max)
 		if val >= 0:
 			self.setCursorPosition(val, 0)
 

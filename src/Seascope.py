@@ -424,7 +424,7 @@ class SeascopeApp(QMainWindow):
 	def codemark_add(self, f, l):
 		self.cm_mgr.append(f, l)
 		self.edit_book.codemark_add(f, l - 1)
-		actionText = QString(f + " : " + str(l))
+		actionText = f + " : " + str(l)
 		act = QAction(actionText, self)
 		self.cm_actionGroup.addAction(act)
 		self.m_cm.addAction(act)
@@ -432,7 +432,7 @@ class SeascopeApp(QMainWindow):
 	def codemark_delete(self, f, l):
 		self.cm_mgr.delete(f, l)
 		self.edit_book.codemark_del(f, l - 1)
-		actionText = QString(f + " : " + str(l))
+		actionText = f + " : " + str(l)
 		actions = self.cm_actionGroup.actions()
 		for act in actions:
 			if actionText == act.text():
@@ -462,7 +462,8 @@ class SeascopeApp(QMainWindow):
 		
 	def codemark_go(self, action):
 		for f, l in self.cm_mgr.codemarks():
-			if action.text() == QString(f + " : " + str(l)):
+			actionText = f + " : " + str(l)
+			if action.text() == actionText:
 				self.edit_book.show_file_line(f, l)
 	def go_prev_res_cb(self):
 		self.res_book.go_next_res(-1)
