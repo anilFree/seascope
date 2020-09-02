@@ -500,7 +500,7 @@ class SeascopeApp(QMainWindow):
 			m_file.addAction('&Save', self.edit_book.save_current_page, 'Ctrl+S')
 		m_file.addAction('&Close', self.file_close_cb, 'Ctrl+W')
 		m_file.addSeparator()
-		m_file.addAction('&Restart', self.file_restart_cb, QKeySequence.Quit)
+		m_file.addAction('&Restart', self.file_restart_cb, 'Ctrl+R')
 		m_file.addAction('&Quit', self.close, 'Ctrl+Q')
 
 		m_edit = menubar.addMenu('&Edit')
