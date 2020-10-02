@@ -154,7 +154,7 @@ class FilePreferencesDialog(QObject):
 			self.inner_editing = self.dlg.prd_opt_inner_ed.checkState() == Qt.Checked
 			self.show_ln_nr = self.dlg.prd_opt_show_ln_nr.checkState() == Qt.Checked
 		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, 
-			self.ev_font, self.exit_dontask, self.inner_editing, self.show_ln_nr)
+			self.ev_font.toString(), self.exit_dontask, self.inner_editing, self.show_ln_nr)
 
 def show_preferences_dialog(app_style, edit_ext_cmd, ev_font, dontask, innered, ln_nr):
 	d = FilePreferencesDialog(app_style, edit_ext_cmd, ev_font, dontask, innered, ln_nr)
