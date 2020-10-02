@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=seascope
+GenericName=source code navigation tool
+Comment=lexical source code navigation tool
+Exec=seascope
+Icon=seascope
+Categories=FileTools;Utility;X-Programming;
+Keywords=source;code;navigation,lexicon
