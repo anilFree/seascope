@@ -1,3 +1,4 @@
-PyQt5==5.14.2
-PyQt5-sip==12.7.2
-QScintilla==2.11.4
+pip>=20
+PyQt5>=5.15.2
+PyQt5-sip>=12.8.1
+QScintilla>=2.11.6
