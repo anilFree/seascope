@@ -395,7 +395,14 @@ class SeascopeApp(QMainWindow):
 
 		self.app_write_config()
 		if backend.proj_is_open():
-			self.app_gui_state_save(backend.proj_dir())
+			ret = QMessageBox.question(None, "Seascope", 'Save this session, discard changes since last session, or reset session state?',
+						   QMessageBox.Save | QMessageBox.Discard | QMessageBox.Reset, QMessageBox.Save)
+			if ret == QMessageBox.Save:
+				self.app_gui_state_save(backend.proj_dir())
+			elif ret == QMessageBox.Reset:
+				f = self.app_gui_state_file()
+				if os.path.exists(f):
+					os.remove(f)
 		ev.accept()
 	def file_restart_cb(self):
 		if not DialogManager.show_yes_no('Restart ?'):
