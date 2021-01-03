@@ -47,6 +47,8 @@ class ResultPage(QTreeWidget):
 		self.pmenu.addAction("&Show All", self.show_all_cb)
 		self.pmenu.addSeparator()
 		self.pmenu.addAction("&Remove Item", self.remove_item_cb)
+		self.pmenu.addSeparator()
+		self.pmenu.addAction("&Copy to Clipboard", self.copy_clipboard_cb)
 
 		#self.setMinimumHeight(200)
 		#self.setMinimumWidth(600)
@@ -132,6 +134,18 @@ class ResultPage(QTreeWidget):
 		item = self.itemFromIndex(self.last_minx)
 		item.setHidden(True)
 		self.mark_tab_filtered(True)
+
+	def copy_clipboard_cb(self):
+		text = ''
+		for inx in range(self.topLevelItemCount()):
+			item = self.topLevelItem(inx)
+			if (item.isHidden() == True):
+				continue
+			for val in range(len(self.cmd_items)):
+				text += item.column_val(val).strip() + ' '
+			text = text[:-1] + '\n'
+
+		QApplication.clipboard().setText(text)
 
 	def get_file_line(self, minx):
 		model = minx.model()
