@@ -12,7 +12,7 @@ setup(name='Seascope',
 	version='0.9',
 	description='A multi-platform multi-language source code browsing tool',
 	long_description= textwrap.dedent("""A pyQt GUI front-end for idutils, cscope and gtags. Written in python using pyQt, QScintilla libraries."""),
-	url='https://github.com/anilFree/seascope'
+	url='https://github.com/anilFree/seascope',
 	packages=['Seascope',
 		'Seascope.backend',
 		'Seascope.backend.plugins',
