@@ -80,8 +80,10 @@ class EditorViewBase(QsciScintilla):
 		self.setFont(self.font)
 		self.setMarginsFont(self.font)
 
-		self.lexer.setFont(self.font,-1)
-		self.setLexer(self.lexer)
+		if self.lexer:
+			# lexer can be null if no file is open at the moment
+			self.lexer.setFont(self.font,-1)
+			self.setLexer(self.lexer)
 
 	def lpropChanged(self, prop, val):
 		print('lpropChanged', prop, val)
