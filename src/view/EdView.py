@@ -316,7 +316,7 @@ class EditorBook(QTabWidget):
 		self.setTabsClosable(True)
 		self.tabCloseRequested.connect(self.removeTab)
 		self.currentChanged.connect(self.tab_change_cb)
-		
+
 		self.is_show_line = False
 		self.is_show_folds = False
 		self.f_text = None
@@ -343,6 +343,8 @@ class EditorBook(QTabWidget):
 
 	def removeTab(self, inx):
 		ed = self.widget(inx)
+		if not ed:
+		    return
 		f = ed.ev.get_filename()
 		QTabWidget.removeTab(self, inx)
 		self.sig_file_closed.emit(f)
