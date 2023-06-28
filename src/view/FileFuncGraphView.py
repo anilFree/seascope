@@ -140,7 +140,7 @@ class FileFuncGraphWidget(QWidget):
 		scale = 1
 		if sz.width() > 1024:
 			scale = 0.8
-		self.svgw.setMinimumSize(sz.width() * scale, sz.height() * scale)
+		self.svgw.setMinimumSize(int(sz.width() * scale), int(sz.height() * scale))
 		#self.svgw.setMaximumSize(self.svgw.sizeHint())
 		#print self.scrolla.sizeHint()
 

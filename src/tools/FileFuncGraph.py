@@ -100,6 +100,7 @@ class FFgraph:
 
 	def generateDotHeader(self, name):
 		out = 'digraph "%s" {\n' % name
+		out += 'rankdir="LR"\n'
 		#out += '\tconcentrate=true;\n'
 		return out
 

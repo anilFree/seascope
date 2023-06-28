@@ -52,7 +52,7 @@ try:
 
 except ImportError as e:
 	print(e)
-	print("Error: required qscintilla-python package not found")
+	print("Error: required python3-pyqt5.qsci package not found")
 	raise ImportError
 
 import DialogManager
@@ -129,6 +129,7 @@ class EditorViewBase(QsciScintilla):
 		if not self.lexer:
 			lexerClass = self.lexer_for_file(filename)
 			self.lexer = lexerClass()
+			#print('[%s: %s]' % (filename, self.lexer))
 			self.setLexer(self.lexer)
 			self.setProperty("lexer.cpp.track.preprocessor", "0")
 			is_debug = os.getenv("SEASCOPE_QSCI_LEXER_DEBUG", 0)
