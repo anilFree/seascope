@@ -148,9 +148,7 @@ class CtagsTreeBuilder:
 		out_data = out_data.decode()
 		return out_data
 
-	def parseCtagsOutput(self, data):
-		override_res = ct_override(filename)
-
+	def parseCtagsOutput(self, data, override_res):
 		data = re.split('\r?\n', data)
 		res = []
 		for line in data:
@@ -243,7 +241,8 @@ class CtagsTreeBuilder:
 	def doQuery(self, filename):
 		try:
 			output = self.runCtags(filename)
-			output = self.parseCtagsOutput(output)
+			override_res = ct_override(filename)
+			output = self.parseCtagsOutput(output, override_res)
 			output = self.buildTree(output)
 		except Exception as e:
 			print(str(e))
