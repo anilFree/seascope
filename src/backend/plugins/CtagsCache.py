@@ -8,6 +8,15 @@ from datetime import datetime
 
 from PyQt5.QtCore import QThread
 
+def _eintr_retry_call(func, *args):
+	while True:
+		try:
+			return func(*args)
+		except OSError as e:
+			if e.errno == errno.EINTR:
+				continue
+			raise
+
 #class CtagsInfo:
 	#def __init__(self):
 		#pass
@@ -126,6 +135,41 @@ class CtagsThread(QThread):
 		line[0] = ct[m][0]
 		return True
 
+	def ct_override(self, fl):
+		pattern = os.getenv('SEASCOPE_CTAGS_OVERRIDE_PATTERN')
+		delim1  = os.getenv('SEASCOPE_CTAGS_OVERRIDE_DELIM_START')
+		delim2  = os.getenv('SEASCOPE_CTAGS_OVERRIDE_DELIM_END')
+		if not (pattern and delim1 and delim2):
+			return
+
+		res = {}
+		for f in fl:
+			args = ['grep', '-En', "%s" % pattern, "%s" % f]
+			try:
+				proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+				(out_data, err_data) = _eintr_retry_call(proc.communicate)
+				out_data = out_data.decode()
+				out_data = out_data.split('\n')
+			except Exception as e:
+				out_data =  [
+						'Failed to run ct override cmd\tignore\t0;\t ',
+						'cmd: %s\tignore\t0;\t ' % ' '.join(args),
+						'error: %s\tignore\t0;\t ' % str(e),
+						'ctags not installed ?\tignore\t0;\t ',
+					]
+			f_res = {}
+			for line in out_data:
+				if (line == ''):
+					break
+				line = line.split(':', 1)
+				num = line[0]
+				inx1 = line[1].find(delim1) + 1
+				inx2 = line[1].find(delim2)
+				sym = line[1][inx1:inx2]
+				f_res[num] = sym
+			res[f] = f_res
+		return res
+
 	def runCtagsCustom(self, fl):
 		custom_map = os.getenv('SEASCOPE_CTAGS_SUFFIX_CMD_MAP')
 		if not custom_map:
@@ -156,6 +200,8 @@ class CtagsThread(QThread):
 		return out_data_all
 
 	def _run_ctags(self):
+		override_res = self.ct_override(self.file_list)
+
 		cmd = 'ctags -n -u --fields=+K -L - -f -'
 		opt_I_file = os.getenv('SEASCOPE_CTAGS_OPT_I_FILE')
 		if opt_I_file and os.path.isfile(opt_I_file):
@@ -173,6 +219,10 @@ class CtagsThread(QThread):
 			line = line.split('\t')
 			f = line[1]
 			num = line[2].split(';', 1)[0]
+			if override_res:
+				override_sym = override_res.get(f, {}).get(num, None)
+				if override_sym:
+					line[0] = override_sym
 			line = [line[0], int(num), line[3]]
 			self.ct_dict[f].append(line)
 

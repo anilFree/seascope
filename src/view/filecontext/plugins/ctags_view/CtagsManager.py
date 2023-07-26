@@ -15,6 +15,38 @@ def _eintr_retry_call(func, *args):
 				continue
 			raise
 
+def ct_override(filename):
+	pattern = os.getenv('SEASCOPE_CTAGS_OVERRIDE_PATTERN')
+	delim1  = os.getenv('SEASCOPE_CTAGS_OVERRIDE_DELIM_START')
+	delim2  = os.getenv('SEASCOPE_CTAGS_OVERRIDE_DELIM_END')
+	if not (pattern and delim1 and delim2):
+		return
+
+	args = ['grep', '-En', "%s" % pattern, "%s" % filename]
+	try:
+		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
+		(out_data, err_data) = _eintr_retry_call(proc.communicate)
+		out_data = out_data.decode()
+		out_data = out_data.split('\n')
+	except Exception as e:
+		out_data =  [
+				'Failed to run ct override cmd\tignore\t0;\t ',
+				'cmd: %s\tignore\t0;\t ' % ' '.join(args),
+				'error: %s\tignore\t0;\t ' % str(e),
+				'ctags not installed ?\tignore\t0;\t ',
+			]
+	res = {}
+	for line in out_data:
+		if (line == ''):
+			break
+		line = line.split(':', 1)
+		num = line[0]
+		inx1 = line[1].find(delim1) + 1
+		inx2 = line[1].find(delim2)
+		sym = line[1][inx1:inx2]
+		res[num] = sym
+	return res
+
 def cmdForFile(f):
 	#args = 'ctags -n -u --fields=+K -f - --extra=+q'
 	#args = 'ctags -n -u --fields=+Ki -f -'
@@ -36,6 +68,8 @@ def cmdForFile(f):
 	return None
 
 def ct_query(filename):
+	override_res = ct_override(filename)
+
 	args = cmdForFile(filename)
 	args = args.split()
 	args.append(filename)
@@ -57,6 +91,10 @@ def ct_query(filename):
 			break
 		line = line.split('\t')
 		num = line[2].split(';', 1)[0]
+		if override_res:
+			override_sym = override_res.get(num, None)
+			if override_sym:
+				line[0] = override_sym
 		line = [line[0], num, line[3]]
 		res.append(line)
 	return res
@@ -111,6 +149,8 @@ class CtagsTreeBuilder:
 		return out_data
 
 	def parseCtagsOutput(self, data):
+		override_res = ct_override(filename)
+
 		data = re.split('\r?\n', data)
 		res = []
 		for line in data:
@@ -118,6 +158,11 @@ class CtagsTreeBuilder:
 				continue
 			try:
 				line = line.split('\t', 4)
+				if override_res:
+					num = line[2].split(';', 1)[0]
+					override_sym = override_res.get(num, None)
+					if override_sym:
+						line[0] = override_sym
 				res.append(line)
 			except:
 				print('bad line:', line)
