@@ -44,7 +44,7 @@ def ct_override(filename):
 		inx1 = line[1].find(delim1) + 1
 		inx2 = line[1].find(delim2)
 		sym = line[1][inx1:inx2]
-		res[num] = sym
+		res[num] = [sym, num, 'function']
 	return res
 
 def cmdForFile(f):
@@ -92,11 +92,14 @@ def ct_query(filename):
 		line = line.split('\t')
 		num = line[2].split(';', 1)[0]
 		if override_res:
-			override_sym = override_res.get(num, None)
-			if override_sym:
-				line[0] = override_sym
+			override_ent = override_res.pop(num, None)
+			if override_ent:
+				line[0] = override_ent[0]
 		line = [line[0], num, line[3]]
 		res.append(line)
+	if override_res:
+		res += override_res.values()
+		res = sorted(res, key=lambda e: int(e[1]))
 	return res
 
 is_OrderedDict_available = False
@@ -148,7 +151,7 @@ class CtagsTreeBuilder:
 		out_data = out_data.decode()
 		return out_data
 
-	def parseCtagsOutput(self, data, override_res):
+	def parseCtagsOutput(self, data, override_res, filename):
 		data = re.split('\r?\n', data)
 		res = []
 		for line in data:
@@ -158,12 +161,17 @@ class CtagsTreeBuilder:
 				line = line.split('\t', 4)
 				if override_res:
 					num = line[2].split(';', 1)[0]
-					override_sym = override_res.get(num, None)
-					if override_sym:
-						line[0] = override_sym
+					override_ent = override_res.pop(num, None)
+					if override_ent:
+						line[0] = override_ent[0]
 				res.append(line)
 			except:
 				print('bad line:', line)
+		if override_res:
+			for line in override_res.values():
+				line = [line[0], filename, line[1], line[2]]
+				res.append(line)
+			res = sorted(res, key=lambda e: int(e[2].split(';')[0]))
 		return res
 
 
@@ -242,7 +250,7 @@ class CtagsTreeBuilder:
 		try:
 			output = self.runCtags(filename)
 			override_res = ct_override(filename)
-			output = self.parseCtagsOutput(output, override_res)
+			output = self.parseCtagsOutput(output, override_res, filename)
 			output = self.buildTree(output)
 		except Exception as e:
 			print(str(e))

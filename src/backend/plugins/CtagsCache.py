@@ -166,7 +166,7 @@ class CtagsThread(QThread):
 				inx1 = line[1].find(delim1) + 1
 				inx2 = line[1].find(delim2)
 				sym = line[1][inx1:inx2]
-				f_res[num] = sym
+				f_res[num] = [sym, num, 'function']
 			res[f] = f_res
 		return res
 
@@ -220,11 +220,19 @@ class CtagsThread(QThread):
 			f = line[1]
 			num = line[2].split(';', 1)[0]
 			if override_res:
-				override_sym = override_res.get(f, {}).get(num, None)
-				if override_sym:
-					line[0] = override_sym
+				override_ent = override_res.get(f, {}).pop(num, None)
+				if override_ent:
+					line[0] = override_ent[0]
 			line = [line[0], int(num), line[3]]
 			self.ct_dict[f].append(line)
+		if override_res:
+			for (f, o_res) in override_res.items():
+				if o_res:
+					res = self.ct_dict[f]
+					for line in o_res.values():
+						line = [line[0], int(line[1]), line[2]]
+						res.append(line)
+					self.ct_dict[f] = sorted(res, key=lambda e: e[1])
 
 	def prepare_file_list(self):
 		#t1 = datetime.now()

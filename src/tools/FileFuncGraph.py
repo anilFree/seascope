@@ -45,7 +45,7 @@ def ct_override(filename):
 		inx1 = line[1].find(delim1) + 1
 		inx2 = line[1].find(delim2)
 		sym = line[1][inx1:inx2]
-		res[num] = sym
+		res[num] = [sym, num, 'function']
 	return res
 
 
@@ -95,11 +95,14 @@ def ct_query(filename):
 		line = line.split('\t')
 		num = line[2].split(';', 1)[0]
 		if override_res:
-			override_sym = override_res.get(num, None)
-			if override_sym:
-				line[0] = override_sym
+			override_ent = override_res.pop(num, None)
+			if override_ent:
+				line[0] = override_ent[0]
 		line = [line[0], num, line[3]]
 		res.append(line)
+	if override_res:
+		res += override_res.values()
+		res = sorted(res, key=lambda e: int(e[1]))
 	return res
 
 class FFgraph:
