@@ -840,8 +840,8 @@ class SeascopeApp(QMainWindow):
 		proj_type = bl[0]
 		if len(bl) > 1:
 			msg = "Project '%s': Many backends interested" % proj_path
-			for b in be:
-				msg += '\n\t' + b.name()
+			for b in bl:
+				msg += '\n\t' + b
 			msg += '\n\nGoing ahead with: ' + proj_type
 			msg_box(msg)
 		print("Project '%s': using '%s' backend" % (proj_path, proj_type))
