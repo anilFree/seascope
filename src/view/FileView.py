@@ -7,9 +7,9 @@
 
 import os
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 dir_prefix = None
 
@@ -29,20 +29,20 @@ class DirTab(QWidget):
 		self.tview = QTreeView()
 		self.tview.setHeaderHidden(True)
 		# For proper horizaontal scroll bar
-		self.tview.setTextElideMode(Qt.ElideNone)
+		self.tview.setTextElideMode(Qt.TextElideMode.ElideNone)
 		self.tview.expanded.connect(self.tview_expanded_or_collapsed)
 		self.tview.collapsed.connect(self.tview_expanded_or_collapsed)
 
 		self.ted = QLineEdit()
 		self.completer = QCompleter()
-		self.completer.setCompletionMode(QCompleter.PopupCompletion)
+		self.completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
 		self.ted.setToolTip("Current folder")
 		self.ted.setCompleter(self.completer)
 		self.tdbtn = QPushButton()
-		self.tdbtn.setIcon(QApplication.style().standardIcon(QStyle.SP_DirIcon))
+		self.tdbtn.setIcon(QApplication.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon))
 		self.tdbtn.setToolTip("Open folder for browsing")
 		self.trbtn = QPushButton()
-		self.trbtn.setIcon(QApplication.style().standardIcon(QStyle.SP_BrowserReload))
+		self.trbtn.setIcon(QApplication.style().standardIcon(QStyle.StandardPixmap.SP_BrowserReload))
 		self.trbtn.setToolTip("Reset to common top-level folder of file in list")
 
 		self.completer.setModel(self.tmodel)
@@ -119,7 +119,7 @@ class DirTab(QWidget):
 		fdlg.setFileMode(QFileDialog.Directory)
 		fdlg.setOptions(QFileDialog.ShowDirsOnly) # and QFileDialog.HideNameFilterDetails)
 		fdlg.setDirectory(self.ted.text())
-		if (fdlg.exec_()):
+		if (fdlg.exec()):
 			browse_dir = fdlg.selectedFiles()[0]
 			self.dir_reset(str(browse_dir))
 
@@ -174,13 +174,13 @@ class FileTab(QWidget):
 		self.lview.itemActivated.emit(items[0], 0)
 
 	def lview_itemActivated(self, item):
-		filename = str(item.data(1, Qt.DisplayRole))
+		filename = str(item.data(1, Qt.ItemDataRole.DisplayRole))
 		if self.is_rel_path:
 			filename = filename.replace("...", dir_prefix, 1)
 		self.sig_show_file.emit(filename)
 
 	def keyPressEvent(self, ev):
-		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
+		if ev.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_PageUp or Qt.Key.Key_PageDown]:
 			self.lview.keyPressEvent(ev)
 			return
 
@@ -209,7 +209,7 @@ class FileTab(QWidget):
 			#if (self.lview.topLevelItemCount() > 0):
 				#self.lview.resizeColumnToContents(0)
 				#self.lview.resizeColumnToContents(1)
-		self.lview.sortByColumn(0, Qt.AscendingOrder)
+		self.lview.sortByColumn(0, Qt.SortOrder.AscendingOrder)
 		self.lview.resizeColumnToContents(0)
 
 class FileTree(QTabWidget):
@@ -221,7 +221,7 @@ class FileTree(QTabWidget):
 		self.setMovable(True)
 
 		t = FileTab()
-		icon = QApplication.style().standardIcon(QStyle.SP_FileDialogDetailedView)
+		icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogDetailedView)
 		self.addTab(t, icon, '')
 		self.ft = t
 
@@ -247,7 +247,7 @@ class FileTree(QTabWidget):
 		t = DirTab()
 		t.parent = self
 		self.dlist.append(t)
-		icon = QApplication.style().standardIcon(QStyle.SP_DirClosedIcon)
+		icon = QApplication.style().standardIcon(QStyle.StandardPixmap.SP_DirClosedIcon)
 		self.addTab(t, icon, '')
 		self.set_tab_dir(t, d)
 
@@ -297,8 +297,8 @@ class FileTree(QTabWidget):
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)
-		if (m_ev.button() == Qt.RightButton):
-			self.pmenu.exec_(QCursor.pos())
+		if (m_ev.button() == Qt.MouseButton.RightButton):
+			self.pmenu.exec(QCursor.pos())
 
 	def search_file_cb(self):
 		self.ft.search_file_cb()

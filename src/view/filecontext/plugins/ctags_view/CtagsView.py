@@ -5,9 +5,9 @@
 #
 # License: BSD 
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 from . import CtagsManager
 
@@ -33,7 +33,7 @@ class CtagsListItem(QTreeWidgetItem):
 			self.set_bold()
 		if li[2] in [ 'reactor' ]:
 			brush = self.foreground(0)
-			brush.setColor(Qt.gray)
+			brush.setColor(Qt.GlobalColor.gray)
 			self.setForeground(0, brush)
 
 	def set_bold(self):
@@ -41,7 +41,7 @@ class CtagsListItem(QTreeWidgetItem):
 		f.setBold(True)
 		self.setFont(0, f)
 	def column_val(self, col):
-		return str(self.data(col, Qt.DisplayRole))
+		return str(self.data(col, Qt.ItemDataRole.DisplayRole))
 	def line_val(self):
 		return (int(self.column_val(1)))
 
@@ -70,7 +70,7 @@ class CtagsList(QTreeWidget):
 		for line in res:
 			item = CtagsListItem(line)
 			self.addTopLevelItem(item)
-		#self.sortItems(1, Qt.AscendingOrder)
+		#self.sortItems(1, Qt.SortOrder.AscendingOrder)
 		#self.resizeColumnsToContents(1)
 		self.resizeColumnToContents(0)
 		self.resizeColumnToContents(1)
@@ -97,7 +97,7 @@ class CtagsList(QTreeWidget):
 		p = self.invisibleRootItem()
 		self.recurseTreeAdd(res, p)
 
-		#self.sortItems(1, Qt.AscendingOrder)
+		#self.sortItems(1, Qt.SortOrder.AscendingOrder)
 		#self.resizeColumnsToContents(1)
 		self.resizeColumnToContents(0)
 		self.resizeColumnToContents(1)
@@ -221,15 +221,16 @@ class CtagsListPage(QWidget):
 		self.ct.itemActivated.emit(items[0], 0)
 
 	def ct_itemActivated(self, item):
+		line_str = str(item.data(1, Qt.ItemDataRole.DisplayRole))
 		try:
-			line = int(str(item.data(1, Qt.DisplayRole)))
+			line = int(line_str)
 		except:
 			return
 		self.sig_goto_line.emit(line)
 		self.le.clear()
 
 	def keyPressEvent(self, ev):
-		if ev.key() in [Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp or Qt.Key_PageDown]:
+		if ev.key() in [Qt.Key.Key_Up, Qt.Key.Key_Down, Qt.Key.Key_PageUp or Qt.Key.Key_PageDown]:
 			self.ct.keyPressEvent(ev)
 			return
 
@@ -254,8 +255,9 @@ class CtagsTreePage(QWidget):
 		self.ct.itemActivated.connect(self.ct_itemActivated)
 
 	def ct_itemActivated(self, item):
+		line_str = str(item.data(1, Qt.ItemDataRole.DisplayRole))
 		try:
-			line = int(str(item.data(1, Qt.DisplayRole)))
+			line = int(line_str)
 		except:
 			return
 		self.sig_goto_line.emit(line)

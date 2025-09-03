@@ -75,7 +75,7 @@ class CtagsInhCache:
 			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			(out_data, err_data) = proc.communicate('\n'.join(fl).encode())
 			out_data = out_data.decode()
-			out_data = re.split('\r?\n', out_data)
+			out_data = re.split(r'\r?\n', out_data)
 			out_data_all += out_data
 		return out_data_all
 
@@ -87,7 +87,7 @@ class CtagsInhCache:
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(fl).encode())
 		out_data = out_data.decode()
-		out_data = re.split('\r?\n', out_data)
+		out_data = re.split(r'\r?\n', out_data)
 		out_data += self._runCtagsCustom(fl)
 		return out_data
 
@@ -145,7 +145,7 @@ class ClassGraphGenerator:
 			proc = subprocess.Popen(args, cwd=self.wdir, stdout=subprocess.PIPE)
 			(output, err_data) = proc.communicate()
 			output = output.decode()
-			output = re.split('\r?\n', output)
+			output = re.split(r'\r?\n', output)
 		except Exception as e:
 			print('dir:', self.wdir, ':cmd:', args, ':', e, '\n', file=sys.stderr)
 			sys.exit(-1)
@@ -169,7 +169,7 @@ class ClassGraphGenerator:
 				dd = [ x.strip() for x in sd ]
 				cls = line[2]
 			else:
-				dd = [ re.split('::|\.', x.strip())[-1] for x in sd ]
+				dd = [ re.split(r'::|\.', x.strip())[-1] for x in sd ]
 				cls = None
 			if not sym:
 				res.append([line[0], dd])
@@ -200,7 +200,7 @@ class ClassGraphGenerator:
 
 	def classHierarchy(self, sym):
 		if self.is_fq:
-			subSym = re.split('::|\.', sym)[-1]
+			subSym = re.split(r'::|\.', sym)[-1]
 		else:
 			subSym = sym
 
@@ -284,10 +284,10 @@ class ClassGraphGenerator:
 		if sym:
 			if sym == '::' or sym == '.':
 				return
-			if re.search('::|\.', sym):
+			if re.search(r'::|\.', sym):
 				self.is_fq = True
 			if sym.startswith('::') or sym.startswith('.'):
-				sym = re.split('::|\.', sym, maxsplit=1)[-1]
+				sym = re.split(r'::|\.', sym, maxsplit=1)[-1]
 			self.classHierarchyRecursive([sym])
 			dotInput = self.prepareDotInput(sym)
 		else:

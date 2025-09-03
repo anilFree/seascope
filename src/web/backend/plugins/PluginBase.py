@@ -383,7 +383,7 @@ class PluginProcessBase:
 
 	def parse_query_fl(self, text):
 		fl = []
-		for f in re.split('\r?\n', text.strip()):
+		for f in re.split(r'\r?\n', text.strip()):
 			if f == '':
 				continue
 			fl.append(os.path.join(self.wdir, f))
@@ -398,7 +398,7 @@ class PluginProcess(PluginProcessBase):
 		self.req = rq[1]
 
 	def parse_result(self, text, sig):
-		text = re.split('\r?\n', text)
+		text = re.split(r'\r?\n', text)
 
 		res = []
 		if self.cmd_str == 'GREP':

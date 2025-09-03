@@ -77,6 +77,7 @@ class RequestHandler(SimpleHTTPRequestHandler):
 	def reply_to_GET(self, qres, cont_type):
 		rh = self
 		rh.send_response(200)
+		qres = qres.encode()
 		#rh.send_header('Content-type', 'text/plain')
 		rh.send_header('Content-type', cont_type)
 		rh.send_header('Content-length', len(qres))

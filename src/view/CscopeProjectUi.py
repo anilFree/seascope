@@ -7,14 +7,14 @@ import os
 import sys
 import re
 
-from PyQt5 import QtWidgets, QtGui, QtCore, uic
+from PyQt6 import QtWidgets, QtGui, QtCore, uic
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 def show_msg_dialog(msg):
-	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.StandardButton.Ok)
 
 def dir_scan_csope_files(rootdir):
 	file_list = []
@@ -24,7 +24,7 @@ def dir_scan_csope_files(rootdir):
 	for root, subFolders, files in os.walk(rootdir):
 		for f in files:
 			f = os.path.join(root, f)
-			if (re.search('\.(h|c|H|C|hh|cc|hpp|cpp|hxx|cxx||l|y|s|S|pl|pm|java)$', f) != None):
+			if (re.search(r'\.(h|c|H|C|hh|cc|hpp|cpp|hxx|cxx||l|y|s|S|pl|pm|java)$', f) != None):
 				file_list.append(f)
 	return file_list
 
@@ -33,9 +33,9 @@ class CscopeProjectSettingsDialog(QDialog):
 		QDialog.__init__(self)
 
 		self.ui = uic.loadUi('ui/cscope_prj_settings.ui', self)
-		self.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
+		self.pd_path_tbtn.setIcon(QFileIconProvider().icon(QFileIconProvider.IconType.Folder))
 
-		self.pd_src_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
+		self.pd_src_list.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
 
 		self.pd_path_tbtn.clicked.connect(self.path_open_cb)
 		self.pd_add_btn.clicked.connect(self.src_add_cb)
@@ -46,7 +46,7 @@ class CscopeProjectSettingsDialog(QDialog):
 		fdlg = QFileDialog(None, "Choose directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		fdlg.setDirectory(self.pd_path_inp.text())
-		if (fdlg.exec_()):
+		if (fdlg.exec()):
 			path_dir = fdlg.selectedFiles()[0];
 			self.pd_path_inp.setText(str(path_dir))
 
@@ -54,7 +54,7 @@ class CscopeProjectSettingsDialog(QDialog):
 		fdlg = QFileDialog(None, "Choose directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		fdlg.setDirectory(self.pd_path_inp.text())
-		if (fdlg.exec_()):
+		if (fdlg.exec()):
 			d = fdlg.selectedFiles()[0];
 			d = str(d)
 			d = d.strip()
@@ -129,7 +129,7 @@ class CscopeProjectSettingsDialog(QDialog):
 		self.pd_path_frame.setEnabled(self.is_new_proj)
 
 		while True:
-			ret = self.exec_()
-			if (ret == QDialog.Accepted or ret == QDialog.Rejected):
+			ret = self.exec()
+			if (ret == QDialog.DialogCode.Accepted or ret == QDialog.DialogCode.Rejected):
 				break
 		return self.res

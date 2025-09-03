@@ -6,12 +6,12 @@
 import os, re
 import copy
 
-from PyQt5.QtCore import QObject, pyqtSignal, QProcess
+from PyQt6.QtCore import QObject, pyqtSignal, QProcess
 
 def NOT_IMPLEMENTED(n, f):
 	msg = '%s: %s: Not implemeted' % (n, f)
-	from PyQt5.QtWidgets import QMessageBox
-	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+	from PyQt6.QtWidgets import QMessageBox
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.StandardButton.Ok)
 
 from . import CtagsCache
 
@@ -220,7 +220,7 @@ class QueryUiBase(QObject):
 	def __init__(self):
 		QObject.__init__(self)
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 class QuerySignal(QObject):
 	sig_result = pyqtSignal(str, list)
@@ -311,7 +311,7 @@ class PluginProcessBase(QObject):
 
 		self.proc = QProcess()
 		self.proc.finished.connect(self._finished_cb)
-		self.proc.error.connect(self._error_cb)
+		self.proc.errorOccurred.connect(self._error_cb)
 
 		self.proc.setWorkingDirectory(wdir)
 		self.wdir = wdir
@@ -320,19 +320,19 @@ class PluginProcessBase(QObject):
 		PluginProcess.proc_list.remove(self)
 		if self.err_str != '':
 			s = '<b>' + self.p_cmd + '</b><p>' + '<p>'.join(self.err_str.splitlines())
-			QMessageBox.warning(None, "Seascope", s, QMessageBox.Ok)
+			QMessageBox.warning(None, "Seascope", s, QMessageBox.StandardButton.Ok)
 		if self.res != '':
 			s = '<b>' + self.p_cmd + '</b><p>Summary<p>' + self.res
-			QMessageBox.information(None, "Seascope", s, QMessageBox.Ok)
+			QMessageBox.information(None, "Seascope", s, QMessageBox.StandardButton.Ok)
 
 	def _error_cb(self, err):
 		err_dict = { 
-			QProcess.FailedToStart:	'FailedToStart',
-			QProcess.Crashed:	'Crashed',
-			QProcess.Timedout:	'The last waitFor...() function timed out',
-			QProcess.WriteError:	'An error occurred when attempting to write to the process',
-			QProcess.ReadError:	'An error occurred when attempting to read from the process',
-			QProcess.UnknownError:	'An unknown error occurred',
+			QProcess.ProcessError.FailedToStart:	'FailedToStart',
+			QProcess.ProcessError.Crashed:		'Crashed',
+			QProcess.ProcessError.Timedout:		'The last waitFor...() function timed out',
+			QProcess.ProcessError.WriteError:	'An error occurred when attempting to write to the process',
+			QProcess.ProcessError.ReadError:	'An error occurred when attempting to read from the process',
+			QProcess.ProcessError.UnknownError:	'An unknown error occurred',
 		}
 		self.err_str = '<b>' + self.p_cmd + '</b><p>' + err_dict[err]
 		self._cleanup()
@@ -395,7 +395,7 @@ class PluginProcessBase(QObject):
 
 	def parse_query_fl(self, text):
 		fl = []
-		for f in re.split('\r?\n', text.strip()):
+		for f in re.split(r'\r?\n', text.strip()):
 			if f == '':
 				continue
 			fl.append(os.path.join(self.wdir, f))
@@ -410,7 +410,7 @@ class PluginProcess(PluginProcessBase):
 		self.req = rq[1]
 
 	def parse_result(self, text, sig):
-		text = re.split('\r?\n', text)
+		text = re.split(r'\r?\n', text)
 
 		res = []
 		if self.cmd_str == 'GREP':
@@ -439,7 +439,7 @@ if __name__ == '__main__':
 	def slot_rebuild():
 		print('slot_rebuild')
 
-	from PyQt5.QtCore import QCoreApplication
+	from PyQt6.QtCore import QCoreApplication
 	app = QCoreApplication(sys.argv)
 
 	qsig = PluginProcess('.').run_query_process(['ls'], 'ls')
@@ -449,4 +449,4 @@ if __name__ == '__main__':
 	qsig[0].connect(slot_result)
 	qsig[1].connect(slot_result_dbg)
 
-	app.exec_()
+	app.exec()

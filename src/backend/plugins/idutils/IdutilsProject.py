@@ -100,7 +100,7 @@ class IdProcess(PluginProcess):
 		#from datetime import datetime
 		#t1 = datetime.now()
 
-		text = re.split('\r?\n', text)
+		text = re.split(r'\r?\n', text)
 
 		#t2 = datetime.now()
 		#print 'parse-split', t2 - t1

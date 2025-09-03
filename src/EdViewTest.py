@@ -20,10 +20,10 @@ if __name__ == '__main__':
 	app_dir = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(app_dir)
 
-	from PyQt5 import QtWidgets, QtGui, QtCore
-	from PyQt5.QtWidgets import *
-	from PyQt5.QtGui import *
-	from PyQt5.QtCore import *
+	from PyQt6 import QtWidgets, QtGui, QtCore
+	from PyQt6.QtWidgets import *
+	from PyQt6.QtGui import *
+	from PyQt6.QtCore import *
 	from view import EdView, EdViewRW
 	import view
 	
@@ -55,4 +55,4 @@ if __name__ == '__main__':
 	book.show_file(filename)
 	w.setWindowTitle(filename)
 
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

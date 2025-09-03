@@ -152,7 +152,7 @@ class CtagsTreeBuilder:
 		return out_data
 
 	def parseCtagsOutput(self, data, override_res, filename):
-		data = re.split('\r?\n', data)
+		data = re.split(r'\r?\n', data)
 		res = []
 		for line in data:
 			if line == '':
@@ -178,7 +178,7 @@ class CtagsTreeBuilder:
 	def addToSymLayout(self, sc):
 		t = self.symTree
 		if sc and sc != '':
-			for s in re.split('::|\.', sc):
+			for s in re.split(r'::|\.', sc):
 				if s not in t:
 					t[s] = emptyOrderedDict()
 				t = t[s]
@@ -186,7 +186,7 @@ class CtagsTreeBuilder:
 	def addToSymTree(self, sc, line):
 		t = self.symTree
 		if sc and sc != '':
-			for s in re.split('::|\.', sc):
+			for s in re.split(r'::|\.', sc):
 				assert s in t
 				t = t[s]
 

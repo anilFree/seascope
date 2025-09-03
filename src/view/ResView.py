@@ -7,9 +7,9 @@
 
 import re
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 import DialogManager
 
@@ -18,7 +18,7 @@ class ResultPageItem(QTreeWidgetItem):
 		QTreeWidgetItem.__init__(self, li)
 	def column_val(self, col):
 		try:
-			val = str(self.data(col, Qt.DisplayRole))
+			val = str(self.data(col, Qt.ItemDataRole.DisplayRole))
 		except:
 			return None
 		return val
@@ -63,7 +63,7 @@ class ResultPage(QTreeWidget):
 		#for row in xrange(nrows):
 			#self.setRowHeight(row, 14)
 
-		#self.setTextElideMode(Qt.ElideLeft)
+		#self.setTextElideMode(Qt.TextElideMode.ElideLeft)
 		self.setIndentation(-2)
 		self.setAllColumnsShowFocus(True)
 		
@@ -196,9 +196,9 @@ class ResultPage(QTreeWidget):
 
 	def mousePressEvent(self, m_ev):
 		QTreeWidget.mousePressEvent(self, m_ev)
-		if (m_ev.button() == Qt.RightButton):
+		if (m_ev.button() == Qt.MouseButton.RightButton):
 			self.last_minx = self.indexAt(m_ev.pos())
-			self.pmenu.exec_(QCursor.pos())
+			self.pmenu.exec(QCursor.pos())
 
 	def show_progress_bar(self):
 		self.pbar = QProgressBar(self)
@@ -231,9 +231,9 @@ class ResultManager(QTabWidget):
 		if page == None:
 			return
 		if (inc == 1):
-			minx = page.moveCursor(QAbstractItemView.MoveDown, Qt.NoModifier)
+			minx = page.moveCursor(QAbstractItemView.CursorAction.MoveDown, Qt.KeyboardModifier.NoModifier)
 		else:
-			minx = page.moveCursor(QAbstractItemView.MoveUp, Qt.NoModifier)
+			minx = page.moveCursor(QAbstractItemView.CursorAction.MoveUp, Qt.KeyboardModifier.NoModifier)
 		page.setCurrentItem(page.itemFromIndex(minx))
 		page.activated.emit(minx)
 	def go_next_res(self, inc):
@@ -259,14 +259,14 @@ class ResultManager(QTabWidget):
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)
-		if (m_ev.button() == Qt.RightButton):
+		if (m_ev.button() == Qt.MouseButton.RightButton):
 			# setup popup menu
 			self.pmenu = QMenu()
 			#self.pmenu.addAction("&New", self.new_cb)
 			#self.pmenu.addAction("&Refresh", self.refresh_cb)
 			#self.pmenu.addSeparator()
 			self.pmenu.addAction("Close &All", self.close_all_cb)
-			self.pmenu.exec_(QCursor.pos())
+			self.pmenu.exec(QCursor.pos())
 
 	def history_create(self):
 		self.h_page = ResultManager.create_result_page(self, None)

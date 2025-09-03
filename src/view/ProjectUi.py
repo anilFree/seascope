@@ -7,11 +7,11 @@ import os
 import sys
 import re
 
-from PyQt5 import QtWidgets, QtGui, QtCore, uic
+from PyQt6 import QtWidgets, QtGui, QtCore, uic
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 class ProjectSettingsDialog(QDialog):
 	def __init__(self):
@@ -24,12 +24,12 @@ class ProjectSettingsDialog(QDialog):
 			prj_dir = prj_args[0]
 			self.pi_type_lbl.setText(prj_type)
 			self.pi_path_lbl.setText(prj_dir)
-			self.exec_()
+			self.exec()
 			return None
 		fdlg = QFileDialog(None, "Choose source code directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		#fdlg.setDirectory(self.pd_path_inp.text())
-		if fdlg.exec_():
+		if fdlg.exec():
 			d = fdlg.selectedFiles()[0];
 			d = str(d)
 			if not d:

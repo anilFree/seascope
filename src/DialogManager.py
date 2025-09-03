@@ -9,28 +9,28 @@ import sys
 import os
 import string
 
-from PyQt5 import QtWidgets, QtGui, QtCore, uic
+from PyQt6 import QtWidgets, QtGui, QtCore, uic
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 
 def show_msg_dialog(msg):
-	QMessageBox.information(None, "Seascope", msg, QMessageBox.Ok)
+	QMessageBox.information(None, "Seascope", msg, QMessageBox.StandardButton.Ok)
 
 def show_yes_no(msg):
-	ret = QMessageBox.question(None, "Seascope", msg, QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-	return ret == QMessageBox.Yes
+	ret = QMessageBox.question(None, "Seascope", msg, QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.Yes)
+	return ret == QMessageBox.StandardButton.Yes
 
 def show_yes_no_dontask(msg):
 	mb = QMessageBox(None)
-	mb.setIcon(QMessageBox.Question)
+	mb.setIcon(QMessageBox.Icon.Question)
 	mb.setWindowTitle("Seascope")
 	mb.setText(msg)
-	mb.addButton('Yes', QMessageBox.YesRole)
-	mb.addButton('No', QMessageBox.NoRole)
-	mb.addButton("Yes, Don't ask again", QMessageBox.YesRole)
+	mb.addButton('Yes', QMessageBox.ButtonRole.YesRole)
+	mb.addButton('No', QMessageBox.ButtonRole.NoRole)
+	mb.addButton("Yes, Don't ask again", QMessageBox.ButtonRole.YesRole)
 	return mb.exec()
 
 def show_proj_close():
@@ -41,7 +41,7 @@ class ProjectOpenDialog(QObject):
 		QObject.__init__(self)
 
 		self.dlg = uic.loadUi('ui/proj_open.ui')
-		self.dlg.pod_open_btn.setIcon(QFileIconProvider().icon(QFileIconProvider.Folder))
+		self.dlg.pod_open_btn.setIcon(QFileIconProvider().icon(QFileIconProvider.IconType.Folder))
 
 		self.dlg.pod_open_btn.clicked.connect(self.open_btn_cb)
 		self.dlg.accepted.connect(self.ok_btn_cb)
@@ -57,7 +57,7 @@ class ProjectOpenDialog(QObject):
 		fdlg = QFileDialog(None, "Choose project directory")
 		fdlg.setFileMode(QFileDialog.Directory);
 		fdlg.setDirectory(self.dlg.pod_proj_name.text())
-		if (fdlg.exec_()):
+		if (fdlg.exec()):
 			proj_dir = fdlg.selectedFiles()[0];
 			self.dlg.pod_proj_name.setText(str(proj_dir))
 		
@@ -82,8 +82,8 @@ class ProjectOpenDialog(QObject):
 		self.dlg.pod_proj_name.setText('')
 		self.dlg.pod_proj_list.addItems(path_list)
 		while True:
-			ret = self.dlg.exec_()
-			if (ret == QDialog.Accepted or ret == QDialog.Rejected):
+			ret = self.dlg.exec()
+			if (ret == QDialog.DialogCode.Accepted or ret == QDialog.DialogCode.Rejected):
 				break
 		return self.path
 
@@ -110,17 +110,17 @@ class FilePreferencesDialog(QObject):
 		self.inner_editing = innered
 		self.show_ln_nr = ln_nr
 		if self.exit_dontask:
-			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Unchecked)
+			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.CheckState.Unchecked)
 		else:
-			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.Checked)
+			self.dlg.prd_opt_ask_chkb.setCheckState(Qt.CheckState.Checked)
 		if self.inner_editing:
-			self.dlg.prd_opt_inner_ed.setCheckState(Qt.Checked)
+			self.dlg.prd_opt_inner_ed.setCheckState(Qt.CheckState.Checked)
 		else:
-			self.dlg.prd_opt_inner_ed.setCheckState(Qt.Unchecked)
+			self.dlg.prd_opt_inner_ed.setCheckState(Qt.CheckState.Unchecked)
 		if self.show_ln_nr:
-			self.dlg.prd_opt_show_ln_nr.setCheckState(Qt.Checked)
+			self.dlg.prd_opt_show_ln_nr.setCheckState(Qt.CheckState.Checked)
 		else:
-			self.dlg.prd_opt_show_ln_nr.setCheckState(Qt.Unchecked)
+			self.dlg.prd_opt_show_ln_nr.setCheckState(Qt.CheckState.Unchecked)
 		if (self.edit_ext_cmd):
 			self.dlg.prd_edit_ext_inp.setText(self.edit_ext_cmd)
 
@@ -145,14 +145,14 @@ class FilePreferencesDialog(QObject):
 			self.set_btn_text_and_font(self.dlg.prd_font_ev_btn, font)
 			
 	def run_dialog(self):
-		ret = self.dlg.exec_()
-		if (ret == QDialog.Accepted):
+		ret = self.dlg.exec()
+		if (ret == QDialog.DialogCode.Accepted):
 			QApplication.setFont(self.dlg.prd_font_app_btn.font())
 			self.ev_font = self.dlg.prd_font_ev_btn.font()
 			self.edit_ext_cmd = self.dlg.prd_edit_ext_inp.text()
-			self.exit_dontask = self.dlg.prd_opt_ask_chkb.checkState() == Qt.Unchecked
-			self.inner_editing = self.dlg.prd_opt_inner_ed.checkState() == Qt.Checked
-			self.show_ln_nr = self.dlg.prd_opt_show_ln_nr.checkState() == Qt.Checked
+			self.exit_dontask = self.dlg.prd_opt_ask_chkb.checkState() == Qt.CheckState.Unchecked
+			self.inner_editing = self.dlg.prd_opt_inner_ed.checkState() == Qt.CheckState.Checked
+			self.show_ln_nr = self.dlg.prd_opt_show_ln_nr.checkState() == Qt.CheckState.Checked
 		return (self.app_style, self.dlg.prd_font_app_btn.font().toString(), self.edit_ext_cmd, 
 			self.ev_font.toString(), self.exit_dontask, self.inner_editing, self.show_ln_nr)
 
@@ -164,7 +164,7 @@ def show_about_dialog():
 	d = uic.loadUi('ui/about.ui')
 	p = QApplication.windowIcon().pixmap(128)
 	d.ad_logo_lbl.setPixmap(p)
-	d.exec_()
+	d.exec()
 
 def show_goto_line_dialog(line, max_line):
 	d = uic.loadUi('ui/goto_line.ui')
@@ -173,7 +173,7 @@ def show_goto_line_dialog(line, max_line):
 	d.gl_spinbox.setValue(line)
 	d.gl_spinbox.lineEdit().selectAll()
 	d.gl_spinbox.lineEdit().setFocus()
-	if (d.exec_() == QDialog.Accepted):
+	if (d.exec() == QDialog.DialogCode.Accepted):
 		return d.gl_spinbox.value()
 	return None
 
@@ -182,7 +182,7 @@ class FindDialog:
 	def __init__(self):
 		self.dlg = uic.loadUi('ui/find.ui')
 		self.dlg.ft_text_inp.setCompleter(None)
-		self.dlg.ft_text_inp.setInsertPolicy(QComboBox.InsertAtTop)
+		self.dlg.ft_text_inp.setInsertPolicy(QComboBox.InsertPolicy.InsertAtTop)
 		self.dlg.ft_text_inp.setFocus()
 
 	def run_dlg(self, text):
@@ -194,8 +194,8 @@ class FindDialog:
 		d.ft_text_inp.lineEdit().setFocus()
 		d.ft_from_cursor.setChecked(True)
 		while True:
-			ret = d.exec_()
-			if (ret != QDialog.Accepted):
+			ret = d.exec()
+			if (ret != QDialog.DialogCode.Accepted):
 				return None
 			text = d.ft_text_inp.currentText()
 			text = str(text).strip()
@@ -225,8 +225,8 @@ class FilterDialog:
 
 	def run_dialog(self):
 		while True:
-			ret = self.dlg.exec_()
-			if ret != QDialog.Accepted:
+			ret = self.dlg.exec()
+			if ret != QDialog.DialogCode.Accepted:
 				return None
 			is_regex = self.dlg.fd_regex_chkbox.isChecked()
 			text = str(self.dlg.fd_filter_inp.text())

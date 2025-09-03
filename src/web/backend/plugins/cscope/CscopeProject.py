@@ -144,7 +144,7 @@ class CsProcess(PluginProcess):
 		self.name = 'cscope process'
 
 	def parse_result(self, text, sig):
-		text = re.split('\r?\n', text)
+		text = re.split(r'\r?\n', text)
 		if self.cmd_str == 'FIL':
 			res = [ ['', line[0], '', ''] for line in text if line != '' ]
 			return res

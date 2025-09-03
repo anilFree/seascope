@@ -5,10 +5,10 @@
 #
 # License: BSD 
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtSvg import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtSvgWidgets import *
 import os
 import sys
 
@@ -273,4 +273,4 @@ if __name__ == '__main__':
 
 	w = create_page(sym, dname, id_path, None, cmd_args, None)
 
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

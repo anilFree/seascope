@@ -110,7 +110,7 @@ class FFgraph:
 		self.cs_cmd_base = None
 
 	def parse_cs_result(self, text):
-		text = re.split('\r?\n', text)
+		text = re.split(r'\r?\n', text)
 		res = []
 		for line in text:
 			if line == '':

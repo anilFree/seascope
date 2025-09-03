@@ -5,25 +5,25 @@
 #
 # License: BSD 
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 class CallTreeWidgetItem(QTreeWidgetItem):
 	def __init__(self, li):
 		QTreeWidgetItem.__init__(self, li)
 		func = li[0]
 		if (func == "<global>"):
-			self.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
+			self.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.DontShowIndicatorWhenChildless)
 		else:
-			self.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
+			self.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.ShowIndicator)
 		self.is_done = False
 
 	def set_no_children(self):
-		self.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicatorWhenChildless)
+		self.setChildIndicatorPolicy(QTreeWidgetItem.ChildIndicatorPolicy.DontShowIndicatorWhenChildless)
 
 	def column_val(self, col):
-		return str(self.data(col, Qt.DisplayRole))
+		return str(self.data(col, Qt.ItemDataRole.DisplayRole))
 
 	def add_result(self, res):
 		self.is_done = True
@@ -44,7 +44,7 @@ class CallTreeWidgetItem(QTreeWidgetItem):
 		self.treeWidget().resizeColumnToContents(2)
 		self.treeWidget().resizeColumnToContents(3)
 		# hdr
-		#self.treeWidget().header().setDefaultAlignment(Qt.AlignRight)
+		#self.treeWidget().header().setDefaultAlignment(Qt.AlignmentFlag.AlignRight)
 		return ret_val
 
 class CallTreeWidget(QTreeWidget):
@@ -65,7 +65,7 @@ class CallTreeWidget(QTreeWidget):
 		self.setColumnCount(4)
 		self.setHeaderLabels(['Tag', 'File', 'Line', 'Text'])
 
-		self.setSelectionMode(QAbstractItemView.SingleSelection)
+		self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
 		#self.resize(QSize(800, 500))
 		self.setMinimumWidth(800)
 		self.setMinimumHeight(500)
@@ -75,7 +75,7 @@ class CallTreeWidget(QTreeWidget):
 		## set the font
 		self.setFont(QFont("San Serif", 8))
 
-		#self.setTextElideMode(Qt.ElideLeft)
+		#self.setTextElideMode(Qt.TextElideMode.ElideLeft)
 		self.setAllColumnsShowFocus(True)
 
 	def add_root(self, name):
@@ -85,7 +85,7 @@ class CallTreeWidget(QTreeWidget):
 
 	def mousePressEvent(self, m_ev):
 		QTreeWidget.mousePressEvent(self, m_ev)
-		if (m_ev.button() == Qt.RightButton):
+		if (m_ev.button() == Qt.MouseButton.RightButton):
 			self.last_minx = self.indexAt(m_ev.pos())
 
 	def ctree_itemActivated(self, item, col):
@@ -99,8 +99,8 @@ class CallTreeWidget(QTreeWidget):
 	def ctree_itemExpanded(self, item):
 		if (item.is_done):
 			return
-		tag = str(item.data(0, Qt.DisplayRole))
-		if str(item.data(1, Qt.DisplayRole)) == '':
+		tag = str(item.data(0, Qt.ItemDataRole.DisplayRole))
+		if str(item.data(1, Qt.ItemDataRole.DisplayRole)) == '':
 			opt = self.cmd_opt
 		else:
 			opt = None
@@ -117,7 +117,7 @@ class CallTreeWidget(QTreeWidget):
 		rquery['cmd'] = self.cmd_id
 		rquery['req'] = tag
 		rquery['opt'] = opt
-		hfile = str(item.data(1, Qt.DisplayRole))
+		hfile = str(item.data(1, Qt.ItemDataRole.DisplayRole))
 		if hfile == '':
 			hfile = self.hint_file
 		rquery['hint_file'] = hfile

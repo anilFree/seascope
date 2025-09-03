@@ -8,10 +8,10 @@
 import os
 import re
 
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6 import QtWidgets, QtGui
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 from .EdView import *
 
@@ -99,9 +99,9 @@ class EditorBookRW(EditorBook):
 		filename = self.tabText(inx)
 		# Sign modified.
 		if isModifiled:
-			self.tabBar().setTabTextColor(inx, Qt.red)
+			self.tabBar().setTabTextColor(inx, Qt.GlobalColor.red)
 		else:
-			self.tabBar().setTabTextColor(inx, Qt.black)
+			self.tabBar().setTabTextColor(inx, Qt.GlobalColor.black)
 	
 	def close_cb(self, inx):
 		page = self.widget(self.currentIndex())

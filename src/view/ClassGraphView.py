@@ -5,10 +5,10 @@
 #
 # License: BSD 
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtSvg import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtSvgWidgets import *
 import os
 import sys
 
@@ -126,7 +126,9 @@ class ClassGraphWidget(QWidget):
 		scale = 1
 		if sz.width() > 1024:
 			scale = 0.8
-		self.svgw.setMinimumSize(sz.width() * scale, sz.height() * scale)
+		min_w = int(sz.width() * scale)
+		min_h = int(sz.height() * scale)
+		self.svgw.setMinimumSize(min_w, min_h)
 		#self.svgw.setMaximumSize(self.svgw.sizeHint())
 		#print self.scrolla.sizeHint()
 
@@ -271,4 +273,4 @@ if __name__ == '__main__':
 
 	w = create_page(sym, dname, ptype, None, cmd_args, None)
 
-	sys.exit(app.exec_())
+	sys.exit(app.exec())

@@ -12,16 +12,16 @@ import os
 import string
 
 try:
-	from PyQt5 import QtWidgets, QtGui, QtCore
+	from PyQt6 import QtWidgets, QtGui, QtCore
 except ImportError:
-	print('Error: PyQt5 package not found\nError: required packages: PyQt5 and python3-pyqt5.qsci\nError: program aborted.')
+	print('Error: PyQt6 package not found\nError: required packages: PyQt6 and python3-pyqt6.qsci\nError: program aborted.')
 	sys.exit(-1)
 
 try:
-	from PyQt5.QtWidgets import *
-	from PyQt5.QtGui import *
-	from PyQt5.QtCore import *
-	from PyQt5 import uic
+	from PyQt6.QtWidgets import *
+	from PyQt6.QtGui import *
+	from PyQt6.QtCore import *
+	from PyQt6 import uic
 	from view import EdView, EdViewRW, ResView, FileView, CallView, ClassGraphView, FileFuncGraphView
 	from view import DebugView, CodemarkView, CodeContextView
 	from view import ProjectUi
@@ -34,7 +34,7 @@ except ImportError as e:
 	sys.exit(-1)
 
 def msg_box(msg):
-	QMessageBox.warning(None, "Seascope", msg, QMessageBox.Ok)
+	QMessageBox.warning(None, "Seascope", msg, QMessageBox.StandardButton.Ok)
 
 class BackendChooserDialog(QDialog):
 	def __init__(self):
@@ -62,7 +62,7 @@ class BackendChooserDialog(QDialog):
 		bi = [ b.name() for b in blist ]
 		self.backend_lw.addItems(bi)
 		self.backend_lw.setCurrentRow(0)
-		if self.exec_() == QDialog.Accepted:
+		if self.exec() == QDialog.DialogCode.Accepted:
 			bname = str(self.backend_lw.currentItem().text())
 			return bname
 		return None
@@ -112,7 +112,7 @@ class QueryUiHelper:
 			page.setMinimumWidth(800)
 			page.setMinimumHeight(100)
 
-			dlg.exec_()
+			dlg.exec()
 			return
 
 		if (count == 1):
@@ -147,7 +147,7 @@ class QueryDialogUi(QDialog):
 		self.feat = feat
 		self.ui = uic.loadUi('ui/query.ui', self)
 		self.qd_sym_inp.setCompleter(None)
-		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertAtTop)
+		self.qd_sym_inp.setInsertPolicy(QComboBox.InsertPolicy.InsertAtTop)
 
 		self.setWindowTitle(title)
 		self.qd_cmd_inp.addItems(self.feat.cmd_qstrlist)
@@ -165,7 +165,7 @@ class QueryDialogUi(QDialog):
 		self.qd_icase_chkbox.setChecked(False)
 
 		self.show()
-		if self.exec_() == QDialog.Accepted:
+		if self.exec() == QDialog.DialogCode.Accepted:
 			req = str(self.qd_sym_inp.currentText())
 			cmd = str(self.qd_cmd_inp.currentText())
 			cmd_str = self.feat.cmd_qstr2str[cmd]
@@ -344,7 +344,7 @@ class QueryUi(QObject):
 		dlg.setMinimum(0)
 		dlg.setMaximum(0)
 		sig_rebuild.connect(dlg.accept)
-		while dlg.exec_() != QDialog.Accepted:
+		while dlg.exec() != QDialog.DialogCode.Accepted:
 			pass
 		self.query_file_list()
 
@@ -494,36 +494,36 @@ class SeascopeApp(QMainWindow):
 
 		m_file = menubar.addMenu('&File')
 		m_file.addAction('&Preferences', self.file_preferences_cb)
-		m_file.addAction('&Debug', self.show_dbg_dialog, 'Ctrl+D')
+		m_file.addAction('&Debug', 'Ctrl+D', self.show_dbg_dialog)
 		m_file.addSeparator()
 		if self.inner_editing:
 			m_file.addAction('&Save', self.edit_book.save_current_page, 'Ctrl+S')
-		m_file.addAction('&Close', self.file_close_cb, 'Ctrl+W')
+		m_file.addAction('&Close', 'Ctrl+W', self.file_close_cb)
 		m_file.addSeparator()
-		m_file.addAction('&Restart', self.file_restart_cb, 'Ctrl+R')
-		m_file.addAction('&Quit', self.close, 'Ctrl+Q')
+		m_file.addAction('&Restart', 'Ctrl+R', self.file_restart_cb)
+		m_file.addAction('&Quit', 'Ctrl+Q', self.close)
 
 		m_edit = menubar.addMenu('&Edit')
 		
 		if self.inner_editing:
-			m_edit.addAction('Undo', self.edit_book.undo_edit_cb, 'Ctrl+Z')
-			m_edit.addAction('Rebo', self.edit_book.redo_edit_cb, 'Ctrl+Y')
+			m_edit.addAction('Undo', 'Ctrl+Z', self.edit_book.undo_edit_cb)
+			m_edit.addAction('Rebo', 'Ctrl+Y', self.edit_book.redo_edit_cb)
 			m_edit.addSeparator()
-		m_edit.addAction('Copy', self.edit_book.copy_edit_cb, 'Ctrl+C')
+		m_edit.addAction('Copy', 'Ctrl+C', self.edit_book.copy_edit_cb)
 		if self.inner_editing:
-			m_edit.addAction('Paste', self.edit_book.paste_edit_cb, 'Ctrl+V')
-			m_edit.addAction('Cut', self.edit_book.cut_edit_cb, 'Ctrl+X')
+			m_edit.addAction('Paste', 'Ctrl+V', self.edit_book.paste_edit_cb)
+			m_edit.addAction('Cut', 'Ctrl+X', self.edit_book.cut_edit_cb)
 		m_edit.addSeparator()	
 
-		m_edit.addAction('&Find...', self.edit_book.find_cb, 'Ctrl+F')
-		m_edit.addAction('Find &Next', self.edit_book.find_next_cb, 'F3')
-		m_edit.addAction('Find &Previous', self.edit_book.find_prev_cb, 'Shift+F3')
+		m_edit.addAction('&Find...', 'Ctrl+F', self.edit_book.find_cb)
+		m_edit.addAction('Find &Next', 'F3', self.edit_book.find_next_cb)
+		m_edit.addAction('Find &Previous', 'Shift+F3', self.edit_book.find_prev_cb)
 
 		m_edit.addSeparator()
-		self.edit_book.m_show_line_num = m_edit.addAction('Show line number', self.edit_book.show_line_number_cb, 'F11')
+		self.edit_book.m_show_line_num = m_edit.addAction('Show line number', 'F11', self.edit_book.show_line_number_cb)
 		self.edit_book.m_show_line_num.setCheckable(True)
 		self.edit_book.m_show_line_num.setChecked(True)
-		self.show_toolbar = m_edit.addAction('Show toolbar', self.show_toolbar_cb, 'F4')
+		self.show_toolbar = m_edit.addAction('Show toolbar', 'F4', self.show_toolbar_cb)
 		self.show_toolbar.setCheckable(True)
 
 		m_edit.addSeparator()
@@ -532,10 +532,10 @@ class SeascopeApp(QMainWindow):
 		self.toggle_folds = m_edit.addAction('Toggle folds', self.edit_book.toggle_folds_cb)
 		
 		m_edit.addSeparator()
-		m_edit.addAction('Refresh file', self.edit_book.refresh_file_cb, 'F5')
-		m_edit.addAction('Matching brace', self.edit_book.matching_brace_cb, 'Ctrl+6')
-		m_edit.addAction('Goto line', self.edit_book.goto_line_cb, 'Ctrl+G')
-		m_edit.addAction('External editor', self.external_editor_cb, 'Ctrl+E');
+		m_edit.addAction('Refresh file', 'F5', self.edit_book.refresh_file_cb)
+		m_edit.addAction('Matching brace', 'Ctrl+6', self.edit_book.matching_brace_cb)
+		m_edit.addAction('Goto line', 'Ctrl+G', self.edit_book.goto_line_cb)
+		m_edit.addAction('External editor', 'Ctrl+E', self.external_editor_cb);
 
 		m_prj = menubar.addMenu('&Project')
 		m_prj.addAction('&New Project', self.proj_new_cb)
@@ -552,24 +552,24 @@ class SeascopeApp(QMainWindow):
 		self.backend_menu = menubar.addMenu('')
 
 		self.m_cm = menubar.addMenu('&Codemark')
-		self.m_cm.addAction('Toggle codemark', self.codemark_toggle_cb, 'Ctrl+B')
-		self.m_cm.addAction('Delete all codemarks', self.codemark_del_all_cb, '')
+		self.m_cm.addAction('Toggle codemark', 'Ctrl+B', self.codemark_toggle_cb)
+		self.m_cm.addAction('Delete all codemarks', '', self.codemark_del_all_cb)
 		self.m_cm.addSeparator()
-		self.m_cm.addAction('Previous bookmark', self.edit_book.bookmark_prev_cb, 'Alt+PgUp')
-		self.m_cm.addAction('Next bookmark', self.edit_book.bookmark_next_cb, 'Alt+PgDown')
+		self.m_cm.addAction('Previous bookmark', 'Alt+PgUp', self.edit_book.bookmark_prev_cb)
+		self.m_cm.addAction('Next bookmark', 'Alt+PgDown', self.edit_book.bookmark_next_cb)
 		self.m_cm.addSeparator()
 		self.cm_actionGroup = QActionGroup(self, triggered=self.codemark_go)
 
 		m_go = menubar.addMenu('&Go')
-		m_go.addAction('Previous Result', self.go_prev_res_cb, 'Alt+Up')
-		m_go.addAction('Next Result', self.go_next_res_cb, 'Alt+Down')
+		m_go.addAction('Previous Result', 'Alt+Up', self.go_prev_res_cb)
+		m_go.addAction('Next Result', 'Alt+Down', self.go_next_res_cb)
 		m_go.addSeparator()
-		m_go.addAction('Previous Position', self.go_prev_pos_cb, 'Alt+Left')
-		m_go.addAction('Next Position', self.go_next_pos_cb, 'Alt+Right')
-		m_go.addAction('Position History', self.go_pos_history_cb, 'Ctrl+H')
+		m_go.addAction('Previous Position', 'Alt+Left', self.go_prev_pos_cb)
+		m_go.addAction('Next Position', 'Alt+Right', self.go_next_pos_cb)
+		m_go.addAction('Position History', 'Ctrl+H', self.go_pos_history_cb)
 		m_go.addSeparator()
-		m_go.addAction('Search file list', self.go_search_file_list_cb, 'Ctrl+Shift+O')
-		m_go.addAction('Search ctags', self.go_search_ctags_cb, 'Ctrl+Shift+T')
+		m_go.addAction('Search file list', 'Ctrl+Shift+O', self.go_search_file_list_cb)
+		m_go.addAction('Search ctags', 'Ctrl+Shift+T', self.go_search_ctags_cb)
 		
 		m_help = menubar.addMenu('&Help')
 		m_help.addAction('About Seascope', self.help_about_cb)
@@ -578,7 +578,7 @@ class SeascopeApp(QMainWindow):
 	def create_toolbar(self):
 		self.toolbar = self.addToolBar('Toolbar')
 		self.toolbar.setIconSize(QSize(16,16))
-		self.toolbar.setToolButtonStyle(Qt.ToolButtonIconOnly)
+		self.toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
 
 		si = QApplication.style().standardIcon
 		#(QStyle.SP_DirClosedIcon)
@@ -960,7 +960,7 @@ class SeascopeApp(QMainWindow):
 		self.hsp.setSizes([700, 1])
 
 		self.vsp = QSplitter();
-		self.vsp.setOrientation(Qt.Vertical)
+		self.vsp.setOrientation(Qt.Orientation.Vertical)
 		self.vsp.addWidget(self.hsp)
 		self.vsp.addWidget(self.res_book)
 		self.hsp_res = QSplitter();
@@ -1084,5 +1084,5 @@ if __name__ == "__main__":
 	app = QApplication(sys.argv)
 	ma = SeascopeApp(app_start_dir=app_start_dir)
 	ma.show()
-	ret = app.exec_()
+	ret = app.exec()
 	sys.exit(ret)

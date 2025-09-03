@@ -18,7 +18,7 @@ from datetime import datetime
 		#proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		#(out_data, err_data) = proc.communicate()
 		#out_data = out_data.decode()
-		#res = re.split('\r?\n', out_data)
+		#res = re.split(r'\r?\n', out_data)
 		# res = out_data
 		#res = [ line.split(None, 1) for line in res if line != '' ]
 		#d = {}
@@ -139,7 +139,7 @@ class CtagsThread:
 			proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 			(out_data, err_data) = proc.communicate('\n'.join(fl).encode())
 			out_data = out_data.decode()
-			out_data = re.split('\r?\n', out_data)
+			out_data = re.split(r'\r?\n', out_data)
 			out_data_all += out_data
 		return out_data_all
 
@@ -152,7 +152,7 @@ class CtagsThread:
 		proc = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 		(out_data, err_data) = proc.communicate('\n'.join(self.file_list).encode())
 		out_data = out_data.decode()
-		out_data = re.split('\r?\n', out_data)
+		out_data = re.split(r'\r?\n', out_data)
 		out_data += self.runCtagsCustom(self.file_list)
 
 		for line in out_data:
@@ -215,7 +215,7 @@ class CtagsThread:
 		req = sig.sym
 		out_res = []
 		if self.cmd_str == 'DEF':
-			import_re = re.compile('^\s*import\s+')
+			import_re = re.compile(r'^\s*import\s+')
 			for line in res:
 				reqPat = req + '$'
 				if not re.match(reqPat, line[0]):
@@ -225,12 +225,12 @@ class CtagsThread:
 				out_res.append(line)
 			return out_res
 		if self.cmd_str == '-->':
-			call_re = re.compile('\\b%s\\b\s*\(' % req)
-			extern_re = re.compile('^\s*extern\s+')
-			reactor_re = re.compile('\\b(\w+::)*(\w+)\s*=>.*\\b%s\\b' % req)
-			comment_re = re.compile('^\s*(\*\s|/\*|\*/|//\s|# )')
-			func_ptr_re = re.compile('\\b(\w+)\s*(=|:)\s*%s\s*[,;:)]' % req)
-			func_as_arg_re = re.compile('(^\s*|[(,]\s*)(\w+(\.|->))*%s\s*[,)]' % req);
+			call_re = re.compile(r'\\b%s\\b\s*\(' % req)
+			extern_re = re.compile(r'^\s*extern\s+')
+			reactor_re = re.compile(r'\\b(\w+::)*(\w+)\s*=>.*\\b%s\\b' % req)
+			comment_re = re.compile(r'^\s*(\*\s|/\*|\*/|//\s|# )')
+			func_ptr_re = re.compile(r'\\b(\w+)\s*(=|:)\s*%s\s*[,;:)]' % req)
+			func_as_arg_re = re.compile(r'(^\s*|[(,]\s*)(\w+(\.|->))*%s\s*[,)]' % req);
 			def _check_line():
 				if line[1].endswith('.tac'):
 					if '=>' in line[3]:
@@ -240,7 +240,7 @@ class CtagsThread:
 							return True
 					# fallthru
 				if line[0] == req:
-					if not re.search('(\.|->)%s\\b' % req, line[3]):
+					if not re.search(r'(\.|->)%s\\b' % req, line[3]):
 						return False
 					return True
 				if call_re.search(line[3]):
@@ -266,7 +266,7 @@ class CtagsThread:
 		if self.cmd_str == '<--':
 			return res
 		if self.cmd_str == 'INC':
-			inc_re = re.compile('^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % req)
+			inc_re = re.compile(r'^\s*(#\s*include|(from\s+[^\s]+\s+)?import)\s+.*%s.*' % req)
 			for line in res:
 				if not inc_re.search(line[3]):
 					continue
@@ -305,7 +305,7 @@ def flush_ct_cache():
     #print len(ct_cache)
     #print "Drop 25 percent: %s -> %s" % (len(ct_cache), n);
     new_ct_cache = {}
-    for k in random.sample(ct_cache, n):
+    for k in random.sample(sorted(ct_cache), n):
         new_ct_cache[k] = ct_cache[k]
     ct_cache = new_ct_cache
     gc.collect()

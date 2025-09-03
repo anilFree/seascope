@@ -9,19 +9,19 @@ import os
 import re
 import array
 
-from PyQt5 import QtWidgets, QtGui
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6 import QtWidgets, QtGui
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 try:
-	from PyQt5.Qsci import QsciScintilla, QsciScintillaBase
-	from PyQt5.Qsci import QsciLexerCPP, QsciLexerJava
-	from PyQt5.Qsci import QsciLexerPython, QsciLexerRuby
-	from PyQt5.Qsci import QsciLexerBash, QsciLexerDiff, QsciLexerMakefile
-	from PyQt5.Qsci import QsciLexerLua, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX
-	from PyQt5.Qsci import QsciLexerHTML, QsciLexerCSS
-	from PyQt5.Qsci import QsciLexerPerl, QsciLexerVHDL
+	from PyQt6.Qsci import QsciScintilla, QsciScintillaBase
+	from PyQt6.Qsci import QsciLexerCPP, QsciLexerJava
+	from PyQt6.Qsci import QsciLexerPython, QsciLexerRuby
+	from PyQt6.Qsci import QsciLexerBash, QsciLexerDiff, QsciLexerMakefile
+	from PyQt6.Qsci import QsciLexerLua, QsciLexerSQL, QsciLexerTCL, QsciLexerTeX
+	from PyQt6.Qsci import QsciLexerHTML, QsciLexerCSS
+	from PyQt6.Qsci import QsciLexerPerl, QsciLexerVHDL
 
 	suffix_to_lexer = [
 		[['c', 'h', 'cpp', 'hpp', 'cc', 'hh', 'cxx', 'hxx', 'C', 'H', 'h++'], QsciLexerCPP],
@@ -52,7 +52,7 @@ try:
 
 except ImportError as e:
 	print(e)
-	print("Error: required python3-pyqt5.qsci package not found")
+	print("Error: required python3-pyqt6.qsci package not found")
 	raise ImportError
 
 import DialogManager
@@ -150,9 +150,9 @@ class EditorView(EditorViewBase):
 		self.setCaretLineBackgroundColor(QtGui.QColor("#d4feff")) # orig: EEF6FF
 		#self.setCaretWidth(2)
 
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
-		self.codemark_marker = self.markerDefine(self.Circle)
+		self.codemark_marker = self.markerDefine(self.MarkerSymbol.Circle)
 
 	def get_filename(self):
 		return self.filename
@@ -181,7 +181,7 @@ class EditorView(EditorViewBase):
 
 	def show_line_number_cb(self, val):
 		if (val):
-			width = self.fm.width( "00000" ) + 5
+			width = self.fm.horizontalAdvance( "00000" ) + 5
 		else:
 			width = 0
 
@@ -194,9 +194,9 @@ class EditorView(EditorViewBase):
 			#self.setMarginsBackgroundColor( QtGui.QColor("#888888") )
 
 			## Folding visual : we will use circled tree fold
-			self.setFolding(QsciScintilla.CircledTreeFoldStyle)
+			self.setFolding(QsciScintilla.FoldStyle.CircledTreeFoldStyle)
 		else:
-			self.setFolding(QsciScintilla.NoFoldStyle)
+			self.setFolding(QsciScintilla.FoldStyle.NoFoldStyle)
 			self.clearFolds()
 
 	def toggle_folds_cb(self):
@@ -225,15 +225,15 @@ class EditorView(EditorViewBase):
 		self.set_lexer(filename)
 
 		## Braces matching
-		self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+		self.setBraceMatching(QsciScintilla.BraceMatch.SloppyBraceMatch)
 
 		## Render on screen
 		self.show()
 
 	def open_file_end(self):
 		self.show()
-		self.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-		#self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+		self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+		#self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 		self.setFocus()
 
 	def open_file(self, filename):
@@ -266,7 +266,7 @@ class EditorView(EditorViewBase):
 			return
 		f = EditorView.ev_popup.font()
 		EditorView.ev_popup.setFont(QFont("San Serif", 8))
-		EditorView.ev_popup.exec_(QCursor.pos())
+		EditorView.ev_popup.exec(QCursor.pos())
 		EditorView.ev_popup.setFont(f)
 		
 	def mouseReleaseEvent(self, ev):
@@ -479,7 +479,7 @@ class EditorBook(QTabWidget):
 
 	def mousePressEvent(self, m_ev):
 		QTabWidget.mousePressEvent(self, m_ev)
-		if (m_ev.button() == Qt.RightButton):
+		if (m_ev.button() == Qt.MouseButton.RightButton):
 			# setup popup menu
 			self.pmenu = QMenu()
 			self.pmenu.addAction("Open dir", self.open_dir_cb)
@@ -489,7 +489,7 @@ class EditorBook(QTabWidget):
 			self.pmenu.addAction("Close &Others", self.close_all_other_cb)
 			self.pmenu.addSeparator()
 			self.pmenu.addAction("Close &All", self.close_all_cb)
-			self.pmenu.exec_(QCursor.pos())
+			self.pmenu.exec(QCursor.pos())
 
 	def show_file_line(self, filename, line, hist=True):
 		if line:

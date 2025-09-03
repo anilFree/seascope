@@ -5,9 +5,9 @@
 #
 # License: BSD 
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 
 from . import filecontext
 
@@ -17,7 +17,7 @@ class FileContextView(QTabWidget):
 
 	def __init__(self, parent=None):
 		QTabWidget.__init__(self)
-		self.setTabPosition(QTabWidget.South)
+		self.setTabPosition(QTabWidget.TabPosition.South)
 
 	def add_page(self, page, title):
 		page.sig_goto_line.connect(self.sig_goto_line)
@@ -76,7 +76,7 @@ class FileContextView(QTabWidget):
 		cmd_list = self.get_plugin_cmd_list()
 		if len(cmd_list) == 0:
 			return
-		if (m_ev.button() == Qt.RightButton):
+		if (m_ev.button() == Qt.MouseButton.RightButton):
 			# setup popup menu
 			pmenu = QMenu()
 			pmenu.triggered.connect(self.menu_act_triggered_cb)
@@ -84,5 +84,5 @@ class FileContextView(QTabWidget):
 				act = pmenu.addAction(cmd_name)
 				act.plugin = p
 				act.cmd_name = cmd_name
-			pmenu.exec_(QCursor.pos())
+			pmenu.exec(QCursor.pos())
 			pmenu = None
