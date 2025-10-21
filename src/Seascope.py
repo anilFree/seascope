@@ -581,16 +581,16 @@ class SeascopeApp(QMainWindow):
 		self.toolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
 
 		si = QApplication.style().standardIcon
-		#(QStyle.SP_DirClosedIcon)
+		#(QStyle.StandardPixmap.SP_DirClosedIcon)
 
 		# exit
-		self.toolbar.addAction(si(QStyle.SP_TitleBarCloseButton), 'Quit', self.close)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_TitleBarCloseButton), 'Quit', self.close)
 
 		# edit related
 		# if need editing support
 		if self.inner_editing:
 			self.toolbar.addSeparator()
-			self.toolbar.addAction(si(QStyle.SP_DialogSaveButton), 'Save', self.edit_book.save_current_page)
+			self.toolbar.addAction(si(QStyle.StandardPixmap.SP_DialogSaveButton), 'Save', self.edit_book.save_current_page)
 			self.toolbar.addSeparator()
 			self.toolbar.addAction(QIcon('icons/undo.png'), 'Undo', self.edit_book.undo_edit_cb)
 			self.toolbar.addAction(QIcon('icons/redo.png'), 'Redo', self.edit_book.redo_edit_cb)
@@ -603,23 +603,23 @@ class SeascopeApp(QMainWindow):
 
 		# find 
 		self.toolbar.addSeparator()
-		self.toolbar.addAction(si(QStyle.SP_FileDialogContentsView), 'Find', self.edit_book.find_cb)
-		self.toolbar.addAction(si(QStyle.SP_ArrowDown), 'Find Next', self.edit_book.find_next_cb)
-		self.toolbar.addAction(si(QStyle.SP_ArrowUp), 'Find Previous', self.edit_book.find_prev_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_FileDialogContentsView), 'Find', self.edit_book.find_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_ArrowDown), 'Find Next', self.edit_book.find_next_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_ArrowUp), 'Find Previous', self.edit_book.find_prev_cb)
 		self.toolbar.addSeparator()
 		# goto
 		self.toolbar.addAction(QIcon('icons/go-jump.png'), 'Go to line', self.edit_book.goto_line_cb)
 		self.toolbar.addSeparator()
 
 		# code view
-		self.toolbar.addAction(si(QStyle.SP_FileDialogListView), 'Search ctags', self.go_search_ctags_cb)
-		self.toolbar.addAction(si(QStyle.SP_FileDialogDetailedView), 'Search file list', self.go_search_file_list_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_FileDialogListView), 'Search ctags', self.go_search_ctags_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_FileDialogDetailedView), 'Search file list', self.go_search_file_list_cb)
 		self.toolbar.addSeparator()
-		self.toolbar.addAction(si(QStyle.SP_MediaSeekBackward), 'Previous Result', self.go_prev_res_cb)
-		self.toolbar.addAction(si(QStyle.SP_MediaSeekForward), 'Next Result', self.go_next_res_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_MediaSeekBackward), 'Previous Result', self.go_prev_res_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_MediaSeekForward), 'Next Result', self.go_next_res_cb)
 		self.toolbar.addSeparator()
-		self.toolbar.addAction(si(QStyle.SP_MediaSkipBackward), 'Previous Position', self.go_prev_pos_cb)
-		self.toolbar.addAction(si(QStyle.SP_MediaSkipForward), 'Next Position', self.go_next_pos_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_MediaSkipBackward), 'Previous Position', self.go_prev_pos_cb)
+		self.toolbar.addAction(si(QStyle.StandardPixmap.SP_MediaSkipForward), 'Next Position', self.go_next_pos_cb)
 		self.toolbar.addSeparator()
 		self.code_ctx_view_act = self.toolbar.addAction(QIcon('icons/codeview.png'), 'Code Quick View', self.code_ctx_view_act_cb)
 		self.code_ctx_view_act.setCheckable(True)

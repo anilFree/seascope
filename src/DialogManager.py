@@ -55,7 +55,7 @@ class ProjectOpenDialog(QObject):
 
 	def open_btn_cb(self):
 		fdlg = QFileDialog(None, "Choose project directory")
-		fdlg.setFileMode(QFileDialog.Directory);
+		fdlg.setFileMode(QFileDialog.FileMode.Directory);
 		fdlg.setDirectory(self.dlg.pod_proj_name.text())
 		if (fdlg.exec()):
 			proj_dir = fdlg.selectedFiles()[0];
