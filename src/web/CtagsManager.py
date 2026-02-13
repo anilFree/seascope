@@ -42,8 +42,8 @@ def ct_query(filename):
 	try:
 		proc = subprocess.Popen(args, stdout=subprocess.PIPE)
 		(out_data, err_data) = _eintr_retry_call(proc.communicate)
-		err_data = err_data.decode()
-		out_data = out_data.split('\n')
+		err_data = err_data.decode() if err_data else ''
+		out_data = out_data.decode().split('\n')
 	except Exception as e:
 		out_data =  [
 				'Failed to run ctags cmd\tignore\t0;\t ',

@@ -44,7 +44,7 @@ class CscopeProjectSettingsDialog(QDialog):
 
 	def path_open_cb(self):
 		fdlg = QFileDialog(None, "Choose directory")
-		fdlg.setFileMode(QFileDialog.Directory);
+		fdlg.setFileMode(QFileDialog.FileMode.Directory);
 		fdlg.setDirectory(self.pd_path_inp.text())
 		if (fdlg.exec()):
 			path_dir = fdlg.selectedFiles()[0];
@@ -52,7 +52,7 @@ class CscopeProjectSettingsDialog(QDialog):
 
 	def src_add_cb(self):
 		fdlg = QFileDialog(None, "Choose directory")
-		fdlg.setFileMode(QFileDialog.Directory);
+		fdlg.setFileMode(QFileDialog.FileMode.Directory);
 		fdlg.setDirectory(self.pd_path_inp.text())
 		if (fdlg.exec()):
 			d = fdlg.selectedFiles()[0];

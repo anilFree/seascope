@@ -27,7 +27,7 @@ class ProjectSettingsDialog(QDialog):
 			self.exec()
 			return None
 		fdlg = QFileDialog(None, "Choose source code directory")
-		fdlg.setFileMode(QFileDialog.Directory);
+		fdlg.setFileMode(QFileDialog.FileMode.Directory);
 		#fdlg.setDirectory(self.pd_path_inp.text())
 		if fdlg.exec():
 			d = fdlg.selectedFiles()[0];

@@ -15,9 +15,9 @@ YUI().use("panel", function (Y) {
                             '<object height="100" width="100" data="images/seascope.svg" type="image/svg+xml"></object>' +
                         '</td>' +
                         '<td>' +
-                            '<strong> Seascope 0.9+ </strong>' +
+                            '<strong> Seascope 1.0 </strong>' +
                             '<p> A graphical user interface for idutils, cscope and gtags. </p>' +
-                            '<p> Copyright 2010-2025 Anil Kumar </p>' +
+                            '<p> Copyright 2010-2026 Anil Kumar </p>' +
                             '<p><a href="https://github.com/anilFree/seascope"  target="_blank">https://github.com/anilFree/seascope</a></p>' +
                         '</td>' +
                     '</tr>' +

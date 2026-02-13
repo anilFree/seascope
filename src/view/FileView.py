@@ -116,7 +116,7 @@ class DirTab(QWidget):
 
 	def change_btn_cb(self):
 		fdlg = QFileDialog(None, "Choose directory to browse")
-		fdlg.setFileMode(QFileDialog.Directory)
+		fdlg.setFileMode(QFileDialog.FileMode.Directory)
 		fdlg.setOptions(QFileDialog.ShowDirsOnly) # and QFileDialog.HideNameFilterDetails)
 		fdlg.setDirectory(self.ted.text())
 		if (fdlg.exec()):
